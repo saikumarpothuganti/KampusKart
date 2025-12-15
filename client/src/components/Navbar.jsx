@@ -49,13 +49,10 @@ const Navbar = () => {
       <div className="backdrop-blur-xl bg-[rgba(15,17,22,0.75)] border-b border-[rgba(255,255,255,0.08)] shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
         <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full overflow-hidden border border-[rgba(5,150,105,0.3)] shadow-lg bg-[#0f1116] flex items-center justify-center" style={{ boxShadow: '0 0 15px rgba(5,150,105,0.4), 0 0 30px rgba(5,150,105,0.2)' }}>
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#059669] shadow-lg bg-[#0f1116] flex items-center justify-center" style={{ boxShadow: '0 0 20px rgba(5,150,105,0.6), inset 0 0 10px rgba(5,150,105,0.2)' }}>
               <img src={logo} alt="KampusKart" className="max-w-full max-h-full object-contain" />
             </div>
-            <div className="leading-tight">
-              <p className="text-[#e5e7eb] text-lg font-semibold">KampusKart</p>
-              <p className="text-[11px] text-[#059669]">Print • Track • Deliver</p>
-            </div>
+            <p className="text-[#e5e7eb] text-lg font-semibold">KampusKart</p>
           </Link>
 
           <div className="hidden md:flex items-center gap-6 text-sm">
