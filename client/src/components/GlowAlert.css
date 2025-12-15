@@ -1,0 +1,123 @@
+.glow-alert-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+.glow-alert-backdrop {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(10px);
+}
+
+.glow-alert-card {
+  position: relative;
+  background: #000;
+  border: 3px solid var(--glow-color, #00ff9d);
+  color: var(--glow-text-color, #00ff9d);
+  border-radius: 12px;
+  padding: 24px 24px 20px;
+  width: min(420px, 90vw);
+  box-shadow: 0 0 18px var(--glow-shadow-1, rgba(0, 255, 157, 0.45)), 0 0 36px var(--glow-shadow-2, rgba(0, 255, 157, 0.25));
+  animation: glow-pulse 2s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.glow-alert-card {
+  --glow-color: #00ff9d;
+  --glow-color-strong: rgba(0, 255, 157, 0.7);
+  --glow-color-stronger: rgba(0, 255, 157, 0.9);
+  --glow-shadow-1: rgba(0, 255, 157, 0.45);
+  --glow-shadow-2: rgba(0, 255, 157, 0.25);
+  --glow-text-color: #00ff9d;
+  --glow-button-bg: #000;
+}
+
+.glow-alert-card[data-variant="error"] {
+  --glow-color: #ff4d4f;
+  --glow-color-strong: rgba(255, 77, 79, 0.8);
+  --glow-color-stronger: rgba(255, 77, 79, 0.95);
+  --glow-shadow-1: rgba(255, 77, 79, 0.55);
+  --glow-shadow-2: rgba(255, 77, 79, 0.3);
+  --glow-text-color: #fff;
+  --glow-button-bg: rgba(255, 77, 79, 0.08);
+}
+
+.glow-alert-bar {
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 6px;
+  background: var(--glow-color, #00ff9d);
+  box-shadow: 0 0 12px var(--glow-color-strong, rgba(0, 255, 157, 0.7)), 0 0 24px var(--glow-shadow-1, rgba(0, 255, 157, 0.4));
+}
+
+.glow-alert-body {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.glow-alert-message {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.glow-alert-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.glow-alert-actions--two {
+  justify-content: space-between;
+}
+
+.glow-alert-button {
+  justify-self: center;
+  padding: 10px 24px;
+  border: 2px solid var(--glow-color, #00ff9d);
+  border-radius: 999px;
+  background: var(--glow-button-bg, #000);
+  color: var(--glow-text-color, #00ff9d);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: 0 0 10px var(--glow-shadow-1, rgba(0, 255, 157, 0.6));
+}
+
+.glow-alert-button.ghost {
+  background: transparent;
+  color: var(--glow-text-color, #00ff9d);
+  box-shadow: 0 0 8px var(--glow-shadow-2, rgba(0, 255, 157, 0.35));
+}
+
+.glow-alert-button:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 16px var(--glow-color-stronger, rgba(0, 255, 157, 0.9)), 0 0 28px var(--glow-shadow-1, rgba(0, 255, 157, 0.5));
+  background: var(--glow-button-bg, rgba(0, 255, 157, 0.08));
+}
+
+.glow-alert-button:active {
+  transform: translateY(0);
+}
+
+@keyframes glow-pulse {
+  0% {
+    box-shadow: 0 0 12px var(--glow-shadow-2, rgba(0, 255, 157, 0.35)), 0 0 28px var(--glow-shadow-2, rgba(0, 255, 157, 0.15));
+  }
+  50% {
+    box-shadow: 0 0 20px var(--glow-shadow-1, rgba(0, 255, 157, 0.55)), 0 0 40px var(--glow-color-strong, rgba(0, 255, 157, 0.25));
+  }
+  100% {
+    box-shadow: 0 0 12px var(--glow-shadow-2, rgba(0, 255, 157, 0.35)), 0 0 28px var(--glow-shadow-2, rgba(0, 255, 157, 0.15));
+  }
+}
