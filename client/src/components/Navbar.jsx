@@ -52,7 +52,12 @@ const Navbar = () => {
             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#059669] shadow-lg bg-[#0f1116] flex items-center justify-center" style={{ boxShadow: '0 0 20px rgba(5,150,105,0.6), inset 0 0 10px rgba(5,150,105,0.2)' }}>
               <img src={logo} alt="KampusKart" className="max-w-full max-h-full object-contain" />
             </div>
-            <p className="text-[#e5e7eb] text-lg font-semibold">KampusKart</p>
+            <div className="leading-tight">
+              <p className="text-[#e5e7eb] text-lg font-semibold">KampusKart</p>
+              <p className="text-[11px] text-[#10b981]" style={{ textShadow: '0 0 8px rgba(16,185,129,0.7), 0 0 14px rgba(16,185,129,0.4)' }}>
+                Price • Track • Deliver
+              </p>
+            </div>
           </Link>
 
           <div className="hidden md:flex items-center gap-6 text-sm">
