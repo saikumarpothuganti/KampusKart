@@ -1,4 +1,5 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -83,6 +84,11 @@ app.use((err, req, res, next) => {
 const HOST = process.env.HOST || '0.0.0.0';
 const PORT = process.env.PORT || 5000;
 
+// Startup checks
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.warn('[Security] JWT_SECRET is missing or too short. Set a strong value in server/.env');
+}
+
 // Socket.io connection
 io.on('connection', (socket) => {
   console.log('[Socket.io] Client connected:', socket.id);
@@ -122,4 +128,7 @@ httpServer.listen(PORT, HOST, () => {
   console.log(`[Server] Running on ${HOST}:${PORT}`);
   console.log(`[Environment] NODE_ENV=${process.env.NODE_ENV || 'development'}`);
   console.log(`[CORS] Allowed origins: ${allowedOrigins.join(', ')}`);
+  if (process.env.JWT_SECRET) {
+    console.log('[Security] JWT_SECRET loaded (length:', process.env.JWT_SECRET.length, ')');
+  }
 });

@@ -32,7 +32,7 @@ export const signup = async (req, res) => {
 
     const token = jwt.sign(
       { id: newUser._id, userId: newUser.userId, email: newUser.email, isAdmin: newUser.isAdmin },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -78,7 +78,7 @@ export const signin = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, userId: user.userId, email: user.email, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 

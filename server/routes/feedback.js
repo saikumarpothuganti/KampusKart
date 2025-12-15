@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (token) {
       try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         userId = decoded.id;
         console.log('Feedback from authenticated user:', userId);
       } catch (err) {

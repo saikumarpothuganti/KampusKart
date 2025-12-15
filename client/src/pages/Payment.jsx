@@ -144,6 +144,10 @@ const Payment = () => {
                 <img src={QRCode} alt="Payment QR Code" className="w-full h-full object-contain" />
               </div>
             </div>
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-sm text-black mb-2">Contact us for faster order confirmation:</p>
+              <ContactLinks />
+            </div>
           </div>
 
           <div className="mb-6 border-b pb-6">
