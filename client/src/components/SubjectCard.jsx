@@ -20,6 +20,8 @@ const SubjectCard = ({ subject, onAddToCart }) => {
     setSides(1);
   };
 
+  const available = subject.availability !== false;
+
   return (
     <div className="bg-[#1f1f1f] rounded-2xl shadow-md p-4 pb-6 h-[440px] flex flex-col transition-transform duration-150 ease-out hover:scale-[1.02] hover:shadow-lg card-glow-border">
       <img
@@ -31,7 +33,12 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       <div className="flex-1 space-y-4">
         <h3 className="text-lg font-semibold mb-2 text-white">{subject.title}</h3>
         <p className="text-sm mb-2 text-gray-300">Code: {subject.code}</p>
-        <p className="text-primary font-bold text-base mb-3">₹{subject.price}</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-primary font-bold text-base">₹{subject.price}</p>
+          <span className={`text-xs px-2 py-1 rounded-full font-semibold ${available ? 'bg-emerald-500/20 text-emerald-300' : 'bg-gray-600 text-gray-200'}`}>
+            {available ? 'Available' : 'Unavailable'}
+          </span>
+        </div>
 
         <div>
           <label className="block text-xs font-medium mb-2 text-white">Sides</label>
@@ -67,9 +74,10 @@ const SubjectCard = ({ subject, onAddToCart }) => {
 
       <button
         onClick={handleAddToCart}
-        className="mt-auto mt-4 mb-3 w-full bg-primary text-white text-sm py-1.5 rounded-md font-semibold hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        disabled={!available}
+        className="mt-auto mt-4 mb-3 w-full bg-primary text-white text-sm py-1.5 rounded-md font-semibold hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Add to Cart
+        {available ? 'Add to Cart' : 'Unavailable'}
       </button>
     </div>
   );

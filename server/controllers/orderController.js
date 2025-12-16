@@ -248,6 +248,36 @@ export const setCustomPDFPrice = async (req, res) => {
   }
 };
 
+export const updateDeliveryDays = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { orderId } = req.params;
+    const { deliveryDays } = req.body;
+
+    const parsed = parseInt(deliveryDays, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
+      return res.status(400).json({ error: 'deliveryDays must be a positive number' });
+    }
+
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      { deliveryDays: parsed },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const acceptRequest = async (req, res) => {
   try {
     const { orderId } = req.params;

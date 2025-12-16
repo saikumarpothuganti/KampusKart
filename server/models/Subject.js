@@ -22,6 +22,10 @@ const subjectSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+      availability: {
+        type: Boolean,
+        default: true,
+      },
     coverUrl: {
       type: String,
       default: 'https://via.placeholder.com/150?text=Workbook',

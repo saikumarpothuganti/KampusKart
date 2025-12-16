@@ -36,6 +36,8 @@ const OrderCard = ({ order }) => {
           {moreCount > 0 && ` + ${moreCount} more`}
         </p>
 
+        <p className="text-sm text-gray-600 mb-2">Estimated delivery: {order.deliveryDays ?? 3} days</p>
+
         <div className="flex justify-between items-center text-sm text-gray-600">
           <p>{new Date(order.createdAt).toLocaleDateString()}</p>
           <p className="font-bold text-lg text-primary">₹{order.amount}</p>

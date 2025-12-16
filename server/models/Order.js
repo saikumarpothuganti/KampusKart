@@ -73,6 +73,11 @@ const orderSchema = new mongoose.Schema(
         type: Number,
       },
     },
+    deliveryDays: {
+      type: Number,
+      default: 3,
+      min: 1,
+    },
     priceSetByAdmin: {
       type: Boolean,
       default: false,

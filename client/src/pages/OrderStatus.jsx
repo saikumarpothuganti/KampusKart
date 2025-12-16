@@ -140,6 +140,10 @@ const OrderStatus = () => {
         <p className="text-white font-semibold">{getStatusMessage()}</p>
       </div>
 
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6 text-center">
+        <p className="text-gray-800 font-semibold">Estimated delivery: {order.deliveryDays ?? 3} days</p>
+      </div>
+
       {/* Contact Section */}
       <div className="bg-gradient-to-br from-[#10b981] to-[#059669] rounded-lg shadow-lg p-6 mb-6 text-center">
         <p className="text-white font-semibold mb-4">📞 For better communication about your order, please contact us:</p>

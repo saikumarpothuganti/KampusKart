@@ -7,9 +7,17 @@ const CustomBookCard = ({ onAddToCart }) => {
   const [sides, setSides] = useState(1);
   const [quantity, setQuantity] = useState(1);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const abortControllerRef = React.useRef(null);
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selected = e.target.files[0];
+    if (selected && selected.size > 25 * 1024 * 1024) {
+      alert('File is larger than 25MB. Please upload a smaller PDF.');
+      e.target.value = '';
+      return;
+    }
+    setFile(selected);
   };
 
   const handleSubmitRequest = async () => {
@@ -18,13 +26,28 @@ const CustomBookCard = ({ onAddToCart }) => {
       return;
     }
 
+    if (file.size > 25 * 1024 * 1024) {
+      alert('File is larger than 25MB. Please upload a smaller PDF.');
+      return;
+    }
+
     try {
       setUploading(true);
+      setUploadProgress(0);
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
       const formData = new FormData();
       formData.append('pdf', file);
 
       const uploadRes = await API.post('/upload/pdf', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        signal: controller.signal,
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          }
+        },
       });
 
       // Create PDF request instead of adding to cart
@@ -38,11 +61,25 @@ const CustomBookCard = ({ onAddToCart }) => {
       setFile(null);
       setSides(1);
       setQuantity(1);
+      setUploadProgress(0);
+      abortControllerRef.current = null;
       alert('PDF request submitted! Admin will set the price, and you can add it to cart from Orders and PDF Status.');
     } catch (error) {
-      alert('Failed to submit PDF request');
+      if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
+        alert('Upload cancelled');
+      } else {
+        alert(error.response?.data?.error || 'Failed to submit PDF request');
+      }
     } finally {
       setUploading(false);
+      setUploadProgress(0);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleCancelUpload = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
   };
 
@@ -59,6 +96,17 @@ const CustomBookCard = ({ onAddToCart }) => {
           className="w-full border rounded px-3 py-2 text-black bg-white"
         />
         {file && <p className="text-sm text-green-400 mt-1">Selected: {file.name}</p>}
+        {uploading && (
+          <div className="mt-2">
+            <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-emerald-400 h-2"
+                style={{ width: `${uploadProgress}%`, transition: 'width 0.2s ease' }}
+              />
+            </div>
+            <p className="text-xs text-gray-200 mt-1">Uploading... {uploadProgress}%</p>
+          </div>
+        )}
       </div>
 
       <div className="mb-3 p-3 rounded bg-[#2a2a2a] border border-emerald-700 text-sm text-gray-200">
@@ -103,6 +151,15 @@ const CustomBookCard = ({ onAddToCart }) => {
       >
         {uploading ? 'Uploading...' : 'Submit Request'}
       </button>
+
+      {uploading && (
+        <button
+          onClick={handleCancelUpload}
+          className="w-full bg-gray-700 text-white text-sm py-1.5 rounded-md font-semibold hover:bg-gray-600"
+        >
+          Cancel Upload
+        </button>
+      )}
     </div>
   );
 };

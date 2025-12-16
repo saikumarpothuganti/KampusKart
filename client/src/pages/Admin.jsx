@@ -36,7 +36,10 @@ const Admin = () => {
     year: '1',
     sem: '1',
     price: '',
+    availability: true,
   });
+  const [editSubjectData, setEditSubjectData] = useState(null);
+  const [deliveryDaysEdits, setDeliveryDaysEdits] = useState({});
 
   useEffect(() => {
     if (!user?.isAdmin) {
@@ -191,7 +194,7 @@ const Admin = () => {
     try {
       const res = await API.post('/subjects', newSubject);
       setSubjects([...subjects, res.data]);
-      setNewSubject({ title: '', code: '', year: '1', sem: '1', price: '' });
+      setNewSubject({ title: '', code: '', year: '1', sem: '1', price: '', availability: true });
       alert('Subject added');
     } catch (error) {
       alert('Failed to add subject');
@@ -206,6 +209,52 @@ const Admin = () => {
       alert('Subject deleted');
     } catch (error) {
       alert('Failed to delete subject');
+    }
+  };
+
+  const openEditSubject = (subject) => {
+    setEditingSubjectId(subject._id);
+    setEditSubjectData({
+      title: subject.title,
+      price: subject.price,
+      availability: subject.availability ?? true,
+    });
+  };
+
+  const handleUpdateSubject = async () => {
+    if (!editingSubjectId || !editSubjectData?.title || editSubjectData.price === '') {
+      alert('Please fill all fields');
+      return;
+    }
+
+    try {
+      const res = await API.patch(`/admin/subjects/${editingSubjectId}`, {
+        title: editSubjectData.title,
+        price: parseFloat(editSubjectData.price),
+        availability: editSubjectData.availability,
+      });
+      setSubjects(subjects.map((s) => (s._id === editingSubjectId ? res.data : s)));
+      setEditingSubjectId(null);
+      setEditSubjectData(null);
+      alert('Subject updated');
+    } catch (error) {
+      alert(error.response?.data?.error || 'Failed to update subject');
+    }
+  };
+
+  const handleUpdateDeliveryDays = async (orderId, value) => {
+    const parsed = parseInt(value, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
+      alert('Enter a valid number of days');
+      return;
+    }
+    try {
+      const res = await API.put(`/orders/${orderId}/delivery-days`, { deliveryDays: parsed });
+      setOrders(orders.map((o) => (o.orderId === orderId ? res.data : o)));
+      setDeliveryDaysEdits((prev) => ({ ...prev, [orderId]: parsed }));
+      alert('Delivery days updated');
+    } catch (error) {
+      alert(error.response?.data?.error || 'Failed to update delivery days');
     }
   };
 
@@ -369,16 +418,16 @@ const Admin = () => {
           }`}
         >
           Pickup Points ({pickupPoints.length})
-                <button
-                  onClick={() => setTab('change-password')}
-                  className={`px-4 py-2 font-semibold ${
-                    tab === 'change-password'
-                      ? 'border-b-2 border-primary text-primary'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  Change Password
-                </button>
+        </button>
+        <button
+          onClick={() => setTab('change-password')}
+          className={`px-4 py-2 font-semibold ${
+            tab === 'change-password'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600'
+          }`}
+        >
+          Change Password
         </button>
       </div>
 
@@ -419,13 +468,35 @@ const Admin = () => {
                       <p className="text-sm text-gray-600">Phone</p>
                       <p className="font-semibold">{order.student.phone}</p>
                     </div>
-                     <div>
-                       <p className="text-sm text-gray-600">Pickup Point</p>
-                       <p className="font-semibold">{order.pickupPoint || 'Main Gate'}</p>
-                     </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Pickup Point</p>
+                      <p className="font-semibold">{order.pickupPoint || 'Main Gate'}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <p className="text-sm text-gray-600">Items Count</p>
                       <p className="font-semibold">{order.items.length}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-sm text-gray-600">Estimated Delivery</p>
+                      <div className="flex gap-2 items-center mt-1">
+                        <input
+                          type="number"
+                          min="1"
+                          value={deliveryDaysEdits[order.orderId] ?? (order.deliveryDays ?? 3)}
+                          onChange={(e) => setDeliveryDaysEdits((prev) => ({ ...prev, [order.orderId]: e.target.value }))}
+                          className="border rounded px-3 py-2 w-24"
+                        />
+                        <button
+                          onClick={() => handleUpdateDeliveryDays(order.orderId, deliveryDaysEdits[order.orderId] ?? (order.deliveryDays ?? 3))}
+                          className="bg-emerald-500 text-white px-3 py-2 rounded font-semibold hover:bg-emerald-600 text-sm"
+                        >
+                          Save
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Shown to users as estimated days</p>
                     </div>
                   </div>
 
@@ -849,6 +920,13 @@ const Admin = () => {
                           {subject.title}
                         </h3>
                         <p className="text-xs font-medium text-gray-500 mt-1">{subject.code}</p>
+                        <span className={`inline-flex items-center mt-2 px-3 py-1 rounded-full text-xs font-semibold border ${
+                          subject.availability !== false
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-gray-100 text-gray-600 border-gray-300'
+                        }`}>
+                          {subject.availability !== false ? 'Available' : 'Unavailable'}
+                        </span>
                       </div>
 
                       <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 text-sm font-semibold shadow-sm">
@@ -863,8 +941,16 @@ const Admin = () => {
                       </div>
 
                       <button
+                        onClick={() => openEditSubject(subject)}
+                        className="text-sm px-3 py-1.5 rounded-full bg-blue-500 text-white font-semibold hover:bg-blue-600 shadow"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-end mt-2">
+                      <button
                         onClick={() => handleDeleteSubject(subject._id)}
-                        className="text-sm px-3 py-1.5 rounded-full bg-red-500 text-white font-semibold hover:bg-red-600 shadow"
+                        className="text-xs px-3 py-1 rounded-full bg-red-500 text-white font-semibold hover:bg-red-600 shadow"
                       >
                         Delete
                       </button>
@@ -993,6 +1079,69 @@ const Admin = () => {
         </div>
       )}
     </div>
+    {editingSubjectId && editSubjectData && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+          <h3 className="text-xl font-bold mb-4">Edit Subject</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+              <input
+                type="text"
+                value={editSubjectData.title}
+                onChange={(e) => setEditSubjectData({ ...editSubjectData, title: e.target.value })}
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Price</label>
+              <input
+                type="number"
+                value={editSubjectData.price}
+                onChange={(e) => setEditSubjectData({ ...editSubjectData, price: e.target.value })}
+                className="w-full border rounded px-3 py-2"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-700">Availability</span>
+              <label className="inline-flex items-center cursor-pointer">
+                <span className="mr-2 text-sm text-gray-600">Off</span>
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={editSubjectData.availability}
+                  onChange={(e) => setEditSubjectData({ ...editSubjectData, availability: e.target.checked })}
+                />
+                <div className={`w-11 h-6 flex items-center rounded-full p-1 ${editSubjectData.availability ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                  <div className={`bg-white w-4 h-4 rounded-full shadow transform transition ${editSubjectData.availability ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                </div>
+                <span className="ml-2 text-sm text-gray-600">On</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              onClick={() => {
+                setEditingSubjectId(null);
+                setEditSubjectData(null);
+              }}
+              className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleUpdateSubject}
+              className="px-4 py-2 rounded bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     <GlowAlert
       message={alertState.message}
       onClose={handleAlertOk}
