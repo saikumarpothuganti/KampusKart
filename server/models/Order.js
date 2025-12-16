@@ -27,6 +27,12 @@ const orderSchema = new mongoose.Schema(
         pdfUrl: String,
         qty: Number,
         sides: Number,
+        sideType: {
+          type: String,
+          enum: ['single', 'double'],
+          default: 'single',
+        },
+        pricePerPage: Number,
         price: Number,
         userPrice: Number,
       },

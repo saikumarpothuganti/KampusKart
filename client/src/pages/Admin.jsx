@@ -35,7 +35,8 @@ const Admin = () => {
     code: '',
     year: '1',
     sem: '1',
-    price: '',
+    singleSidePrice: '',
+    doubleSidePrice: '',
     availability: true,
   });
   const [editSubjectData, setEditSubjectData] = useState(null);
@@ -187,17 +188,51 @@ const Admin = () => {
   };
 
   const handleAddSubject = async () => {
-    if (!newSubject.title || !newSubject.code || !newSubject.price) {
-      alert('Fill all fields');
+    console.log('Current newSubject state:', newSubject);
+    
+    if (!newSubject.title?.trim() || !newSubject.code?.trim()) {
+      alert('Fill title and code');
       return;
     }
+    
+    const singlePrice = newSubject.singleSidePrice ? parseFloat(newSubject.singleSidePrice) : null;
+    const doublePrice = newSubject.doubleSidePrice ? parseFloat(newSubject.doubleSidePrice) : null;
+    
+    if (!singlePrice && !doublePrice) {
+      alert('Provide single-side or double-side price');
+      return;
+    }
+    
     try {
-      const res = await API.post('/subjects', newSubject);
+      const payload = {
+        title: newSubject.title.trim(),
+        code: newSubject.code.trim(),
+        year: newSubject.year,
+        sem: newSubject.sem,
+        singleSidePrice: singlePrice,
+        doubleSidePrice: doublePrice,
+        availability: newSubject.availability,
+      };
+      console.log('Sending payload:', JSON.stringify(payload, null, 2));
+      
+      const res = await API.post('/subjects', payload);
+      console.log('Server response:', res.data);
+      
       setSubjects([...subjects, res.data]);
-      setNewSubject({ title: '', code: '', year: '1', sem: '1', price: '', availability: true });
-      alert('Subject added');
+      setNewSubject({
+        title: '',
+        code: '',
+        year: '1',
+        sem: '1',
+        singleSidePrice: '',
+        doubleSidePrice: '',
+        availability: true,
+      });
+      alert('Subject added successfully!');
     } catch (error) {
-      alert('Failed to add subject');
+      console.error('Full error object:', error);
+      console.error('Error response:', error.response?.data);
+      alert(error.response?.data?.error || error.message || 'Failed to add subject');
     }
   };
 
@@ -216,7 +251,8 @@ const Admin = () => {
     setEditingSubjectId(subject._id);
     setEditSubjectData({
       title: subject.title,
-      price: subject.price,
+      singleSidePrice: subject.singleSidePrice ?? '',
+      doubleSidePrice: subject.doubleSidePrice ?? '',
       availability: subject.availability ?? true,
     });
   };
@@ -230,7 +266,8 @@ const Admin = () => {
     try {
       const res = await API.patch(`/admin/subjects/${editingSubjectId}`, {
         title: editSubjectData.title,
-        price: parseFloat(editSubjectData.price),
+        singleSidePrice: editSubjectData.singleSidePrice ? parseFloat(editSubjectData.singleSidePrice) : null,
+        doubleSidePrice: editSubjectData.doubleSidePrice ? parseFloat(editSubjectData.doubleSidePrice) : null,
         availability: editSubjectData.availability,
       });
       setSubjects(subjects.map((s) => (s._id === editingSubjectId ? res.data : s)));
@@ -286,10 +323,15 @@ const Admin = () => {
     }
   };
 
-  const handleDeletePdfRequest = (pdfRequestId) => {
+  const handleDeletePdfRequest = async (pdfRequestId) => {
     if (!window.confirm('Delete this PDF request from the list?')) return;
-    setPdfRequests((prev) => prev.filter((r) => r._id !== pdfRequestId));
-    alert('PDF request removed from view');
+    try {
+      await API.delete(`/pdf-requests/${pdfRequestId}`);
+      setPdfRequests((prev) => prev.filter((r) => r._id !== pdfRequestId));
+      alert('PDF request deleted successfully');
+    } catch (error) {
+      alert('Failed to delete PDF request');
+    }
   };
 
   const handleAddPickupPoint = async () => {
@@ -845,7 +887,7 @@ const Admin = () => {
           {/* Add New Subject */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-xl font-bold mb-4">Add New Subject</h2>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <input
                 type="text"
                 placeholder="Title"
@@ -886,9 +928,16 @@ const Admin = () => {
               </select>
               <input
                 type="number"
-                placeholder="Price"
-                value={newSubject.price}
-                onChange={(e) => setNewSubject({ ...newSubject, price: e.target.value })}
+                placeholder="Single-side price"
+                value={newSubject.singleSidePrice}
+                onChange={(e) => setNewSubject({ ...newSubject, singleSidePrice: e.target.value })}
+                className="border rounded px-3 py-2"
+              />
+              <input
+                type="number"
+                placeholder="Double-side price"
+                value={newSubject.doubleSidePrice}
+                onChange={(e) => setNewSubject({ ...newSubject, doubleSidePrice: e.target.value })}
                 className="border rounded px-3 py-2"
               />
             </div>
@@ -929,10 +978,25 @@ const Admin = () => {
                         </span>
                       </div>
 
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 text-sm font-semibold shadow-sm">
-                        ₹{subject.price}
-                      </span>
+                      
                     </div>
+
+                    {(subject.singleSidePrice || subject.doubleSidePrice) && (
+                      <div className="mt-2 space-y-1 text-sm text-gray-700">
+                        {subject.singleSidePrice && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs uppercase tracking-wide text-gray-500">Single</span>
+                            <span className="font-semibold">₹{subject.singleSidePrice}</span>
+                          </div>
+                        )}
+                        {subject.doubleSidePrice && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs uppercase tracking-wide text-gray-500">Double</span>
+                            <span className="font-semibold">₹{subject.doubleSidePrice}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between mt-4">
                       <div className="text-sm text-gray-600">
@@ -1093,15 +1157,29 @@ const Admin = () => {
                 className="w-full border rounded px-3 py-2"
               />
             </div>
+            
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Price</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Single-Side Price (₹/page)</label>
               <input
                 type="number"
-                value={editSubjectData.price}
-                onChange={(e) => setEditSubjectData({ ...editSubjectData, price: e.target.value })}
+                value={editSubjectData.singleSidePrice}
+                onChange={(e) => setEditSubjectData({ ...editSubjectData, singleSidePrice: e.target.value })}
                 className="w-full border rounded px-3 py-2"
                 min="0"
                 step="0.01"
+                placeholder="Leave blank to use base price"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Double-Side Price (₹/page)</label>
+              <input
+                type="number"
+                value={editSubjectData.doubleSidePrice}
+                onChange={(e) => setEditSubjectData({ ...editSubjectData, doubleSidePrice: e.target.value })}
+                className="w-full border rounded px-3 py-2"
+                min="0"
+                step="0.01"
+                placeholder="Leave blank to use base price"
               />
             </div>
             <div className="flex items-center justify-between">

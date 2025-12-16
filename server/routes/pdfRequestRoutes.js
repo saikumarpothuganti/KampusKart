@@ -6,6 +6,7 @@ import {
   setPDFRequestPrice,
   cancelPDFRequest,
   markAsAddedToCart,
+  deletePDFRequest,
 } from '../controllers/pdfRequestController.js';
 import authMiddleware from '../middleware/auth.js';
 
@@ -20,5 +21,6 @@ router.post('/:requestId/add-to-cart', authMiddleware, markAsAddedToCart);
 // Admin routes
 router.get('/admin/all', authMiddleware, getAllPDFRequests);
 router.put('/:requestId/set-price', authMiddleware, setPDFRequestPrice);
+router.delete('/:id', authMiddleware, deletePDFRequest);
 
 export default router;

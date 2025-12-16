@@ -20,12 +20,20 @@ const subjectSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      required: true,
+      default: null,
     },
-      availability: {
-        type: Boolean,
-        default: true,
-      },
+    singleSidePrice: {
+      type: Number,
+      default: null,
+    },
+    doubleSidePrice: {
+      type: Number,
+      default: null,
+    },
+    availability: {
+      type: Boolean,
+      default: true,
+    },
     coverUrl: {
       type: String,
       default: 'https://via.placeholder.com/150?text=Workbook',

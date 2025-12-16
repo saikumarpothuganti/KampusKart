@@ -11,7 +11,19 @@ export const getCart = async (req, res) => {
 
 export const addToCart = async (req, res) => {
   try {
-    const { type, subjectId, title, code, pdfUrl, qty, sides, price, userPrice } = req.body;
+    const {
+      type,
+      subjectId,
+      title,
+      code,
+      pdfUrl,
+      qty,
+      sides,
+      sideType,
+      pricePerPage,
+      price,
+      userPrice,
+    } = req.body;
 
     let cart = await Cart.findOne({ userId: req.user.id });
 
@@ -27,6 +39,8 @@ export const addToCart = async (req, res) => {
       pdfUrl,
       qty,
       sides,
+      sideType,
+      pricePerPage,
       price,
       userPrice,
     };
@@ -43,7 +57,7 @@ export const addToCart = async (req, res) => {
 export const updateCartItem = async (req, res) => {
   try {
     const { itemIndex } = req.params;
-    const { qty, sides } = req.body;
+    const { qty, sides, sideType, pricePerPage } = req.body;
 
     const cart = await Cart.findOne({ userId: req.user.id });
     if (!cart || !cart.items[itemIndex]) {
@@ -52,6 +66,8 @@ export const updateCartItem = async (req, res) => {
 
     if (qty !== undefined) cart.items[itemIndex].qty = qty;
     if (sides !== undefined) cart.items[itemIndex].sides = sides;
+    if (sideType !== undefined) cart.items[itemIndex].sideType = sideType;
+    if (pricePerPage !== undefined) cart.items[itemIndex].pricePerPage = pricePerPage;
 
     await cart.save();
     res.json(cart);

@@ -147,3 +147,24 @@ export const markAsAddedToCart = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Admin deletes a PDF request
+export const deletePDFRequest = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+
+    const request = await PDFRequest.findByIdAndDelete(id);
+
+    if (!request) {
+      return res.status(404).json({ error: 'PDF request not found' });
+    }
+
+    res.json({ message: 'PDF request deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

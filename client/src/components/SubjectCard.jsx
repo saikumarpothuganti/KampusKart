@@ -4,7 +4,15 @@ import '../styles/CardAnimations.css';
 
 const SubjectCard = ({ subject, onAddToCart }) => {
   const [quantity, setQuantity] = React.useState(1);
-  const [sides, setSides] = React.useState(1);
+  const [sideType, setSideType] = React.useState('single');
+
+  const getDisplayPrice = () => {
+    if (sideType === 'single') return subject.singleSidePrice ?? 0;
+    if (sideType === 'double') return subject.doubleSidePrice ?? 0;
+    return 0;
+  };
+
+  const displayPrice = getDisplayPrice();
 
   const handleAddToCart = () => {
     onAddToCart({
@@ -13,11 +21,13 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       title: subject.title,
       code: subject.code,
       qty: quantity,
-      sides,
-      price: subject.price,
+      sides: sideType === 'double' ? 2 : 1,
+      sideType,
+      pricePerPage: displayPrice,
+      price: displayPrice,
     });
     setQuantity(1);
-    setSides(1);
+    setSideType('single');
   };
 
   const available = subject.availability !== false;
@@ -34,22 +44,36 @@ const SubjectCard = ({ subject, onAddToCart }) => {
         <h3 className="text-lg font-semibold mb-2 text-white">{subject.title}</h3>
         <p className="text-sm mb-2 text-gray-300">Code: {subject.code}</p>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-primary font-bold text-base">₹{subject.price}</p>
+          <p className="text-primary font-bold text-base">₹{displayPrice}</p>
           <span className={`text-xs px-2 py-1 rounded-full font-semibold ${available ? 'bg-emerald-500/20 text-emerald-300' : 'bg-gray-600 text-gray-200'}`}>
             {available ? 'Available' : 'Unavailable'}
           </span>
         </div>
 
         <div>
-          <label className="block text-xs font-medium mb-2 text-white">Sides</label>
-          <select
-            value={sides}
-            onChange={(e) => setSides(parseInt(e.target.value))}
-            className="w-full border rounded px-2.5 py-2 text-sm text-black bg-white"
-          >
-            <option value={1}>Single-sided</option>
-            <option value={2}>Double-sided</option>
-          </select>
+          <label className="block text-xs font-medium mb-2 text-white">Printing Type</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSideType('single')}
+              className={`flex-1 py-2 rounded text-xs font-semibold transition ${
+                sideType === 'single'
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Single-side
+            </button>
+            <button
+              onClick={() => setSideType('double')}
+              className={`flex-1 py-2 rounded text-xs font-semibold transition ${
+                sideType === 'double'
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Double-side
+            </button>
+          </div>
         </div>
 
         <div>

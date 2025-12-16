@@ -29,8 +29,10 @@ const SignIn = () => {
 
     try {
       setLoading(true);
-      showLoader(800);
+      showLoader(1200);
       const data = await signin(formData.userId, formData.password);
+      // Wait briefly for user context to be ready before navigating
+      await new Promise(resolve => setTimeout(resolve, 300));
       if (data?.user?.isAdmin) {
         navigate('/admin');
       } else {
@@ -88,9 +90,16 @@ const SignIn = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition disabled:opacity-60"
+            className="w-full bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? (
+              <>
+                <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                <span>Signing you in…</span>
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
 

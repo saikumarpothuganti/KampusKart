@@ -24,6 +24,11 @@ const cartSchema = new mongoose.Schema(
         pdfUrl: String,
         qty: Number,
         sides: Number,
+        sideType: {
+          type: String,
+          enum: ['single', 'double'],
+        },
+        pricePerPage: Number,
         price: Number,
         userPrice: Number,
       },

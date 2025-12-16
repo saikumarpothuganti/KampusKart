@@ -26,18 +26,39 @@ export const getAllSubjects = async (req, res) => {
 
 export const createSubject = async (req, res) => {
   try {
-    const { title, code, year, sem, price, coverUrl, availability } = req.body;
+    const {
+      title,
+      code,
+      year,
+      sem,
+      singleSidePrice,
+      doubleSidePrice,
+      coverUrl,
+      availability,
+    } = req.body;
 
-    if (!title || !code || !year || !sem || !price) {
-      return res.status(400).json({ error: 'All fields required' });
+    // Parse year and sem to integers
+    const parsedYear = year ? parseInt(year, 10) : null;
+    const parsedSem = sem ? parseInt(sem, 10) : null;
+
+    if (!title || !code || !parsedYear || !parsedSem) {
+      return res.status(400).json({ error: 'Title, code, year, and sem are required' });
+    }
+
+    if (
+      (singleSidePrice === undefined || singleSidePrice === '' || singleSidePrice === null) &&
+      (doubleSidePrice === undefined || doubleSidePrice === '' || doubleSidePrice === null)
+    ) {
+      return res.status(400).json({ error: 'Provide single-side or double-side price' });
     }
 
     const newSubject = new Subject({
       title,
       code,
-      year: parseInt(year),
-      sem: parseInt(sem),
-      price: parseFloat(price),
+      year: parsedYear,
+      sem: parsedSem,
+      singleSidePrice: singleSidePrice && singleSidePrice !== null ? parseFloat(singleSidePrice) : undefined,
+      doubleSidePrice: doubleSidePrice && doubleSidePrice !== null ? parseFloat(doubleSidePrice) : undefined,
       coverUrl,
       availability: availability !== undefined ? availability : true,
     });
@@ -45,6 +66,7 @@ export const createSubject = async (req, res) => {
     await newSubject.save();
     res.status(201).json(newSubject);
   } catch (error) {
+    console.error('Create subject error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -52,7 +74,7 @@ export const createSubject = async (req, res) => {
 export const updateSubject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, code, year, sem, price, coverUrl, availability } = req.body;
+    const { title, code, year, sem, singleSidePrice, doubleSidePrice, coverUrl, availability } = req.body;
 
     const subject = await Subject.findByIdAndUpdate(
       id,
@@ -61,7 +83,8 @@ export const updateSubject = async (req, res) => {
         code,
         year: parseInt(year),
         sem: parseInt(sem),
-        price: parseFloat(price),
+        singleSidePrice: singleSidePrice ? parseFloat(singleSidePrice) : null,
+        doubleSidePrice: doubleSidePrice ? parseFloat(doubleSidePrice) : null,
         coverUrl,
         ...(availability !== undefined ? { availability } : {}),
       },
@@ -81,11 +104,12 @@ export const adminUpdateSubject = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { title, price, availability } = req.body;
+    const { title, singleSidePrice, doubleSidePrice, availability } = req.body;
 
     const updatePayload = {};
     if (title !== undefined) updatePayload.title = title;
-    if (price !== undefined) updatePayload.price = parseFloat(price);
+    if (singleSidePrice !== undefined) updatePayload.singleSidePrice = singleSidePrice ? parseFloat(singleSidePrice) : null;
+    if (doubleSidePrice !== undefined) updatePayload.doubleSidePrice = doubleSidePrice ? parseFloat(doubleSidePrice) : null;
     if (availability !== undefined) updatePayload.availability = availability;
 
     const subject = await Subject.findByIdAndUpdate(id, updatePayload, { new: true });
