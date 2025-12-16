@@ -17,8 +17,11 @@ export const createPDFRequest = async (req, res) => {
   try {
     const { title, pdfUrl, qty, sides } = req.body;
 
+    console.log('PDF Request received:', { title, pdfUrl, qty, sides, userId: req.user?.id });
+
     if (!title || !pdfUrl || !qty || !sides) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      console.error('Missing fields:', { title: !!title, pdfUrl: !!pdfUrl, qty: !!qty, sides: !!sides });
+      return res.status(400).json({ error: 'Missing required fields: title, pdfUrl, qty, and sides' });
     }
 
     const requestId = await generateRequestId();
@@ -28,14 +31,16 @@ export const createPDFRequest = async (req, res) => {
       requestId,
       title,
       pdfUrl,
-      qty,
-      sides,
+      qty: parseInt(qty),
+      sides: parseInt(sides),
       status: 'pending',
     });
 
     await newRequest.save();
+    console.log('PDF Request created:', newRequest.requestId);
     res.status(201).json(newRequest);
   } catch (error) {
+    console.error('PDF Request creation error:', error);
     res.status(500).json({ error: error.message });
   }
 };

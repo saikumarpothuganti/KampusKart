@@ -39,6 +39,8 @@ const CustomBookCard = ({ onAddToCart }) => {
       const formData = new FormData();
       formData.append('pdf', file);
 
+      console.log('Starting PDF upload:', { fileName: file.name, fileSize: file.size, qty: quantity, sides });
+
       const uploadRes = await API.post('/upload/pdf', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         signal: controller.signal,
@@ -50,13 +52,21 @@ const CustomBookCard = ({ onAddToCart }) => {
         },
       });
 
+      console.log('Upload response:', uploadRes.data);
+
       // Create PDF request instead of adding to cart
-      await API.post('/pdf-requests', {
+      const requestPayload = {
         title: file.name.replace('.pdf', ''),
         pdfUrl: uploadRes.data.url,
         qty: quantity,
         sides,
-      });
+      };
+      
+      console.log('Creating PDF request:', requestPayload);
+      
+      const requestRes = await API.post('/pdf-requests', requestPayload);
+      
+      console.log('Request created:', requestRes.data);
 
       setFile(null);
       setSides(1);
@@ -65,10 +75,17 @@ const CustomBookCard = ({ onAddToCart }) => {
       abortControllerRef.current = null;
       alert('PDF request submitted! Admin will set the price, and you can add it to cart from Orders and PDF Status.');
     } catch (error) {
+      console.error('PDF submission error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
       if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
         alert('Upload cancelled');
+      } else if (error.response?.status === 413) {
+        alert('File too large for upload. Maximum size is 25MB on free hosting.');
       } else {
-        alert(error.response?.data?.error || 'Failed to submit PDF request');
+        const errorMsg = error.response?.data?.error || error.message || 'Failed to submit PDF request';
+        alert(errorMsg);
       }
     } finally {
       setUploading(false);
