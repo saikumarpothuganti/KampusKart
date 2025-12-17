@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import API from '../lib/api';
 import { useCart } from '../context/CartContext';
 import SubjectCard from '../components/SubjectCard';
@@ -16,6 +16,20 @@ const Workbook = () => {
   const [query, setQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
   const [alertMessage, setAlertMessage] = useState('');
+  const availableRef = useRef(null);
+
+  // Auto-scroll to Available Subjects after subjects load
+  useEffect(() => {
+    if (showSubjects && subjects && subjects.length > 0) {
+      // Use a small delay to ensure DOM is painted, helpful on mobile
+      setTimeout(() => {
+        const el = availableRef.current;
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [showSubjects, subjects]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,7 +136,7 @@ const Workbook = () => {
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold">Available Subjects</h2>
+              <h2 ref={availableRef} className="text-2xl font-bold">Available Subjects</h2>
               {cartCount > 0 && (
                 <span className="inline-flex items-center justify-center bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
                   {cartCount}
