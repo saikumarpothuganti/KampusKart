@@ -542,6 +542,39 @@ const Admin = () => {
                     </div>
                   </div>
 
+                  {/* Item details */}
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 mb-2">Items</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {order.items.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded border border-gray-200 bg-gray-50 px-3 py-2"
+                        >
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900">
+                              {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              Type: {item.type === 'custom' ? 'Custom PDF' : 'Subject'}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              Sides: {item.sideType || (item.sides === 2 ? 'double' : 'single')} | Qty: {item.qty}
+                            </p>
+                          </div>
+                          <div className="mt-2 sm:mt-0 sm:text-right text-sm text-gray-800">
+                            {item.pricePerPage !== undefined && item.pricePerPage !== null && (
+                              <div>Price/page: ₹{item.pricePerPage}</div>
+                            )}
+                            {item.userPrice !== undefined && item.userPrice !== null && (
+                              <div>User price: ₹{item.userPrice}</div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {order.payment?.screenshotUrl && (
                     <div className="mb-4">
                       <p className="text-sm text-gray-600 mb-2">Payment Screenshot</p>
