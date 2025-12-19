@@ -17,6 +17,16 @@ const Workbook = () => {
   const [cartCount, setCartCount] = useState(0);
   const [alertMessage, setAlertMessage] = useState('');
   const availableRef = useRef(null);
+  const filtersRef = useRef(null);
+
+  // Auto-scroll to filters on page load
+  useEffect(() => {
+    setTimeout(() => {
+      if (filtersRef.current) {
+        filtersRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  }, []);
 
   // Auto-scroll to Available Subjects after subjects load
   useEffect(() => {
@@ -72,6 +82,15 @@ const Workbook = () => {
 
   return (
     <>
+    <style>{`
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      }
+      .pulse-highlight {
+        animation: pulse-glow 2s infinite;
+      }
+    `}</style>
     <div className="max-w-7xl mx-auto py-8 px-4 text-[#e5e7eb]">
       <button
         onClick={() => window.history.back()}
@@ -83,14 +102,14 @@ const Workbook = () => {
       <h1 className="text-3xl font-bold mb-8">📚 Workbook Printing</h1>
 
       {/* Filters */}
-      <div className="bg-[#111827] border border-[rgba(255,255,255,0.12)] rounded-[18px] p-6 mb-8 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+      <div ref={filtersRef} className="bg-[#111827] border border-[rgba(255,255,255,0.12)] rounded-[18px] p-6 mb-8 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm text-[#9ca3af] mb-2">Year</label>
             <select
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-3 py-2"
+              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-3 py-2 pulse-highlight"
             >
               <option value="1">1st Year</option>
               <option value="2">2nd Year</option>
@@ -104,7 +123,7 @@ const Workbook = () => {
             <select
               value={sem}
               onChange={(e) => setSem(e.target.value)}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-3 py-2"
+              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-3 py-2 pulse-highlight"
             >
               <option value="1">Semester 1</option>
               <option value="2">Semester 2</option>
@@ -116,7 +135,7 @@ const Workbook = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition"
+              className="w-full bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition pulse-highlight"
             >
               {loading ? 'Loading...' : 'Show Subjects'}
             </button>
@@ -158,7 +177,10 @@ const Workbook = () => {
           {!showSubjects ? (
             <p className="text-[#9ca3af]">Select year and semester, then click Show Subjects.</p>
           ) : subjects.length === 0 ? (
-            <p className="text-[#9ca3af]">No subjects available for this selection.</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-800">
+              <p className="font-semibold mb-2">📚 No subjects available for this selection</p>
+              <p className="text-sm">You can upload a <strong>Custom PDF</strong> instead using the form on the left. All custom PDFs require admin approval and pricing before checkout.</p>
+            </div>
           ) : filteredSubjects.length === 0 ? (
             <p className="text-[#9ca3af]">No files found for your search.</p>
           ) : (

@@ -41,6 +41,27 @@ const Admin = () => {
   });
   const [editSubjectData, setEditSubjectData] = useState(null);
   const [deliveryDaysEdits, setDeliveryDaysEdits] = useState({});
+  const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
+  const [pdfRequestsSearchQuery, setPdfRequestsSearchQuery] = useState('');
+
+  const filteredOrders = !ordersSearchQuery
+    ? orders
+    : orders.filter((o) => {
+        const q = ordersSearchQuery.trim().toLowerCase();
+        const name = o.student?.name?.toLowerCase() || '';
+        const collegeId = o.student?.collegeId?.toLowerCase() || '';
+        const orderId = o.orderId?.toLowerCase() || '';
+        const amount = o.amount?.toString() || '';
+        return name.includes(q) || collegeId.includes(q) || orderId.includes(q) || amount.includes(q);
+      });
+
+  const filteredPdfRequests = !pdfRequestsSearchQuery
+    ? pdfRequests
+    : pdfRequests.filter((r) => {
+        const q = pdfRequestsSearchQuery.trim().toLowerCase();
+        const requestId = r.requestId?.toLowerCase() || '';
+        return requestId.includes(q);
+      });
 
   useEffect(() => {
     if (!user?.isAdmin) {
@@ -476,11 +497,22 @@ const Admin = () => {
       {/* Orders Tab */}
       {tab === 'orders' && (
         <div>
-          {orders.length === 0 ? (
-            <p className="text-gray-600">No orders yet.</p>
+          {/* Search bar for orders */}
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Search by student name, college ID, order ID, or amount..."
+              value={ordersSearchQuery}
+              onChange={(e) => setOrdersSearchQuery(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          {filteredOrders.length === 0 ? (
+            <p className="text-gray-600">No orders {ordersSearchQuery ? 'matching your search.' : 'yet.'}</p>
           ) : (
             <div className="space-y-4">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <div key={order._id} className="bg-white rounded-lg shadow-md p-6">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
@@ -572,6 +604,12 @@ const Admin = () => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                    {/* Total price below items */}
+                    <div className="mt-3 border-t border-gray-300 pt-3">
+                      <p className="text-right font-bold text-lg text-gray-900">
+                        Total: ₹{order.amount}
+                      </p>
                     </div>
                   </div>
 
@@ -799,11 +837,22 @@ const Admin = () => {
       {/* PDF Requests Tab */}
       {tab === 'pdf-requests' && (
         <div>
-          {pdfRequests.length === 0 ? (
-            <p className="text-gray-600">No PDF requests yet.</p>
+          {/* Search bar for PDF requests */}
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Search by request ID..."
+              value={pdfRequestsSearchQuery}
+              onChange={(e) => setPdfRequestsSearchQuery(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          {filteredPdfRequests.length === 0 ? (
+            <p className="text-gray-600">No PDF requests {pdfRequestsSearchQuery ? 'matching your search.' : 'yet.'}</p>
           ) : (
             <div className="space-y-4">
-              {pdfRequests.map((request) => (
+              {filteredPdfRequests.map((request) => (
                 <div key={request._id} className="bg-white rounded-lg shadow-md p-6">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
