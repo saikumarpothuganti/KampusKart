@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import API from '../lib/api';
 import ContactLinks from '../components/ContactLinks';
-import QRCode from '../assets/QR.jpg';
+import QRCode from '../assets/QRPhonepayg.jpeg';
 
 const Payment = () => {
   const navigate = useNavigate();
