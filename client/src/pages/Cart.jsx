@@ -28,7 +28,8 @@ const Cart = () => {
 
   const handleUpdateSides = async (itemIndex, newSides) => {
     try {
-      await updateItem(itemIndex, { sides: newSides });
+      const newSideType = newSides === 2 ? 'double' : 'single';
+      await updateItem(itemIndex, { sides: newSides, sideType: newSideType });
     } catch (error) {
       alert('Failed to update sides');
     }

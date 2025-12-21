@@ -28,6 +28,8 @@ const getAllowedOrigins = () => {
     'http://127.0.0.1:3001',
     'http://localhost:3002',
     'http://127.0.0.1:3002',
+    // Support WSL2/host-only adapters commonly exposed as 172.x
+    'http://172.23.112.1:3000',
   ];
 
   // Add production frontend URL if provided

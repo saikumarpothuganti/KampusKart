@@ -1,0 +1,45 @@
+{
+  "ranAt": "2025-12-21T08:16:54.453Z",
+  "applyMode": true,
+  "mongoUriHint": "env set",
+  "results": [
+    {
+      "collection": "orders",
+      "docsVisited": 21,
+      "docsUpdated": 0,
+      "itemsVisited": 92,
+      "itemsChanged": 0,
+      "changes": []
+    },
+    {
+      "collection": "carts",
+      "docsVisited": 64,
+      "docsUpdated": 3,
+      "itemsVisited": 210,
+      "itemsChanged": 3,
+      "changes": [
+        {
+          "docId": "69437c8955ba09e8db7ed916",
+          "index": 0,
+          "beforeSideType": null,
+          "afterSideType": "single",
+          "sides": 1
+        },
+        {
+          "docId": "6943bce4b727b63d7f1fb569",
+          "index": 2,
+          "beforeSideType": null,
+          "afterSideType": "single",
+          "sides": 1
+        },
+        {
+          "docId": "6944db0e99b3fbf57ba11f20",
+          "index": 0,
+          "beforeSideType": null,
+          "afterSideType": "double",
+          "sides": 2
+        }
+      ]
+    }
+  ]
+}

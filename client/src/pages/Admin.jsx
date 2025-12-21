@@ -44,9 +44,24 @@ const Admin = () => {
   const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
   const [pdfRequestsSearchQuery, setPdfRequestsSearchQuery] = useState('');
 
+  // Resolver function: Unified logic for determining item.sideType
+  const resolveSideType = (item) => {
+    if (item?.sideType && (item.sideType === 'single' || item.sideType === 'double')) {
+      return item.sideType;
+    }
+    // Fallback: infer from sides
+    return Number(item?.sides) === 2 ? 'double' : 'single';
+  };
+
+  const normalizeStatus = (status) => (status || '').toLowerCase().trim();
+
+  const excludedFromOrdersTab = ['printing', 'out_for_delivery', 'delivered'];
+  const baseOrders = orders.filter((o) => !excludedFromOrdersTab.includes(normalizeStatus(o.status)));
+  const queueOrders = orders.filter((o) => ['printing', 'out_for_delivery', 'delivered'].includes(normalizeStatus(o.status)));
+
   const filteredOrders = !ordersSearchQuery
-    ? orders
-    : orders.filter((o) => {
+    ? baseOrders
+    : baseOrders.filter((o) => {
         const q = ordersSearchQuery.trim().toLowerCase();
         const name = o.student?.name?.toLowerCase() || '';
         const collegeId = o.student?.collegeId?.toLowerCase() || '';
@@ -440,7 +455,17 @@ const Admin = () => {
               : 'text-gray-600'
           }`}
         >
-          Orders ({orders.length})
+          Orders ({baseOrders.length})
+        </button>
+        <button
+          onClick={() => setTab('printing-queue')}
+          className={`px-4 py-2 font-semibold ${
+            tab === 'printing-queue'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600'
+          }`}
+        >
+          Printing Queue ({queueOrders.length})
         </button>
         <button
           onClick={() => setTab('pdf-requests')}
@@ -574,37 +599,82 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  {/* Item details */}
+                  {/* Item details grouped by print type */}
                   <div className="mb-4">
                     <p className="text-sm text-gray-600 mb-2">Items</p>
-                    <div className="grid grid-cols-1 gap-2">
-                      {order.items.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded border border-gray-200 bg-gray-50 px-3 py-2"
-                        >
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">
-                              {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              Type: {item.type === 'custom' ? 'Custom PDF' : 'Subject'}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              Sides: {item.sideType || (item.sides === 2 ? 'double' : 'single')} | Qty: {item.qty}
-                            </p>
-                          </div>
-                          <div className="mt-2 sm:mt-0 sm:text-right text-sm text-gray-800">
-                            {item.pricePerPage !== undefined && item.pricePerPage !== null && (
-                              <div>Price/page: ₹{item.pricePerPage}</div>
-                            )}
-                            {item.userPrice !== undefined && item.userPrice !== null && (
-                              <div>User price: ₹{item.userPrice}</div>
-                            )}
-                          </div>
+                    {(() => {
+                      const singles = [];
+                      const doubles = [];
+                      (order.items || []).forEach((item) => {
+                        const type = resolveSideType(item);
+                        if (type === 'double') doubles.push(item);
+                        else singles.push(item);
+                      });
+                      return (
+                        <div className="grid grid-cols-1 gap-2">
+                          {singles.length > 0 && (
+                            <p className="text-xs font-semibold text-gray-700">Single-side</p>
+                          )}
+                          {singles.map((item, idx) => (
+                            <div key={`s-${idx}`} className="flex flex-col rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                              <div className="flex justify-between">
+                                <div className="flex-1">
+                                  <p className="font-semibold text-gray-900">
+                                    {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
+                                  </p>
+                                  <p className="text-xs text-gray-600">Print: Single · Qty: {item.qty}</p>
+                                </div>
+                                <div className="text-sm text-gray-800">
+                                  {item.pricePerPage !== undefined && item.pricePerPage !== null && (
+                                    <div>Price/page: ₹{item.pricePerPage}</div>
+                                  )}
+                                  {item.userPrice !== undefined && item.userPrice !== null && (
+                                    <div>Item total: ₹{(item.userPrice * item.qty).toFixed(2)}</div>
+                                  )}
+                                  {item.userPrice === undefined || item.userPrice === null ? (
+                                    item.price !== undefined && item.price !== null ? (
+                                      <div>Item total: ₹{(item.price * item.qty).toFixed(2)}</div>
+                                    ) : (
+                                      <div className="text-xs text-gray-600">Pending admin price</div>
+                                    )
+                                  ) : null}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {doubles.length > 0 && (
+                            <p className="mt-2 text-xs font-semibold text-gray-700">Double-side</p>
+                          )}
+                          {doubles.map((item, idx) => (
+                            <div key={`d-${idx}`} className="flex flex-col rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                              <div className="flex justify-between">
+                                <div className="flex-1">
+                                  <p className="font-semibold text-gray-900">
+                                    {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
+                                  </p>
+                                  <p className="text-xs text-gray-600">Print: Double · Qty: {item.qty}</p>
+                                </div>
+                                <div className="text-sm text-gray-800">
+                                  {item.pricePerPage !== undefined && item.pricePerPage !== null && (
+                                    <div>Price/page: ₹{item.pricePerPage}</div>
+                                  )}
+                                  {item.userPrice !== undefined && item.userPrice !== null && (
+                                    <div>Item total: ₹{(item.userPrice * item.qty).toFixed(2)}</div>
+                                  )}
+                                  {item.userPrice === undefined || item.userPrice === null ? (
+                                    item.price !== undefined && item.price !== null ? (
+                                      <div>Item total: ₹{(item.price * item.qty).toFixed(2)}</div>
+                                    ) : (
+                                      <div className="text-xs text-gray-600">Pending admin price</div>
+                                    )
+                                  ) : null}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })()}
                     {/* Total price below items */}
                     <div className="mt-3 border-t border-gray-300 pt-3">
                       <p className="text-right font-bold text-lg text-gray-900">
@@ -631,81 +701,19 @@ const Admin = () => {
                           }}
                         />
                       </a>
+                      {/* Payment type and amounts */}
+                      {order.payment?.type && (
+                        <div className="mt-3 text-sm text-gray-800">
+                          <p>Payment Type: <span className="font-semibold">{order.payment.type}</span></p>
+                          {order.payment.type === 'COD' ? (
+                            <p>Paid Now: ₹{order.payment.paidAmount ?? 0} · Remaining COD: ₹{order.payment.remainingAmount ?? 0}</p>
+                          ) : (
+                            <p>Paid Amount: ₹{order.payment.paidAmount ?? order.amount}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
-
-      {/* Change Password Tab */}
-      {tab === 'change-password' && (
-        <div className="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Change Admin Password</h2>
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                User ID
-              </label>
-              <input
-                type="text"
-                value={passwordForm.userId}
-                onChange={(e) => setPasswordForm({ ...passwordForm, userId: e.target.value })}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="Enter your user ID"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Old Password
-              </label>
-              <input
-                type="password"
-                value={passwordForm.oldPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="Enter old password"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                New Password
-              </label>
-              <input
-                type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="Enter new password (min 6 characters)"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="Confirm new password"
-              />
-            </div>
-            {passwordError && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                {passwordError}
-              </div>
-            )}
-            {passwordSuccess && (
-              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                {passwordSuccess}
-              </div>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-primary text-white py-2 rounded font-semibold hover:bg-secondary"
-            >
-              Update Password
-            </button>
-          </form>
-        </div>
-      )}
 
                   {/* Items with pending prices */}
                   {order.status === 'pending_price' && (
@@ -717,7 +725,7 @@ const Admin = () => {
                             <div key={idx} className="bg-white rounded p-3 mb-2">
                               <p className="font-semibold mb-2">📄 {item.title}</p>
                               <p className="text-sm text-gray-600 mb-2">
-                                Qty: {item.qty} | Sides: {item.sides === 1 ? 'Single' : 'Double'}
+                                Qty: {item.qty} | Sides: {resolveSideType(item) === 'double' ? 'Double' : 'Single'}
                               </p>
                               {item.pdfUrl && (
                                 <a
@@ -834,6 +842,392 @@ const Admin = () => {
         </div>
       )}
 
+      {/* Printing Queue Tab */}
+      {tab === 'printing-queue' && (
+        <div>
+          {queueOrders.length === 0 ? (
+            <p className="text-gray-600">No orders in printing queue.</p>
+          ) : (
+            <>
+              {/* Global Summary for All Orders */}
+              {(() => {
+                let globalSingleBooks = 0;
+                let globalDoubleBooks = 0;
+                let globalTotalBooks = 0;
+                let globalSinglePages = 0;
+                let globalDoublePages = 0;
+                let globalGrandTotal = 0;
+                const singleBooksList = [];
+                const doubleBooksList = [];
+
+                queueOrders.forEach((order) => {
+                  const safeItems = Array.isArray(order.items) ? order.items : [];
+                  safeItems.forEach((item) => {
+                    const type = resolveSideType(item);
+                    const pages = item.pages || 0;
+                    const qty = item.qty || 0;
+                    
+                    // Calculate item total correctly based on available price fields
+                    let itemTotal = 0;
+                    let displayPrice = 0;
+                    
+                    if (item.userPrice !== undefined && item.userPrice !== null) {
+                      // userPrice is per-unit total, multiply by qty
+                      itemTotal = item.userPrice * qty;
+                      displayPrice = item.userPrice;
+                    } else if (item.price !== undefined && item.price !== null) {
+                      // price is per-unit total, multiply by qty
+                      itemTotal = item.price * qty;
+                      displayPrice = item.price;
+                    } else if (item.pricePerPage !== undefined && item.pricePerPage !== null) {
+                      // pricePerPage needs to be multiplied by pages, qty, and side multiplier
+                      const multiplier = type === 'double' ? 0.5 : 1;
+                      itemTotal = pages * item.pricePerPage * qty * multiplier;
+                      displayPrice = item.pricePerPage;
+                    }
+
+                    if (type === 'double') {
+                      globalDoubleBooks += qty;
+                      globalDoublePages += pages * qty;
+                      doubleBooksList.push({ title: item.title || item.code || 'Untitled', qty, pages, pricePerPage: displayPrice, total: itemTotal });
+                    } else {
+                      globalSingleBooks += qty;
+                      globalSinglePages += pages * qty;
+                      singleBooksList.push({ title: item.title || item.code || 'Untitled', qty, pages, pricePerPage: displayPrice, total: itemTotal });
+                    }
+                    globalTotalBooks += qty;
+                    globalGrandTotal += itemTotal;
+                  });
+                });
+
+                return (
+                  <div className="mb-6 bg-gradient-to-br from-purple-50 to-indigo-100 border-2 border-purple-300 rounded-xl p-6 shadow-lg">
+                    <h2 className="text-2xl font-bold text-purple-900 mb-4 flex items-center gap-3">
+                      <span>📊</span> Printing Queue Summary - All Orders
+                    </h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Single-side Books */}
+                      <div className="bg-white rounded-lg p-4 shadow">
+                        <h3 className="text-lg font-bold text-gray-800 mb-3 border-b-2 border-blue-300 pb-2">
+                          📘 Single-side Books ({globalSingleBooks})
+                        </h3>
+                        {singleBooksList.length === 0 ? (
+                          <p className="text-gray-500 italic text-sm">No single-side books</p>
+                        ) : (
+                          <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {singleBooksList.map((book, idx) => (
+                              <div key={idx} className="text-sm border-b border-gray-200 pb-2">
+                                <div className="flex justify-between font-semibold text-gray-900">
+                                  <span>{book.title}</span>
+                                  <span className="text-blue-600">₹{book.total.toFixed(2)}</span>
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {book.pages}p × {book.qty}qty × ₹{book.pricePerPage}/p
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="mt-3 pt-3 border-t-2 border-blue-400">
+                          <div className="flex justify-between text-sm font-semibold text-gray-800">
+                            <span>Total Pages:</span>
+                            <span className="text-blue-600 text-base">{globalSinglePages}</span>
+                          </div>
+                          <div className="flex justify-between text-sm font-semibold text-gray-800">
+                            <span>Total Books:</span>
+                            <span className="text-blue-600 text-base">{globalSingleBooks}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Double-side Books */}
+                      <div className="bg-white rounded-lg p-4 shadow">
+                        <h3 className="text-lg font-bold text-gray-800 mb-3 border-b-2 border-green-300 pb-2">
+                          📗 Double-side Books ({globalDoubleBooks})
+                        </h3>
+                        {doubleBooksList.length === 0 ? (
+                          <p className="text-gray-500 italic text-sm">No double-side books</p>
+                        ) : (
+                          <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {doubleBooksList.map((book, idx) => (
+                              <div key={idx} className="text-sm border-b border-gray-200 pb-2">
+                                <div className="flex justify-between font-semibold text-gray-900">
+                                  <span>{book.title}</span>
+                                  <span className="text-green-600">₹{book.total.toFixed(2)}</span>
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {book.pages}p × {book.qty}qty × ₹{book.pricePerPage}/p × 0.5
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="mt-3 pt-3 border-t-2 border-green-400">
+                          <div className="flex justify-between text-sm font-semibold text-gray-800">
+                            <span>Total Pages:</span>
+                            <span className="text-green-600 text-base">{globalDoublePages}</span>
+                          </div>
+                          <div className="flex justify-between text-sm font-semibold text-gray-800">
+                            <span>Total Books:</span>
+                            <span className="text-green-600 text-base">{globalDoubleBooks}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Grand Totals */}
+                    <div className="mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg p-4 text-white shadow-lg">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div>
+                          <p className="text-sm opacity-90">Total Single Pages</p>
+                          <p className="text-2xl font-bold">{globalSinglePages}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm opacity-90">Total Double Pages</p>
+                          <p className="text-2xl font-bold">{globalDoublePages}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm opacity-90">Total Books</p>
+                          <p className="text-2xl font-bold">{globalTotalBooks}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm opacity-90">Grand Total</p>
+                          <p className="text-3xl font-bold">₹{globalGrandTotal.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Individual Orders */}
+              <div className="space-y-4">
+              {queueOrders.map((order) => {
+                const safeItems = Array.isArray(order.items) ? order.items : [];
+                
+                return (
+                  <div key={order._id} className="bg-white rounded-lg shadow-md p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Order ID</p>
+                        <p className="font-bold text-lg">{order.orderId}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Amount</p>
+                        <p className="font-bold text-lg">₹{order.amount}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Student</p>
+                        <p className="font-bold">{order.student?.name || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Date</p>
+                        <p className="font-bold">{new Date(order.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Student ID</p>
+                        <p className="font-semibold">{order.student?.collegeId || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Phone</p>
+                        <p className="font-semibold">{order.student?.phone || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Pickup Point</p>
+                        <p className="font-semibold">{order.pickupPoint || 'Main Gate'}</p>
+                      </div>
+                    </div>
+
+                    {/* Item details grouped by print type */}
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 mb-2">Items</p>
+                      {safeItems.length === 0 ? (
+                        <p className="text-gray-500 italic">No printable items</p>
+                      ) : (
+                        <>
+                      {(() => {
+                            const singles = [];
+                            const doubles = [];
+                            safeItems.forEach((item) => {
+                              const type = resolveSideType(item);
+                              if (type === 'double') doubles.push(item);
+                              else singles.push(item);
+                            });
+                            return (
+                              <div className="grid grid-cols-1 gap-2">
+                                {singles.length > 0 && (
+                                  <p className="text-xs font-semibold text-gray-700">Single-side</p>
+                                )}
+                                {singles.map((item, idx) => (
+                                  <div key={`s-${idx}`} className="flex flex-col rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                                    <div className="flex justify-between">
+                                      <div className="flex-1">
+                                        <p className="font-semibold text-gray-900">
+                                          {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
+                                        </p>
+                                        <p className="text-xs text-gray-600">Print: Single · Qty: {item.qty}</p>
+                                      </div>
+                                      <div className="text-sm text-gray-800">
+                                        {item.pricePerPage !== undefined && item.pricePerPage !== null && (
+                                          <div>Price/page: ₹{item.pricePerPage}</div>
+                                        )}
+                                        {item.userPrice !== undefined && item.userPrice !== null && (
+                                          <div>Item total: ₹{(item.userPrice * item.qty).toFixed(2)}</div>
+                                        )}
+                                        {item.userPrice === undefined || item.userPrice === null ? (
+                                          item.price !== undefined && item.price !== null ? (
+                                            <div>Item total: ₹{(item.price * item.qty).toFixed(2)}</div>
+                                          ) : (
+                                            <div className="text-xs text-gray-600">Pending admin price</div>
+                                          )
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {doubles.length > 0 && (
+                                  <p className="mt-2 text-xs font-semibold text-gray-700">Double-side</p>
+                                )}
+                                {doubles.map((item, idx) => (
+                                  <div key={`d-${idx}`} className="flex flex-col rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                                    <div className="flex justify-between">
+                                      <div className="flex-1">
+                                        <p className="font-semibold text-gray-900">
+                                          {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
+                                        </p>
+                                        <p className="text-xs text-gray-600">Print: Double · Qty: {item.qty}</p>
+                                      </div>
+                                      <div className="text-sm text-gray-800">
+                                        {item.pricePerPage !== undefined && item.pricePerPage !== null && (
+                                          <div>Price/page: ₹{item.pricePerPage}</div>
+                                        )}
+                                        {item.userPrice !== undefined && item.userPrice !== null && (
+                                          <div>Item total: ₹{(item.userPrice * item.qty).toFixed(2)}</div>
+                                        )}
+                                        {item.userPrice === undefined || item.userPrice === null ? (
+                                          item.price !== undefined && item.price !== null ? (
+                                            <div>Item total: ₹{(item.price * item.qty).toFixed(2)}</div>
+                                          ) : (
+                                            <div className="text-xs text-gray-600">Pending admin price</div>
+                                          )
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                          {/* Total price below items */}
+                          <div className="mt-3 border-t border-gray-300 pt-3">
+                            <p className="text-right font-bold text-lg text-gray-900">
+                              Total: ₹{order.amount}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {order.payment?.screenshotUrl && (
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-600 mb-2">Payment Screenshot</p>
+                        <a
+                          href={order.payment.screenshotUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block"
+                        >
+                          <img
+                            src={order.payment.screenshotUrl}
+                            alt="Payment Screenshot"
+                            className="w-40 h-40 object-cover rounded border hover:opacity-80 cursor-pointer"
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/200x200?text=Screenshot';
+                            }}
+                          />
+                        </a>
+                        {order.payment?.type && (
+                          <div className="mt-3 text-sm text-gray-800">
+                            <p>Payment Type: <span className="font-semibold">{order.payment.type}</span></p>
+                            {order.payment.type === 'COD' ? (
+                              <p>Paid Now: ₹{order.payment.paidAmount ?? 0} · Remaining COD: ₹{order.payment.remainingAmount ?? 0}</p>
+                            ) : (
+                              <p>Paid Amount: ₹{order.payment.paidAmount ?? order.amount}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="mb-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-sm text-gray-600">Current Status:</span>
+                        <span
+                          className={`px-4 py-2 rounded-lg font-bold text-white bg-${getStatusColor(
+                            order.status
+                          )}-500`}
+                        >
+                          {order.status.toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-2 flex-wrap">
+                        {getNextStatus(order.status) && order.status !== 'cancelled' && (
+                          <button
+                            onClick={() => handleAcceptOrder(order.orderId, order.status)}
+                            className="bg-green-500 text-white px-6 py-2 rounded font-semibold hover:bg-green-600 flex items-center gap-2"
+                          >
+                            ✓ Accept → {getNextStatus(order.status)}
+                          </button>
+                        )}
+
+                        {order.status === 'printing' && (
+                          <div className="flex gap-2 items-center">
+                            {!order.liveLocationEnabled && (
+                              <button
+                                onClick={() => handleToggleLiveLocation(order.orderId, true)}
+                                className="bg-blue-500 text-white px-4 py-2 rounded font-semibold hover:bg-blue-600"
+                              >
+                                Enable Live Location
+                              </button>
+                            )}
+                            {order.liveLocationEnabled && (
+                              <button
+                                onClick={() => handleToggleLiveLocation(order.orderId, false)}
+                                className="bg-gray-600 text-white px-4 py-2 rounded font-semibold hover:bg-gray-700"
+                              >
+                                Disable Live Location
+                              </button>
+                            )}
+                            {order.liveLocationEnabled && (
+                              <span className="text-sm text-green-700 font-semibold">Live location ON</span>
+                            )}
+                          </div>
+                        )}
+
+                        {(order.status === 'delivered' || order.status === 'cancelled') && (
+                          <button
+                            onClick={() => handleDeleteOrder(order.orderId)}
+                            className="bg-red-500 text-white px-6 py-2 rounded font-semibold hover:bg-red-600"
+                          >
+                            🗑️ Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* PDF Requests Tab */}
       {tab === 'pdf-requests' && (
         <div>
@@ -930,6 +1324,32 @@ const Admin = () => {
                         min="0"
                         step="0.01"
                       />
+                      {/* Admin-only helper: page count and auto-pricing display */}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          placeholder="Number of pages"
+                          className="border rounded px-3 py-2 w-40"
+                          id={`pdf-pages-${request.requestId}`}
+                          min="1"
+                          step="1"
+                        />
+                        <button
+                          onClick={() => {
+                            const pagesVal = parseInt(document.getElementById(`pdf-pages-${request.requestId}`)?.value || '0', 10);
+                            if (!pagesVal || pagesVal <= 0) {
+                              alert('Enter valid pages');
+                              return;
+                            }
+                            const singlePrice = (pagesVal * 1) + 60;
+                            const doublePrice = (pagesVal * 0.5) + 60;
+                            alert(`Auto pricing (display only)\nSingle-side: ₹${singlePrice.toFixed(2)}\nDouble-side: ₹${doublePrice.toFixed(2)}`);
+                          }}
+                          className="bg-blue-500 text-white px-4 py-2 rounded font-semibold hover:bg-blue-600"
+                        >
+                          Show Auto Pricing
+                        </button>
+                      </div>
                       <button
                         onClick={() => {
                           const priceInput = document.getElementById(`pdf-price-${request.requestId}`);

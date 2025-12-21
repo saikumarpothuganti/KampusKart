@@ -195,21 +195,55 @@ const OrderStatus = () => {
         {/* Items */}
         <div className="bg-gradient-to-br from-[#10b981] to-[#059669] rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold mb-4 text-white">Order Items</h2>
-          <div className="space-y-3">
-            {order.items.map((item, idx) => (
-              <div key={idx} className="flex justify-between border-b border-white/20 pb-2">
-                <div>
-                  <p className="font-semibold text-white">{item.title}</p>
-                  <p className="text-sm text-white/90">Qty: {item.qty} | Sides: {item.sides}</p>
-                </div>
-                {item.userPrice ?? item.price ? (
-                  <p className="font-bold text-white">₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</p>
-                ) : (
-                  <p className="text-white text-sm">Pending admin price</p>
+          {(() => {
+            const singles = [];
+            const doubles = [];
+            (order.items || []).forEach((item) => {
+              const type = item.sideType || (item.sides === 2 ? 'double' : 'single');
+              if (type === 'double') doubles.push(item);
+              else singles.push(item);
+            });
+            return (
+              <div className="space-y-3">
+                {singles.length > 0 && (
+                  <p className="text-sm font-semibold text-white">Single-side</p>
                 )}
+                {singles.map((item, idx) => (
+                  <div key={`s-${idx}`} className="flex flex-col border-b border-white/20 pb-2">
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="font-semibold text-white">{item.title} {item.code ? `(${item.code})` : ''}</p>
+                        <p className="text-xs text-white/90">Print: Single · Qty: {item.qty} · Price/page: ₹{item.pricePerPage ?? (item.userPrice ?? item.price ?? '-')}</p>
+                      </div>
+                      {item.userPrice ?? item.price ? (
+                        <p className="font-bold text-white">₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</p>
+                      ) : (
+                        <p className="text-white text-sm">Pending admin price</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {doubles.length > 0 && (
+                  <p className="mt-2 text-sm font-semibold text-white">Double-side</p>
+                )}
+                {doubles.map((item, idx) => (
+                  <div key={`d-${idx}`} className="flex flex-col border-b border-white/20 pb-2">
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="font-semibold text-white">{item.title} {item.code ? `(${item.code})` : ''}</p>
+                        <p className="text-xs text-white/90">Print: Double · Qty: {item.qty} · Price/page: ₹{item.pricePerPage ?? (item.userPrice ?? item.price ?? '-')}</p>
+                      </div>
+                      {item.userPrice ?? item.price ? (
+                        <p className="font-bold text-white">₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</p>
+                      ) : (
+                        <p className="text-white text-sm">Pending admin price</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
           <div className="mt-4 pt-4 border-t border-white/30 flex justify-between font-bold text-lg text-white">
             <span>Total:</span>
             <span className="text-yellow-300">₹{order.amount}</span>

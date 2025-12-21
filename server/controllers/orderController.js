@@ -16,7 +16,7 @@ const generateOrderId = async () => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { items, amount, paymentScreenshotUrl, student, pickupPoint } = req.body;
+    const { items, amount, paymentScreenshotUrl, student, pickupPoint, paymentType, paidAmount, remainingAmount } = req.body;
 
     if (!items || amount === undefined || amount === null || !student) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -29,6 +29,30 @@ export const createOrder = async (req, res) => {
 
     const orderId = await generateOrderId();
 
+    // Prepare payment info (optional / backward-compatible)
+    const paymentInfo = {
+      screenshotUrl: paymentScreenshotUrl,
+    };
+
+    // If a payment type is provided, validate and set amounts safely
+    if (paymentType === 'COD') {
+      const paid = Number(paidAmount ?? 0);
+      const remaining = Number(remainingAmount ?? 0);
+      if (!(paid > 0) || !(paid < Number(amount))) {
+        return res.status(400).json({ error: 'For COD, paidAmount must be > 0 and < total amount' });
+      }
+      if (Math.round((Number(amount) - paid) * 100) / 100 !== Math.round(remaining * 100) / 100) {
+        return res.status(400).json({ error: 'remainingAmount must equal (total - paidAmount)' });
+      }
+      paymentInfo.type = 'COD';
+      paymentInfo.paidAmount = paid;
+      paymentInfo.remainingAmount = remaining;
+    } else if (paymentType === 'FULL') {
+      paymentInfo.type = 'FULL';
+      paymentInfo.paidAmount = Number(amount) || 0;
+      paymentInfo.remainingAmount = 0;
+    }
+
     const newOrder = new Order({
       userId: req.user.id,
       orderId,
@@ -36,9 +60,7 @@ export const createOrder = async (req, res) => {
       amount,
       status: hasPendingPrice ? 'pending_price' : 'sent',
       canCancel: true,
-      payment: {
-        screenshotUrl: paymentScreenshotUrl,
-      },
+      payment: paymentInfo,
       student,
       pickupPoint: pickupPoint || 'Main Gate',
     });

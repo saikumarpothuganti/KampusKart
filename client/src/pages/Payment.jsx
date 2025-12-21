@@ -6,6 +6,17 @@ import API from '../lib/api';
 import ContactLinks from '../components/ContactLinks';
 import QRCode from '../assets/QRPhonepayg.jpeg';
 
+const groupBySideType = (items = []) => {
+  const singles = [];
+  const doubles = [];
+  items.forEach((item) => {
+    const type = item.sideType || (item.sides === 2 ? 'double' : 'single');
+    if (type === 'double') doubles.push(item);
+    else singles.push(item);
+  });
+  return { singles, doubles };
+};
+
 const Payment = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -15,6 +26,8 @@ const Payment = () => {
   const [checkoutData, setCheckoutData] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [paymentType, setPaymentType] = useState('FULL');
+  const [paidNow, setPaidNow] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -58,6 +71,20 @@ const Payment = () => {
       return;
     }
 
+    // Validate COD amount if selected
+    if (paymentType === 'COD') {
+      const total = getTotalPrice();
+      const paid = Number(paidNow);
+      if (!Number.isFinite(paid) || paid <= 0) {
+        setErrorMsg('Enter a valid COD amount (> 0)');
+        return;
+      }
+      if (paid >= total) {
+        setErrorMsg('COD amount must be less than total');
+        return;
+      }
+    }
+
     try {
       setUploading(true);
 
@@ -77,10 +104,14 @@ const Payment = () => {
       }
 
       // Create order
-      const orderRes = await API.post('/orders', {
+      const payload = {
         items: cart.items,
         amount: getTotalPrice(),
         paymentScreenshotUrl: screenshotUrl,
+        paymentType: paymentType === 'COD' ? 'COD' : 'FULL',
+        paidAmount: paymentType === 'COD' ? Number(paidNow) : getTotalPrice(),
+        remainingAmount:
+          paymentType === 'COD' ? Math.max(getTotalPrice() - Number(paidNow), 0) : 0,
         student: {
           name: checkoutData.name,
           collegeId: checkoutData.collegeId,
@@ -88,7 +119,9 @@ const Payment = () => {
         },
         pickupPoint: checkoutData.pickupPoint || 'Main Gate',
         notes: checkoutData.notes,
-      });
+      };
+
+      const orderRes = await API.post('/orders', payload);
 
       if (!orderRes?.data?.orderId) {
         throw new Error('Order creation failed: missing orderId');
@@ -113,6 +146,7 @@ const Payment = () => {
   const total = getTotalPrice();
   const hasPendingPrice = cart.items?.some((item) => item.userPrice == null && item.price == null);
   const needsPayment = total > 0 && !hasPendingPrice;
+  const grouped = groupBySideType(cart.items || []);
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
@@ -128,6 +162,53 @@ const Payment = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Payment Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
+          {/* Payment Type Selector */}
+          {needsPayment && (
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-black mb-2">Payment Type</label>
+              <div className="flex flex-col gap-2">
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    value="FULL"
+                    checked={paymentType === 'FULL'}
+                    onChange={() => setPaymentType('FULL')}
+                  />
+                  <span className="text-sm text-black">Full Payment</span>
+                </label>
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    value="COD"
+                    checked={paymentType === 'COD'}
+                    onChange={() => setPaymentType('COD')}
+                  />
+                  <span className="text-sm text-black">Cash On Delivery (COD)</span>
+                </label>
+              </div>
+              {paymentType === 'COD' && (
+                <div className="mt-3">
+                  <label className="block text-sm text-black mb-1">Enter amount you are paying now</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={paidNow}
+                    onChange={(e) => setPaidNow(e.target.value)}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder={`Less than ₹${total.toFixed(2)}`}
+                  />
+                  {paidNow && Number(paidNow) > 0 && Number(paidNow) < total && (
+                    <p className="mt-1 text-xs text-black">
+                      Remaining on delivery: ₹{(total - Number(paidNow)).toFixed(2)}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           {hasPendingPrice && (
             <div className="mb-4 p-3 rounded border border-yellow-200 bg-yellow-50 text-sm text-yellow-800">
               Custom PDFs have a price that will be set by admin. You won&apos;t be charged now; final amount will be confirmed later.
@@ -223,15 +304,42 @@ const Payment = () => {
         <div className="bg-white rounded-lg shadow-md p-6 h-fit">
           <h2 className="text-xl font-bold mb-4 text-black">Order Summary</h2>
 
+          {/* Group: Single-side */}
           <div className="space-y-2 mb-4 pb-4 border-b max-h-64 overflow-y-auto">
-            {cart.items && cart.items.map((item, idx) => (
-              <div key={idx} className="flex justify-between text-sm text-black">
-                <span>{item.title} x {item.qty}</span>
-                {item.userPrice ?? item.price ? (
-                  <span>₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</span>
-                ) : (
-                  <span className="text-black">Pending admin price</span>
-                )}
+            {grouped.singles.length > 0 && (
+              <p className="text-sm font-semibold text-black">Single-side</p>
+            )}
+            {grouped.singles.map((item, idx) => (
+              <div key={`s-${idx}`} className="flex flex-col border rounded p-2">
+                <div className="flex justify-between text-sm text-black">
+                  <span className="font-semibold">{item.title} {item.code ? `(${item.code})` : ''}</span>
+                  {item.userPrice ?? item.price ? (
+                    <span>₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</span>
+                  ) : (
+                    <span className="text-black">Pending admin price</span>
+                  )}
+                </div>
+                <div className="text-xs text-black mt-1">
+                  <span>Print: Single</span> · <span>Qty: {item.qty}</span> · <span>Price/page: ₹{item.pricePerPage ?? (item.userPrice ?? item.price ?? '-')}</span>
+                </div>
+              </div>
+            ))}
+            {grouped.doubles.length > 0 && (
+              <p className="mt-3 text-sm font-semibold text-black">Double-side</p>
+            )}
+            {grouped.doubles.map((item, idx) => (
+              <div key={`d-${idx}`} className="flex flex-col border rounded p-2">
+                <div className="flex justify-between text-sm text-black">
+                  <span className="font-semibold">{item.title} {item.code ? `(${item.code})` : ''}</span>
+                  {item.userPrice ?? item.price ? (
+                    <span>₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</span>
+                  ) : (
+                    <span className="text-black">Pending admin price</span>
+                  )}
+                </div>
+                <div className="text-xs text-black mt-1">
+                  <span>Print: Double</span> · <span>Qty: {item.qty}</span> · <span>Price/page: ₹{item.pricePerPage ?? (item.userPrice ?? item.price ?? '-')}</span>
+                </div>
               </div>
             ))}
           </div>

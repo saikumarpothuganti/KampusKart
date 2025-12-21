@@ -52,6 +52,20 @@ const orderSchema = new mongoose.Schema(
     },
     payment: {
       screenshotUrl: String,
+      type: {
+        type: String,
+        enum: ['FULL', 'COD'],
+      },
+      paidAmount: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      remainingAmount: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
     },
     pickupAddress: {
       type: String,
