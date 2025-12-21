@@ -75,7 +75,9 @@ const Admin = () => {
     : pdfRequests.filter((r) => {
         const q = pdfRequestsSearchQuery.trim().toLowerCase();
         const requestId = r.requestId?.toLowerCase() || '';
-        return requestId.includes(q);
+        const title = r.title?.toLowerCase() || '';
+        const name = r.name?.toLowerCase() || '';
+        return requestId.includes(q) || title.includes(q) || name.includes(q);
       });
 
   useEffect(() => {
