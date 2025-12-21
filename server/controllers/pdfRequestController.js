@@ -1,4 +1,5 @@
 import PDFRequest from '../models/PDFRequest.js';
+import { sendNotificationToUser } from './pushController.js';
 
 const generateRequestId = async () => {
   let requestId = '';
@@ -94,6 +95,13 @@ export const setPDFRequestPrice = async (req, res) => {
     if (!request) {
       return res.status(404).json({ error: 'PDF request not found' });
     }
+
+    // STEP 4A: Send notification to user (price set)
+    await sendNotificationToUser(
+      request.userId,
+      'KampusKart',
+      `Price set for your document "${request.title}". Please proceed with order.`
+    );
 
     res.json(request);
   } catch (error) {

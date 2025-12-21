@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import API from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 const NotificationPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     // Only show if running as PWA AND permission is default
@@ -17,6 +19,13 @@ const NotificationPrompt = () => {
 
   const handleEnable = async () => {
     try {
+      // User must be authenticated
+      if (!user || !user.id) {
+        console.error('[PWA] User not authenticated');
+        setShowPrompt(false);
+        return;
+      }
+
       // Request permission
       const permission = await Notification.requestPermission();
       
@@ -30,7 +39,7 @@ const NotificationPrompt = () => {
 
       // Generate VAPID public key (from backend env)
       const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 
-        'BN8pqzZ-xC3-Kj_9LKqZ7C6JQ8vW5rX2fY9pQrS3tU5vW6xY7zA8bC9dE0fG1hI2jK3lM4nO5pQ6rS7tU8vW9xY0zA';
+        'BBlUaRlvusca8spAYX_EH778O60Fu9j802G_UmZ6SuV5LlfKzF2bNUCZeYpIHGulF5Ib9mxf0vgfmm9lqQ8W2lk';
 
       // Convert base64 to Uint8Array
       const urlBase64ToUint8Array = (base64String) => {
@@ -50,10 +59,13 @@ const NotificationPrompt = () => {
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
 
-      // Send subscription to backend
-      await API.post('/push/subscribe', { subscription: subscription.toJSON() });
+      // Send subscription to backend WITH userId (STEP 2)
+      await API.post('/push/subscribe', { 
+        subscription: subscription.toJSON(),
+        userId: user.id
+      });
       
-      console.log('[PWA] Push subscription sent to backend');
+      console.log('[PWA] Push subscription sent to backend with userId');
       setShowPrompt(false);
     } catch (error) {
       console.error('[PWA] Notification enable failed:', error);

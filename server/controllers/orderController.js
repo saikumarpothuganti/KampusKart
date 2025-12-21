@@ -1,6 +1,7 @@
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import { v4 as uuidv4 } from 'uuid';
+import { sendNotificationToUser } from './pushController.js';
 
 const generateOrderId = async () => {
   let orderId = '';
@@ -175,6 +176,20 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
+    // STEP 4B: Send notification to user (status updated)
+    const statusMessages = {
+      pending_price: 'Your order is pending price confirmation.',
+      sent: 'Your order has been sent for processing.',
+      placed: 'Your order has been placed.',
+      printing: '🖨️ Your order is now being printed.',
+      out_for_delivery: '🚚 Your order is out for delivery.',
+      delivered: '✅ Your order has been delivered.',
+      cancelled: '❌ Your order has been cancelled.',
+    };
+
+    const notificationBody = statusMessages[status] || `Your order status updated to ${status}.`;
+    await sendNotificationToUser(order.userId, 'KampusKart', notificationBody);
+
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -264,6 +279,15 @@ export const setCustomPDFPrice = async (req, res) => {
     }
 
     await order.save();
+
+    // STEP 4A: Send notification to user (price set in order)
+    const itemTitle = order.items[itemIndex]?.title || 'Your document';
+    await sendNotificationToUser(
+      order.userId,
+      'KampusKart',
+      `Price set for ${itemTitle}. Please proceed with order.`
+    );
+
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });

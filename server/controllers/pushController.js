@@ -10,17 +10,68 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env
   );
 }
 
-// POST /api/push/subscribe
+// REUSABLE HELPER: Send notification to specific user (STEP 3)
+export const sendNotificationToUser = async (userId, title, body, icon = '/icon-192x192.png') => {
+  try {
+    if (!userId) {
+      console.error('[Push] sendNotificationToUser: userId is required');
+      return { success: false, message: 'userId is required' };
+    }
+
+    // Fetch all subscriptions for this user
+    const subscriptions = await PushSubscription.find({ userId });
+
+    if (subscriptions.length === 0) {
+      console.log(`[Push] No subscriptions found for user ${userId}`);
+      return { success: true, message: 'No subscriptions found', sentCount: 0 };
+    }
+
+    const payload = JSON.stringify({
+      title,
+      body,
+      icon,
+    });
+
+    let sentCount = 0;
+    let failureCount = 0;
+
+    // Loop through each subscription for this user
+    for (const sub of subscriptions) {
+      try {
+        await webpush.sendNotification(sub.subscription, payload);
+        sentCount++;
+      } catch (error) {
+        failureCount++;
+        console.error(`[Push] Failed to send notification to ${sub.subscription.endpoint}:`, error.message);
+        // Continue to next subscription (do not crash)
+      }
+    }
+
+    console.log(`[Push] Sent notification to ${sentCount}/${subscriptions.length} devices for user ${userId}`);
+    return { success: true, sentCount, failureCount };
+  } catch (error) {
+    console.error('[Push] sendNotificationToUser error:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+// POST /api/push/subscribe (STEP 1: Save user subscription with userId)
 export const subscribe = async (req, res) => {
   try {
-    const { subscription } = req.body;
+    const { subscription, userId } = req.body;
+
+    // userId must be provided (from authenticated user)
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
 
     if (!subscription || !subscription.endpoint) {
       return res.status(400).json({ error: 'Invalid subscription data' });
     }
 
-    // Check if subscription already exists (avoid duplicates)
+    // Check if subscription already exists for this user+endpoint
     const existing = await PushSubscription.findOne({
+      userId,
       'subscription.endpoint': subscription.endpoint,
     });
 
@@ -28,9 +79,9 @@ export const subscribe = async (req, res) => {
       return res.json({ message: 'Subscription already exists', subscription: existing });
     }
 
-    // Create new subscription
+    // Create new subscription with userId
     const newSubscription = new PushSubscription({
-      userId: req.user?.id || null, // Optional: if user is logged in
+      userId,
       subscription: {
         endpoint: subscription.endpoint,
         keys: subscription.keys || {},
@@ -49,7 +100,7 @@ export const subscribe = async (req, res) => {
   }
 };
 
-// POST /api/push/test (STEP 2A: Test notification to all subscriptions)
+// POST /api/push/test (Test notification to all subscriptions)
 export const sendTestNotification = async (req, res) => {
   try {
     // Fetch all push subscriptions from MongoDB
