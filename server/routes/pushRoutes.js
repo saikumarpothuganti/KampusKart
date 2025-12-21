@@ -1,10 +1,9 @@
 import express from 'express';
 import { subscribe } from '../controllers/pushController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// POST /api/push/subscribe
-router.post('/subscribe', authMiddleware, subscribe);
+// POST /api/push/subscribe (public endpoint for STEP 1)
+router.post('/subscribe', subscribe);
 
 export default router;
