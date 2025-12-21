@@ -15,6 +15,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import pdfRequestRoutes from './routes/pdfRequestRoutes.js';
 import feedbackRoutes from './routes/feedback.js';
 import pickupPointRoutes from './routes/pickupPointRoutes.js';
+import pushRoutes from './routes/pushRoutes.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -73,6 +74,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/pdf-requests', pdfRequestRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/pickup-points', pickupPointRoutes);
+app.use('/api/push', pushRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

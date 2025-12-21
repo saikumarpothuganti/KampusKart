@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import Background from './components/Background';
 import LoadingScreen from './components/LoadingScreen';
 import InstallPrompt from './components/InstallPrompt';
+import NotificationPrompt from './components/NotificationPrompt';
 
 import Home from './pages/Home';
 import Workbook from './pages/Workbook';
@@ -40,6 +41,8 @@ function AppContent() {
       )}
       {/* PWA Install Prompt */}
       <InstallPrompt />
+      {/* PWA Notification Prompt */}
+      <NotificationPrompt />
       <Background />
       <Navbar />
       <Routes>
