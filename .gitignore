@@ -1,3 +1,9 @@
+# Ignore environment files
+client/.env
+server/.env
+
+# Ignore local backup artifacts
+server/backups/
 # Dependencies
 server/node_modules/
 client/node_modules/
