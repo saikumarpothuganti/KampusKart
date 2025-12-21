@@ -12,15 +12,7 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(() => console.log('[PWA] Service Worker registered'))
-          .catch(err => console.error('[PWA] Service Worker registration failed:', err));
-      });
-    }
-  </script>
 </body>
 </html>
+
 
