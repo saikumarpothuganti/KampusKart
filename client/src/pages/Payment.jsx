@@ -29,6 +29,12 @@ const Payment = () => {
   const [paymentType, setPaymentType] = useState('FULL');
   const [paidNow, setPaidNow] = useState('');
 
+  // Check if order is bulk: total amount >= ₹1000
+  const isBulkOrder = () => {
+    const totalAmount = getTotalPrice();
+    return totalAmount >= 1000;
+  };
+
   useEffect(() => {
     if (!user) {
       navigate('/signin');
@@ -71,16 +77,16 @@ const Payment = () => {
       return;
     }
 
-    // Validate COD amount if selected
-    if (paymentType === 'COD') {
+    // Validate Partial Payment amount if selected
+    if (paymentType === 'PARTIAL') {
       const total = getTotalPrice();
       const paid = Number(paidNow);
       if (!Number.isFinite(paid) || paid <= 0) {
-        setErrorMsg('Enter a valid COD amount (> 0)');
+        setErrorMsg('Enter a valid payment amount (> 0)');
         return;
       }
       if (paid >= total) {
-        setErrorMsg('COD amount must be less than total');
+        setErrorMsg('Partial payment amount must be less than total');
         return;
       }
     }
@@ -108,10 +114,10 @@ const Payment = () => {
         items: cart.items,
         amount: getTotalPrice(),
         paymentScreenshotUrl: screenshotUrl,
-        paymentType: paymentType === 'COD' ? 'COD' : 'FULL',
-        paidAmount: paymentType === 'COD' ? Number(paidNow) : getTotalPrice(),
+        paymentType: paymentType === 'PARTIAL' ? 'COD' : 'FULL',
+        paidAmount: paymentType === 'PARTIAL' ? Number(paidNow) : getTotalPrice(),
         remainingAmount:
-          paymentType === 'COD' ? Math.max(getTotalPrice() - Number(paidNow), 0) : 0,
+          paymentType === 'PARTIAL' ? Math.max(getTotalPrice() - Number(paidNow), 0) : 0,
         student: {
           name: checkoutData.name,
           collegeId: checkoutData.collegeId,
@@ -177,18 +183,20 @@ const Payment = () => {
                   />
                   <span className="text-sm text-black">Full Payment</span>
                 </label>
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="paymentType"
-                    value="COD"
-                    checked={paymentType === 'COD'}
-                    onChange={() => setPaymentType('COD')}
-                  />
-                  <span className="text-sm text-black">Cash On Delivery (COD)</span>
-                </label>
+                {isBulkOrder() && (
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="PARTIAL"
+                      checked={paymentType === 'PARTIAL'}
+                      onChange={() => setPaymentType('PARTIAL')}
+                    />
+                    <span className="text-sm text-black">Partial Payment (Pay now, rest on delivery)</span>
+                  </label>
+                )}
               </div>
-              {paymentType === 'COD' && (
+              {paymentType === 'PARTIAL' && (
                 <div className="mt-3">
                   <label className="block text-sm text-black mb-1">Enter amount you are paying now</label>
                   <input
