@@ -6,6 +6,7 @@ import { LoadingProvider, useLoading } from './context/LoadingContext';
 import Navbar from './components/Navbar';
 import Background from './components/Background';
 import LoadingScreen from './components/LoadingScreen';
+import InstallPrompt from './components/InstallPrompt';
 
 import Home from './pages/Home';
 import Workbook from './pages/Workbook';
@@ -37,6 +38,8 @@ function AppContent() {
       {isLoading && (
         <LoadingScreen duration={5000} onFinished={() => {}} />
       )}
+      {/* PWA Install Prompt */}
+      <InstallPrompt />
       <Background />
       <Navbar />
       <Routes>
