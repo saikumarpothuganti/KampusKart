@@ -192,7 +192,7 @@ const Payment = () => {
                       checked={paymentType === 'PARTIAL'}
                       onChange={() => setPaymentType('PARTIAL')}
                     />
-                    <span className="text-sm text-black">Partial Payment (Pay now, rest on delivery)</span>
+                    <span className="text-sm text-black">Partial Payment (please contact the admin for partial payment)</span>
                   </label>
                 )}
               </div>
