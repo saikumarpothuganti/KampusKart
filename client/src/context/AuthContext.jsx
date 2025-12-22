@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
+  const [ordersEnabled, setOrdersEnabled] = useState(true);
   const hasAttemptedAuth = useRef(false); // Prevent multiple auth attempts
 
   useEffect(() => {
@@ -43,6 +44,21 @@ export const AuthProvider = ({ children }) => {
     };
   }, []); // Only run once on mount
 
+  // Fetch orders enabled status on mount
+  useEffect(() => {
+    const fetchOrdersEnabled = async () => {
+      try {
+        const res = await API.get('/admin/orders-enabled');
+        setOrdersEnabled(res.data.enabled);
+      } catch (error) {
+        console.error('Failed to fetch orders enabled status:', error);
+        // Default to true on error to avoid blocking
+        setOrdersEnabled(true);
+      }
+    };
+    fetchOrdersEnabled();
+  }, []);
+
   const signup = async (name, userId, email, password) => {
     const res = await API.post('/auth/signup', { name, userId, email, password });
     localStorage.setItem('token', res.data.token);
@@ -65,8 +81,19 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const refreshOrdersEnabled = async () => {
+    try {
+      const res = await API.get('/admin/orders-enabled');
+      setOrdersEnabled(res.data.enabled);
+      return res.data.enabled;
+    } catch (error) {
+      console.error('Failed to refresh orders enabled status:', error);
+      return ordersEnabled;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, signup, signin, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, ordersEnabled, refreshOrdersEnabled, signup, signin, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import '../styles/CardAnimations.css';
 import API from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 const CustomBookCard = ({ onAddToCart }) => {
+  const { user, ordersEnabled } = useAuth();
   const [file, setFile] = useState(null);
   const [sides, setSides] = useState(1);
   const [quantity, setQuantity] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [pauseMessage, setPauseMessage] = useState('');
   const abortControllerRef = React.useRef(null);
 
   const handleFileChange = (e) => {
@@ -21,6 +24,16 @@ const CustomBookCard = ({ onAddToCart }) => {
   };
 
   const handleSubmitRequest = async () => {
+    if (!ordersEnabled) {
+      if (!user || !user.isAdmin) {
+        alert(
+          "We've received more orders than expected.\n" +
+          "Orders are temporarily paused.\n" +
+          "Please check back shortly or contact admin for urgent needs."
+        );
+        return;
+      }
+    }
     if (!file) {
       alert('Please upload a PDF');
       return;
@@ -104,6 +117,12 @@ const CustomBookCard = ({ onAddToCart }) => {
     <div className="bg-[#1f1f1f] rounded-2xl shadow-md p-4 pb-6 h-[440px] flex flex-col transition-transform duration-150 ease-out hover:scale-[1.02] hover:shadow-lg card-glow-border">
       <h3 className="text-lg font-semibold mb-4 text-white">📄 Upload Custom PDF</h3>
 
+      {pauseMessage && (
+        <div className="mb-3 text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+          {pauseMessage}
+        </div>
+      )}
+
       <div className="mb-3 flex-1">
         <label className="block text-sm font-medium mb-2 text-white">Upload PDF</label>
         <input
@@ -163,8 +182,10 @@ const CustomBookCard = ({ onAddToCart }) => {
 
       <button
         onClick={handleSubmitRequest}
-        disabled={uploading}
-        className="mt-auto mt-4 mb-3 w-full bg-primary text-white text-sm py-1.5 rounded-md font-semibold hover:bg-secondary disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        disabled={uploading || (!ordersEnabled && (!user || !user.isAdmin))}
+        className={`mt-auto mt-4 mb-3 w-full text-sm py-1.5 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+          (ordersEnabled || user?.isAdmin) ? 'bg-primary text-white hover:bg-secondary' : 'bg-gray-500/60 text-white/80 cursor-not-allowed'
+        }`}
       >
         {uploading ? 'Uploading...' : 'Submit Request'}
       </button>

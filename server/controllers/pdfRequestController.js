@@ -1,5 +1,6 @@
 import PDFRequest from '../models/PDFRequest.js';
 import { sendNotificationToUser } from './pushController.js';
+import { getFlag } from './toggleController.js';
 
 const generateRequestId = async () => {
   let requestId = '';
@@ -16,6 +17,13 @@ const generateRequestId = async () => {
 // User creates a PDF request
 export const createPDFRequest = async (req, res) => {
   try {
+    // Check if orders are enabled (admin bypass)
+    if (!getFlag() && !req.user?.isAdmin) {
+      return res.status(403).json({ 
+        error: 'Orders are temporarily paused. Please try later.' 
+      });
+    }
+
     const { title, pdfUrl, qty, sides } = req.body;
 
     console.log('PDF Request received:', { title, pdfUrl, qty, sides, userId: req.user?.id });

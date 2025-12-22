@@ -7,7 +7,7 @@ import GlowAlert from '../components/GlowAlert';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, ordersEnabled: ordersEnabledFromContext, refreshOrdersEnabled } = useAuth();
   const [orders, setOrders] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [pdfRequests, setPdfRequests] = useState([]);
@@ -15,6 +15,7 @@ const Admin = () => {
   const [pickupPoints, setPickupPoints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alertState, setAlertState] = useState({ message: '', onConfirm: null });
+  const [ordersEnabled, setOrdersEnabledState] = useState(ordersEnabledFromContext);
   const [newPickupPointName, setNewPickupPointName] = useState('');
   const [passwordForm, setPasswordForm] = useState({
     userId: '',
@@ -88,6 +89,10 @@ const Admin = () => {
 
     fetchData();
   }, [user]);
+
+  useEffect(() => {
+    setOrdersEnabledState(ordersEnabledFromContext);
+  }, [ordersEnabledFromContext]);
 
   const fetchData = async () => {
     try {
@@ -435,6 +440,17 @@ const Admin = () => {
     }
   };
 
+  const handleToggleOrdersEnabled = async () => {
+    const next = !ordersEnabled;
+    try {
+      await API.post('/admin/orders-enabled', { enabled: next });
+      setOrdersEnabledState(next);
+      await refreshOrdersEnabled();
+    } catch (error) {
+      alert('Failed to update orders toggle: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
   return (
     <>
       <div className="max-w-6xl mx-auto py-8 px-4">
@@ -446,6 +462,33 @@ const Admin = () => {
         <span className="font-semibold">Back</span>
       </button>
       <h1 className="text-3xl font-bold mb-8">🛡️ Admin Dashboard</h1>
+
+      {/* Orders toggle */}
+      <div className="flex items-center gap-3 mb-6 p-4 rounded-lg bg-white shadow border border-gray-200">
+        <span className="font-semibold text-black">Accept New Orders</span>
+        <label className="relative inline-flex items-center cursor-pointer select-none">
+          <input
+            type="checkbox"
+            className="sr-only"
+            checked={ordersEnabled}
+            onChange={handleToggleOrdersEnabled}
+          />
+          <div
+            className={`w-12 h-6 rounded-full transition-colors duration-200 ${
+              ordersEnabled ? 'bg-emerald-500' : 'bg-gray-300'
+            }`}
+          >
+            <div
+              className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 translate-y-0.5 ${
+                ordersEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </div>
+        </label>
+        <span className="text-sm text-gray-600">
+          {ordersEnabled ? 'ON: Users can place orders' : 'OFF: New orders paused'}
+        </span>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b">

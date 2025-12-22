@@ -16,6 +16,7 @@ import pdfRequestRoutes from './routes/pdfRequestRoutes.js';
 import feedbackRoutes from './routes/feedback.js';
 import pickupPointRoutes from './routes/pickupPointRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
+import toggleRoutes from './routes/toggleRoutes.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -75,6 +76,7 @@ app.use('/api/pdf-requests', pdfRequestRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/pickup-points', pickupPointRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/admin', toggleRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

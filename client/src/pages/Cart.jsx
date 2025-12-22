@@ -7,8 +7,9 @@ import NavLink from '../components/NavLink';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, ordersEnabled } = useAuth();
   const { cart, fetchCart, updateItem, removeItem, getTotalPrice } = useCart();
+  const [pauseMessage, setPauseMessage] = React.useState('');
 
   useEffect(() => {
     if (!user) {
@@ -41,6 +42,21 @@ const Cart = () => {
     } catch (error) {
       alert('Failed to remove item');
     }
+  };
+
+  const handlePlaceOrderClick = () => {
+    if (!ordersEnabled) {
+      if (!user || !user.isAdmin) {
+        alert(
+          "We've received more orders than expected.\n" +
+          "Orders are temporarily paused.\n" +
+          "Please check back shortly or contact admin for urgent needs."
+        );
+        return;
+      }
+    }
+    setPauseMessage('');
+    navigate('/checkout');
   };
 
   const total = getTotalPrice();
@@ -84,12 +100,22 @@ const Cart = () => {
               <span className="text-3xl font-bold text-[#22c55e]">₹{total.toFixed(2)}</span>
             </div>
 
-            <button
-              onClick={() => navigate('/checkout')}
-              className="w-full bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition text-lg"
-            >
-              Place Order
-            </button>
+            {!ordersEnabled && (!user || !user.isAdmin) ? (
+              <div className="text-center py-4 px-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <p className="text-amber-200 text-sm leading-relaxed">
+                  We've received more orders than expected.<br />
+                  Orders are temporarily paused.<br />
+                  Please check back shortly or contact admin for urgent needs.
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={handlePlaceOrderClick}
+                className="w-full bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold shadow-lg shadow-emerald-500/20 transition text-lg hover:scale-[1.01] cursor-pointer"
+              >
+                Place Order
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -6,10 +6,11 @@ import API from '../lib/api';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, ordersEnabled } = useAuth();
   const { cart, getTotalPrice } = useCart();
   const [pickupPoints, setPickupPoints] = useState([]);
   const [loadingPoints, setLoadingPoints] = useState(true);
+  const [pauseMessage, setPauseMessage] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     collegeId: '',
@@ -21,6 +22,19 @@ const Checkout = () => {
   useEffect(() => {
     fetchPickupPoints();
   }, []);
+
+  useEffect(() => {
+    if (!ordersEnabled) {
+      if (!user || !user.isAdmin) {
+        alert(
+          "We've received more orders than expected.\n" +
+          "Orders are temporarily paused.\n" +
+          "Please check back shortly or contact admin for urgent needs."
+        );
+        navigate('/');
+      }
+    }
+  }, [ordersEnabled, navigate, user]);
 
   const fetchPickupPoints = async () => {
     try {
@@ -50,6 +64,16 @@ const Checkout = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!ordersEnabled) {
+      if (!user || !user.isAdmin) {
+        alert(
+          "We've received more orders than expected.\n" +
+          "Orders are temporarily paused.\n" +
+          "Please check back shortly or contact admin for urgent needs."
+        );
+        return;
+      }
+    }
     if (!formData.name || !formData.collegeId || !formData.phone) {
       alert('Please fill all required fields');
       return;
@@ -162,9 +186,17 @@ const Checkout = () => {
               />
             </div>
 
+            {pauseMessage && (
+              <div className="text-sm text-amber-700 bg-amber-100 border border-amber-300 rounded-lg p-3">
+                {pauseMessage}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-secondary text-lg"
+              className={`w-full text-white py-3 rounded-lg font-semibold text-lg ${
+                ordersEnabled ? 'bg-primary hover:bg-secondary' : 'bg-gray-400 cursor-not-allowed opacity-70'
+              }`}
             >
               Continue to Payment
             </button>

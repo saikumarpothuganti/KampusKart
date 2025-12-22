@@ -19,7 +19,7 @@ const groupBySideType = (items = []) => {
 
 const Payment = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, ordersEnabled } = useAuth();
   const { cart, getTotalPrice, clearCart } = useCart();
   const [screenshot, setScreenshot] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -28,6 +28,7 @@ const Payment = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [paymentType, setPaymentType] = useState('FULL');
   const [paidNow, setPaidNow] = useState('');
+  const [pauseMessage, setPauseMessage] = useState('');
 
   // Check if order is bulk: total amount >= ₹1000
   const isBulkOrder = () => {
@@ -41,13 +42,25 @@ const Payment = () => {
       return;
     }
 
+    if (!ordersEnabled) {
+      if (!user || !user.isAdmin) {
+        alert(
+          "We've received more orders than expected.\n" +
+          "Orders are temporarily paused.\n" +
+          "Please check back shortly or contact admin for urgent needs."
+        );
+        navigate('/');
+        return;
+      }
+    }
+
     const data = localStorage.getItem('checkoutData');
     if (!data) {
       navigate('/checkout');
       return;
     }
     setCheckoutData(JSON.parse(data));
-  }, [user, navigate]);
+  }, [user, navigate, ordersEnabled]);
 
   const handleScreenshotChange = (e) => {
     const file = e.target.files?.[0];
@@ -57,6 +70,16 @@ const Payment = () => {
   };
 
   const handleConfirmPayment = async () => {
+    if (!ordersEnabled) {
+      if (!user || !user.isAdmin) {
+        alert(
+          "We've received more orders than expected.\n" +
+          "Orders are temporarily paused.\n" +
+          "Please check back shortly or contact admin for urgent needs."
+        );
+        return;
+      }
+    }
     setErrorMsg('');
     setSuccessMsg('');
 
@@ -168,6 +191,22 @@ const Payment = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Payment Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
+          {pauseMessage && (
+            <div className="mb-4 text-sm text-amber-700 bg-amber-100 border border-amber-200 rounded-lg p-3">
+              {pauseMessage}
+            </div>
+          )}
+          {errorMsg && (
+            <div className="mb-4 text-sm text-red-700 bg-red-100 border border-red-200 rounded-lg p-3">
+              {errorMsg}
+            </div>
+          )}
+          {successMsg && (
+            <div className="mb-4 text-sm text-green-700 bg-green-100 border border-green-200 rounded-lg p-3">
+              {successMsg}
+            </div>
+          )}
+
           {/* Payment Type Selector */}
           {needsPayment && (
             <div className="mb-6">
@@ -297,7 +336,11 @@ const Payment = () => {
           <button
             onClick={handleConfirmPayment}
             disabled={uploading}
-            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-secondary text-lg disabled:opacity-50"
+            className={`w-full text-white py-3 rounded-lg font-semibold text-lg ${
+              ordersEnabled
+                ? 'bg-primary hover:bg-secondary'
+                : 'bg-gray-400 cursor-not-allowed opacity-70'
+            } ${uploading ? 'opacity-50 cursor-wait' : ''}`}
           >
             {uploading ? 'Processing...' : 'Confirm Payment'}
           </button>

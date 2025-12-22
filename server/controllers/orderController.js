@@ -2,6 +2,7 @@ import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendNotificationToUser } from './pushController.js';
+import { getFlag } from './toggleController.js';
 
 const generateOrderId = async () => {
   let orderId = '';
@@ -17,6 +18,13 @@ const generateOrderId = async () => {
 
 export const createOrder = async (req, res) => {
   try {
+    // Check if orders are enabled (admin bypass)
+    if (!getFlag() && !req.user?.isAdmin) {
+      return res.status(403).json({ 
+        error: 'Orders are temporarily paused. Please try later.' 
+      });
+    }
+
     const { items, amount, paymentScreenshotUrl, student, pickupPoint, paymentType, paidAmount, remainingAmount } = req.body;
 
     if (!items || amount === undefined || amount === null || !student) {
