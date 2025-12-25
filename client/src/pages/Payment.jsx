@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import API from '../lib/api';
 import ContactLinks from '../components/ContactLinks';
-import QRCode from '../assets/QRPhonepayg.png';
+import QRCode from '../assets/QRPhonepayg(1).jpeg';
 
 const groupBySideType = (items = []) => {
   const singles = [];
