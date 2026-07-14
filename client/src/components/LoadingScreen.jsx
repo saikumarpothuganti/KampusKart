@@ -86,7 +86,7 @@ const LoadingScreen = ({ duration = 2000, onFinished }) => {
             loop 
             muted 
             playsInline 
-            className="w-[130%] h-[130%] object-cover absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[45%]" 
+            className="w-[127%] h-[127%] object-cover absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[60%]" 
           />
         </div>
       </div>

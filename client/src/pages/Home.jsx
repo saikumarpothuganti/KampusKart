@@ -91,35 +91,29 @@ const Home = () => {
                <OrigamiText text="Welcome To" className="text-xl md:text-2xl" />
             </div>
             
-            <div className="-ml-2 py-2">
-              <OrigamiText text="KAMPUSKART" className="text-3xl md:text-5xl lg:text-[70px]" />
+            <div className="-ml-3 py-2">
+              <OrigamiText text="KAMPUSKART" className="text-3xl md:text-5xl lg:text-[65px]" />
             </div>
 
-            <h2 className="text-3xl md:text-4xl font-['Bebas_Neue'] tracking-wide text-ink-light mt-4">
-              <span style={{ textShadow: '1px 1px 0px #FDFCF9, 2px 2px 0px #D5E2D1, 3px 3px 0px #8FAD8C, 4px 4px 5px rgba(0,0,0,0.2)' }}>Where Every Semester Begins.</span>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-ink mt-4 drop-shadow-[0_2px_4px_rgba(24,56,42,0.3)]">
+              Where Every Semester Begins.
             </h2>
             
-            <p className="text-lg font-bold text-ink max-w-md mt-6 font-sans">
-              <span style={{ textShadow: '1px 1px 0px #FDFCF9, 2px 2px 0px #D5E2D1, 3px 3px 4px rgba(0,0,0,0.15)' }}>Your one-stop place for workbooks, custom printing and delivery. made for students, by students.</span>
+            <p className="text-lg font-medium text-ink max-w-md mt-6 font-sans drop-shadow-[0_1px_3px_rgba(24,56,42,0.3)]">
+              Your one-stop place for workbooks, custom printing and delivery. made for students, by students.
             </p>
             
-            <div className="flex flex-wrap gap-6 pt-6 relative z-50 pointer-events-auto">
+            <div className="flex flex-wrap gap-6 pt-6 relative z-50 pointer-events-auto mt-4">
               <Link
                 to="/workbook"
-                className="relative bg-[#FDFCF9] text-[#1a3625] font-black py-4 px-8 shadow-[6px_6px_0px_rgba(26,54,37,0.3)] hover:-translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_rgba(26,54,37,0.3)] transition-all flex items-center gap-3 border border-[#D5E2D1]"
-                style={{ clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%)' }}
+                className="relative bg-gradient-to-br from-[#599A69] to-[#388E3C] text-[#FDFCF9] font-black py-4 px-8 rounded-tl-[24px] rounded-br-[24px] rounded-tr-md rounded-bl-md shadow-[4px_6px_15px_rgba(24,56,42,0.3)] hover:-translate-y-1 hover:shadow-[6px_8px_20px_rgba(24,56,42,0.4)] transition-all duration-300 flex items-center gap-3 border border-[#8FAD8C]/30"
               >
-                {/* Dog-ear fold */}
-                <div className="absolute top-0 right-0 w-[20px] h-[20px] bg-[#D5E2D1] shadow-[-2px_2px_3px_rgba(0,0,0,0.15)]" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 100%)' }}></div>
                 <span className="text-2xl drop-shadow-md">📖</span> <span className="tracking-widest">BROWSE WORKBOOKS</span>
               </Link>
               <Link
                 to="/custom-pdf"
-                className="relative bg-[#388E3C] text-[#FDFCF9] font-black py-4 px-8 shadow-[6px_6px_0px_rgba(26,54,37,0.3)] hover:-translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_rgba(26,54,37,0.3)] transition-all flex items-center gap-3 border border-[#2E7D32]"
-                style={{ clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%)' }}
+                className="relative bg-gradient-to-br from-[#8FAD8C] to-[#599A69] text-[#1a3625] font-black py-4 px-8 rounded-tr-[24px] rounded-bl-[24px] rounded-tl-md rounded-br-md shadow-[4px_6px_15px_rgba(24,56,42,0.2)] hover:-translate-y-1 hover:shadow-[6px_8px_20px_rgba(24,56,42,0.3)] transition-all duration-300 flex items-center gap-3 border border-[#FDFCF9]/50"
               >
-                {/* Dog-ear fold */}
-                <div className="absolute top-0 right-0 w-[20px] h-[20px] bg-[#2E7D32] shadow-[-2px_2px_3px_rgba(0,0,0,0.3)]" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 100%)' }}></div>
                 <span className="text-2xl drop-shadow-md">📄</span> <span className="tracking-widest">UPLOAD PDF</span>
               </Link>
             </div>
