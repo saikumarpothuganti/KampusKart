@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLoading } from '../context/LoadingContext';
 import NavLink from '../components/NavLink';
+import origamiDeliveryMan from '../assets/origami_delivery_man.png';
 
 const SignUp = () => {
   const navigate = useNavigate();
   const { signup } = useAuth();
   const { showLoader } = useLoading();
   const [formData, setFormData] = useState({
-    name: '',
-    userId: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    name: '', userId: '', email: '', password: '', confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,28 +22,18 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (
-      !formData.name ||
-      !formData.userId ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
+    if (!formData.name || !formData.userId || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Please fill all fields');
       return;
     }
-
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
-
     try {
       setLoading(true);
       showLoader(800);
@@ -59,103 +46,109 @@ const SignUp = () => {
     }
   };
 
+  const inputClass = "w-full bg-[#FAF8F2] border-2 border-[#18382A]/10 text-[#18382A] rounded-xl px-4 py-3 focus:outline-none focus:border-[#18382A]/40 transition font-medium placeholder:text-[#18382A]/30";
+  const labelClass = "block text-xs font-bold text-[#18382A]/50 uppercase tracking-widest mb-2";
+
   return (
-    <div className="min-h-screen bg-[#0f1116] text-[#e5e7eb] flex items-center justify-center px-4 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_20%_20%,#059669_0,transparent_25%),radial-gradient(circle_at_80%_0%,#047857_0,transparent_22%)]" />
-      <div className="relative w-full max-w-md bg-[#111827] border border-[rgba(255,255,255,0.12)] rounded-[20px] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[rgba(255,255,255,0.12)] bg-white/5 text-xs text-[#9ca3af] mb-4">
-          ✨ Create your account
+    <div className="min-h-screen bg-[#FAF8F2] flex items-center justify-center px-4 py-10 relative overflow-hidden font-sans">
+
+      {/* Background torn paper edge top */}
+      <div className="absolute top-0 left-0 right-0 h-3 bg-[#18382A]" style={{clipPath:'polygon(0 0,100% 0,100% 40%,98% 100%,95% 40%,92% 100%,89% 40%,86% 100%,83% 40%,80% 100%,77% 40%,74% 100%,71% 40%,68% 100%,65% 40%,62% 100%,59% 40%,56% 100%,53% 40%,50% 100%,47% 40%,44% 100%,41% 40%,38% 100%,35% 40%,32% 100%,29% 40%,26% 100%,23% 40%,20% 100%,17% 40%,14% 100%,11% 40%,8% 100%,5% 40%,2% 100%,0 40%)'}} />
+
+      {/* Ambient origami character */}
+      <img src={origamiDeliveryMan} className="absolute bottom-0 right-0 w-52 h-auto object-contain pointer-events-none opacity-90" style={{mixBlendMode:'multiply'}} alt="" />
+
+      {/* Scattered dots */}
+      <div className="absolute top-24 left-12 w-4 h-4 rotate-45 bg-[#18382A]/10"></div>
+      <div className="absolute top-48 right-16 w-3 h-3 rounded-full bg-[#18382A]/10"></div>
+      <div className="absolute bottom-48 left-20 w-5 h-5 rounded-full bg-[#18382A]/10"></div>
+
+      {/* Card */}
+      <div className="relative w-full max-w-md z-10">
+        {/* Stacked paper effect */}
+        <div className="absolute -bottom-2 -right-2 w-full h-full rounded-[24px] bg-[#18382A]/10"></div>
+        <div className="absolute -bottom-1 -right-1 w-full h-full rounded-[24px] bg-[#18382A]/5"></div>
+
+        <div className="relative bg-[#FDFBF7] rounded-[24px] overflow-hidden border border-[#18382A]/10"
+             style={{boxShadow:'0 20px 60px rgba(24,56,42,0.10), 0 6px 20px rgba(24,56,42,0.06)'}}>
+
+          {/* Green header strip */}
+          <div className="bg-[#18382A] px-8 py-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-0 h-0 border-l-[60px] border-l-transparent border-t-[60px] border-t-white/5"></div>
+            <div className="absolute bottom-0 left-0 w-0 h-0 border-r-[40px] border-r-transparent border-b-[40px] border-b-white/5"></div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl">✨</div>
+              <div>
+                <h1 className="text-2xl font-serif font-black text-[#FAF8F2]">Join KampusKart</h1>
+                <p className="text-[#FAF8F2]/60 text-sm">Create your account to get started</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-8 space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+                {error}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className={labelClass}>Full Name</label>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} placeholder="John Doe" required />
+              </div>
+
+              <div className="col-span-2">
+                <label className={labelClass}>Student ID (for sign in)</label>
+                <input type="text" name="userId" value={formData.userId} onChange={handleChange} className={inputClass} placeholder="e.g. jdoe2024" required />
+              </div>
+
+              <div className="col-span-2">
+                <label className={labelClass}>Email</label>
+                <input type="email" name="email" value={formData.email} onChange={handleChange} className={inputClass} placeholder="you@example.com" required />
+              </div>
+
+              <div>
+                <label className={labelClass}>Password</label>
+                <input type="password" name="password" value={formData.password} onChange={handleChange} className={inputClass} placeholder="••••••••" required />
+              </div>
+
+              <div>
+                <label className={labelClass}>Confirm</label>
+                <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className={inputClass} placeholder="••••••••" required />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#18382A] text-[#FAF8F2] py-3.5 rounded-xl font-bold text-base shadow-lg hover:bg-[#064E3B] transition disabled:opacity-60 mt-2"
+            >
+              {loading ? 'Creating Account...' : 'Create Account →'}
+            </button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 border-t border-dashed border-[#18382A]/15"></div>
+              <span className="text-xs text-[#18382A]/30 font-bold uppercase tracking-widest">or</span>
+              <div className="flex-1 border-t border-dashed border-[#18382A]/15"></div>
+            </div>
+
+            <p className="text-center text-sm text-[#18382A]/50 font-medium">
+              Already have an account?{' '}
+              <NavLink to="/signin" className="text-[#18382A] font-black hover:underline">
+                Sign In
+              </NavLink>
+            </p>
+          </form>
+
+          {/* Bottom folded corner */}
+          <svg className="absolute bottom-0 right-0 w-12 h-12 pointer-events-none" viewBox="0 0 100 100">
+            <polygon points="100,0 100,100 0,100" fill="#FAF8F2" />
+            <polygon points="100,0 0,100 40,40" fill="#18382A" opacity="0.12" />
+          </svg>
         </div>
-        <h1 className="text-3xl font-semibold mb-2">Join KampusKart</h1>
-        <p className="text-[#9ca3af] mb-6">Create your account to get started</p>
-
-        {error && (
-          <div className="bg-red-50/10 border border-red-400/60 text-red-200 px-4 py-3 rounded mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="block text-sm text-[#9ca3af]">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-4 py-3 focus:outline-none focus:border-[#14b8a6]"
-              placeholder="John Doe"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm text-[#9ca3af]">ID (for sign in)</label>
-            <input
-              type="text"
-              name="userId"
-              value={formData.userId}
-              onChange={handleChange}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-4 py-3 focus:outline-none focus:border-[#14b8a6]"
-              placeholder="e.g. admin123"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm text-[#9ca3af]">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-4 py-3 focus:outline-none focus:border-[#14b8a6]"
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm text-[#9ca3af]">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-4 py-3 focus:outline-none focus:border-[#14b8a6]"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm text-[#9ca3af]">Confirm Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-4 py-3 focus:outline-none focus:border-[#14b8a6]"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition disabled:opacity-60"
-          >
-            {loading ? 'Creating Account...' : 'Sign Up'}
-          </button>
-        </form>
-
-        <p className="text-center mt-6 text-[#9ca3af] text-sm">
-          Already have an account?{' '}
-          <NavLink to="/signin" className="text-[#059669] font-semibold hover:underline">
-            Sign In
-          </NavLink>
-        </p>
       </div>
     </div>
   );

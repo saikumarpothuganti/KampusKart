@@ -92,8 +92,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateAvatar = async (avatarIndex) => {
+    try {
+      const res = await API.put('/auth/avatar', { avatarIndex });
+      setUser((prevUser) => ({ ...prevUser, avatarIndex: res.data.avatarIndex }));
+      return res.data;
+    } catch (error) {
+      console.error('Failed to update avatar:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, ordersEnabled, refreshOrdersEnabled, signup, signin, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, ordersEnabled, refreshOrdersEnabled, signup, signin, logout, updateAvatar }}>
       {children}
     </AuthContext.Provider>
   );

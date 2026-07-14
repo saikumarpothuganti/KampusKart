@@ -195,6 +195,17 @@ const Admin = () => {
     }
   };
 
+  const handleMarkCodPaid = async (orderId) => {
+    if (!window.confirm('Mark this COD balance as paid?')) return;
+    try {
+      const res = await API.put(`/orders/${orderId}/mark-cod-paid`);
+      setOrders(orders.map((o) => (o.orderId === orderId ? res.data : o)));
+      alert('COD balance marked as paid');
+    } catch (error) {
+      alert('Failed to mark as paid: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
   const handleDeleteOrder = async (orderId) => {
     if (!window.confirm('Delete this order?')) return;
     try {
@@ -857,18 +868,34 @@ const Admin = () => {
                              </button>
                            )}
                            {order.liveLocationEnabled && (
-                             <button
-                               onClick={() => handleToggleLiveLocation(order.orderId, false)}
-                               className="bg-gray-600 text-white px-4 py-2 rounded font-semibold hover:bg-gray-700"
-                             >
-                               Disable Live Location
-                             </button>
-                           )}
-                           {order.liveLocationEnabled && (
-                             <span className="text-sm text-green-700 font-semibold">Live location ON</span>
+                             <div className="flex gap-2 items-center">
+                               <button
+                                 onClick={() => handleToggleLiveLocation(order.orderId, false)}
+                                 className="bg-gray-600 text-white px-4 py-2 rounded font-semibold hover:bg-gray-700"
+                               >
+                                 Disable
+                               </button>
+                               <a 
+                                 href={`/delivery-location/${order.orderId}`}
+                                 target="_blank"
+                                 rel="noreferrer"
+                                 className="bg-emerald-500 text-white px-4 py-2 rounded font-semibold hover:bg-emerald-600"
+                               >
+                                 📍 Start Broadcasting
+                               </a>
+                             </div>
                            )}
                          </div>
                        )}
+
+                      {order.payment?.type === 'COD' && order.payment?.remainingAmount > 0 && (
+                        <button
+                          onClick={() => handleMarkCodPaid(order.orderId)}
+                          className="bg-purple-500 text-white px-6 py-2 rounded font-semibold hover:bg-purple-600"
+                        >
+                          💰 Mark COD Paid
+                        </button>
+                      )}
 
                       {(order.status === 'delivered' || order.status === 'cancelled') && (
                         <button

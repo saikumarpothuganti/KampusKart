@@ -20,7 +20,8 @@ const groupBySideType = (items = []) => {
 const Payment = () => {
   const navigate = useNavigate();
   const { user, ordersEnabled } = useAuth();
-  const { cart, getTotalPrice, clearCart } = useCart();
+  const { getActiveCart, getActiveCartTotalPrice, deleteCart, activeCartId } = useCart();
+  const cart = getActiveCart() || {};
   const [screenshot, setScreenshot] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [checkoutData, setCheckoutData] = useState(null);
@@ -30,11 +31,8 @@ const Payment = () => {
   const [paidNow, setPaidNow] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
 
-  // Check if order is bulk: total amount >= ₹1000
-  const isBulkOrder = () => {
-    const totalAmount = getTotalPrice();
-    return totalAmount >= 1000;
-  };
+  // Removed bulk order limit for partial payments
+  const isBulkOrder = () => true;
 
   useEffect(() => {
     if (!user) {
@@ -84,7 +82,7 @@ const Payment = () => {
     setSuccessMsg('');
 
     const hasPendingPrice = cart.items?.some((item) => item.userPrice == null && item.price == null);
-    const needsPayment = getTotalPrice() > 0 && !hasPendingPrice;
+    const needsPayment = getActiveCartTotalPrice() > 0 && !hasPendingPrice;
 
     if (needsPayment && !screenshot) {
       setErrorMsg('Please upload a payment screenshot');
@@ -102,10 +100,12 @@ const Payment = () => {
 
     // Validate Partial Payment amount if selected
     if (paymentType === 'PARTIAL') {
-      const total = getTotalPrice();
+      const total = getActiveCartTotalPrice();
       const paid = Number(paidNow);
-      if (!Number.isFinite(paid) || paid <= 0) {
-        setErrorMsg('Enter a valid payment amount (> 0)');
+      const minAdvance = total / 2;
+      
+      if (!Number.isFinite(paid) || paid < minAdvance) {
+        setErrorMsg(`Minimum advance payment is 50% (₹${minAdvance.toFixed(2)})`);
         return;
       }
       if (paid >= total) {
@@ -135,12 +135,12 @@ const Payment = () => {
       // Create order
       const payload = {
         items: cart.items,
-        amount: getTotalPrice(),
+        amount: getActiveCartTotalPrice(),
         paymentScreenshotUrl: screenshotUrl,
         paymentType: paymentType === 'PARTIAL' ? 'COD' : 'FULL',
-        paidAmount: paymentType === 'PARTIAL' ? Number(paidNow) : getTotalPrice(),
+        paidAmount: paymentType === 'PARTIAL' ? Number(paidNow) : getActiveCartTotalPrice(),
         remainingAmount:
-          paymentType === 'PARTIAL' ? Math.max(getTotalPrice() - Number(paidNow), 0) : 0,
+          paymentType === 'PARTIAL' ? Math.max(getActiveCartTotalPrice() - Number(paidNow), 0) : 0,
         student: {
           name: checkoutData.name,
           collegeId: checkoutData.collegeId,
@@ -157,7 +157,7 @@ const Payment = () => {
       }
 
       localStorage.removeItem('checkoutData');
-      await clearCart();
+      await deleteCart(activeCartId);
       setSuccessMsg('Payment confirmed! Redirecting to feedback...');
       setTimeout(() => navigate('/feedback'), 600);
     } catch (error) {
@@ -172,7 +172,7 @@ const Payment = () => {
     }
   };
 
-  const total = getTotalPrice();
+  const total = getActiveCartTotalPrice();
   const hasPendingPrice = cart.items?.some((item) => item.userPrice == null && item.price == null);
   const needsPayment = total > 0 && !hasPendingPrice;
   const grouped = groupBySideType(cart.items || []);
@@ -231,27 +231,31 @@ const Payment = () => {
                       checked={paymentType === 'PARTIAL'}
                       onChange={() => setPaymentType('PARTIAL')}
                     />
-                    <span className="text-sm text-black">Partial Payment (please contact the admin for partial payment)</span>
+                    <span className="text-sm text-black">Split Payment (50% Advance, Rest COD)</span>
                   </label>
                 )}
               </div>
               {paymentType === 'PARTIAL' && (
                 <div className="mt-3">
-                  <label className="block text-sm text-black mb-1">Enter amount you are paying now</label>
+                  <label className="block text-sm text-black mb-1">Enter advance amount (Min 50%: ₹{(total / 2).toFixed(2)})</label>
                   <input
                     type="number"
-                    min="0"
+                    min={total / 2}
                     step="0.01"
                     value={paidNow}
                     onChange={(e) => setPaidNow(e.target.value)}
                     className="w-full border rounded px-3 py-2"
-                    placeholder={`Less than ₹${total.toFixed(2)}`}
+                    placeholder={`e.g. ₹${(total / 2).toFixed(2)}`}
                   />
-                  {paidNow && Number(paidNow) > 0 && Number(paidNow) < total && (
-                    <p className="mt-1 text-xs text-black">
-                      Remaining on delivery: ₹{(total - Number(paidNow)).toFixed(2)}
+                  {paidNow && Number(paidNow) >= total / 2 && Number(paidNow) < total && (
+                    <p className="mt-1 text-xs text-black font-semibold">
+                      Remaining COD: ₹{(total - Number(paidNow)).toFixed(2)}
                     </p>
                   )}
+                  <div className="mt-3 text-sm text-green-700 bg-green-50 p-3 rounded border border-green-200">
+                    <p className="font-semibold mb-1">💬 Need help paying advance?</p>
+                    <p>You can use the Contact Links below to message admin on WhatsApp for verification.</p>
+                  </div>
                 </div>
               )}
             </div>

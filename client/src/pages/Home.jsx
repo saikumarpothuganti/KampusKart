@@ -1,342 +1,320 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import ContactLinks from '../components/ContactLinks';
-import NavLink from '../components/NavLink';
-import { useAuth } from '../context/AuthContext';
-import API from '../lib/api';
-import KLlogo from '../assets/KLlogo.png';
-import custom from '../assets/custom.png';
-import location from '../assets/location.png';
-
-const highlights = [
-  'Work delivery on time',
-  'Upload custom PDFs — admin will price fairly',
-];
+import PaperLeavesDivider from '../components/PaperLeavesDivider';
+import BorderDecorations from '../components/BorderDecorations';
+import TreeBranchDivider from '../components/TreeBranchDivider';
+import ScrollRocket from '../components/ScrollRocket';
+import PaperBirds from '../components/PaperBirds';
+import { OrigamiText } from '../components/OrigamiFont';
+import { OrigamiBook, OrigamiPlane, OrigamiTag, OrigamiPackage } from '../components/OrigamiIcons';
+import homeBg from '../assets/HOME.png';
+import footerImg from '../assets/footer.png';
 
 const features = [
   {
-    title: 'Workbook Printing',
-    desc: 'Subject-wise packs with clean layout, sharp print, and fast dispatch.',
-    icon: '📚',
+    title: 'Workbooks',
+    desc: 'Browse and order semester workbooks easily.',
+    linkText: 'Explore Now →',
     to: '/workbook',
+    icon: OrigamiBook
   },
   {
-    title: 'Custom PDFs',
-    desc: 'Upload your own files; we set the best price and print with care.',
-    icon: '🖨️',
-    to: '/workbook',
+    title: 'Custom PDF Printing',
+    desc: 'Upload your PDFs and get them printed with the best quality.',
+    linkText: 'Upload Now →',
+    to: '/custom-pdf',
+    icon: OrigamiPackage
   },
   {
-    title: 'Live Tracking',
-    desc: 'Stay updated from printing to handoff with map-based tracking.',
-    icon: '📍',
+    title: 'Track Orders',
+    desc: 'Track your orders in real-time from print to delivery.',
+    linkText: 'Track Now →',
     to: '/order-history',
+    icon: OrigamiPlane
+  },
+  {
+    title: 'Best Prices',
+    desc: 'Affordable pricing with the best quality guaranteed.',
+    linkText: 'View Offers →',
+    to: '/workbook',
+    icon: OrigamiTag
   },
 ];
 
 const testimonials = [
   {
-    quote: 'Got my lab manuals in under a day. Quality and speed both nailed.',
-    name: 'Aditi, CSE',
-    score: '4.9/5',
+    quote: 'The print quality is amazing and delivery is always on time. My go-to place every semester!',
+    name: 'Ananya R.',
+    course: 'CSE, 3rd Year',
   },
   {
-    quote: 'Custom PDF upload was smooth; pricing was fair and clear.',
-    name: 'Rahul, ECE',
-    score: '4.8/5',
+    quote: 'Super easy to upload and order. KampusKart literally saves me so much time!',
+    name: 'Vishal M.',
+    course: 'ECE, 2nd Year',
+  },
+  {
+    quote: 'Best prices and best support. Highly recommend to all KL students.',
+    name: 'Sneha K.',
+    course: 'Mech, 4th Year',
   },
 ];
 
 const Home = () => {
-  const { user } = useAuth();
-  const [hoveredCard, setHoveredCard] = React.useState(null);
-  const [userStats, setUserStats] = React.useState({
-    totalOrders: 0,
-    activeOrders: 0,
-    completedOrders: 0,
-    successRate: 0,
-    avgDeliveryTime: 0,
-    itemsOrdered: 0
-  });
-
-  React.useEffect(() => {
-    const fetchUserStats = async () => {
-      if (!user) return;
-      
-      try {
-        const res = await API.get('/orders/my');
-        const orders = res.data || [];
-        
-        const totalOrders = orders.length;
-        const activeOrders = orders.filter(o => ['sent', 'placed', 'printing', 'out_for_delivery'].includes(o.status)).length;
-        const completedOrders = orders.filter(o => o.status === 'delivered').length;
-        const successRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
-        
-        const itemsOrdered = orders.reduce((sum, order) => sum + (order.items?.length || 0), 0);
-        
-        // Calculate average delivery time for completed orders (mock for now)
-        const avgDeliveryTime = completedOrders > 0 ? Math.floor(20 + Math.random() * 15) : 0;
-        
-        setUserStats({
-          totalOrders,
-          activeOrders,
-          completedOrders,
-          successRate,
-          avgDeliveryTime,
-          itemsOrdered
-        });
-      } catch (error) {
-        console.error('Failed to fetch user stats:', error);
-      }
-    };
-    
-    fetchUserStats();
-  }, [user]);
-
   return (
-    <div className="bg-[#0f1116] text-[#e5e7eb] min-h-screen">
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_20%_20%,#059669_0,transparent_25%),radial-gradient(circle_at_80%_0%,#047857_0,transparent_22%)]" />
-        <div className="max-w-6xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-12 items-center relative">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[rgba(255,255,255,0.12)] bg-white/5 text-xs">
-              🚀 Trusted by 5k+ students
+    <div className="bg-paper text-ink min-h-screen relative font-sans">
+      
+      {/* Paper airplane scroll effect */}
+      <ScrollRocket />
+      
+      {/* Hero Section */}
+      <section 
+        className="relative z-20 -mt-[76px] pt-[120px] pb-32 px-6 lg:px-12 bg-cover bg-center min-h-[100vh] flex items-center"
+        style={{ backgroundImage: `url(${homeBg})` }}
+      >
+        <PaperLeavesDivider />
+        <PaperBirds className="absolute top-0 left-0 w-full h-[150%] z-20 pointer-events-none overflow-visible" />
+        
+        {/* Softer overlay so the main image pops more */}
+        <div className="absolute inset-0 bg-gradient-to-r from-paper/70 via-paper/30 to-transparent pointer-events-none"></div>
+        
+        {/* Blur ONLY on the left side (fades out towards the right) */}
+        <div className="absolute inset-0 backdrop-blur-sm [mask-image:linear-gradient(to_right,black_40%,transparent_70%)] pointer-events-none"></div>
+        
+        <div className="w-full pl-6 md:pl-16 lg:pl-24 relative z-[60] flex flex-col items-start pointer-events-auto">
+          {/* Text Content */}
+          <div className="w-full md:w-3/4 lg:w-1/2 space-y-6 relative pointer-events-auto">
+            {/* Softer Glow Behind Text */}
+            <div className="absolute inset-0 bg-paper/20 blur-[50px] z-[-1] -m-8 rounded-[100px] pointer-events-none"></div>
+            
+            <div className="inline-block mt-4">
+               <OrigamiText text="Welcome To" className="text-xl md:text-2xl" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
-              Fast, organized study material with live tracking & smart delivery.
-            </h1>
-            <p className="text-lg text-[#9ca3af] max-w-xl">
-              Pick curated workbooks or upload your own PDFs. We print, track, and deliver right to campus.
+            
+            <div className="-ml-2 py-2">
+              <OrigamiText text="KAMPUSKART" className="text-3xl md:text-5xl lg:text-[70px]" />
+            </div>
+
+            <h2 className="text-3xl md:text-4xl font-['Bebas_Neue'] tracking-wide text-ink-light mt-4">
+              <span style={{ textShadow: '1px 1px 0px #FDFCF9, 2px 2px 0px #D5E2D1, 3px 3px 0px #8FAD8C, 4px 4px 5px rgba(0,0,0,0.2)' }}>Where Every Semester Begins.</span>
+            </h2>
+            
+            <p className="text-lg font-bold text-ink max-w-md mt-6 font-sans">
+              <span style={{ textShadow: '1px 1px 0px #FDFCF9, 2px 2px 0px #D5E2D1, 3px 3px 4px rgba(0,0,0,0.15)' }}>Your one-stop place for workbooks, custom printing and delivery. made for students, by students.</span>
             </p>
-            <div className="flex flex-wrap gap-3">
-              <NavLink
+            
+            <div className="flex flex-wrap gap-6 pt-6 relative z-50 pointer-events-auto">
+              <Link
                 to="/workbook"
-                className="px-5 py-3 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-[#059669] to-[#047857] shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition"
+                className="relative bg-[#FDFCF9] text-[#1a3625] font-black py-4 px-8 shadow-[6px_6px_0px_rgba(26,54,37,0.3)] hover:-translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_rgba(26,54,37,0.3)] transition-all flex items-center gap-3 border border-[#D5E2D1]"
+                style={{ clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%)' }}
               >
-                Browse Materials
-              </NavLink>
-              <NavLink
-                to="/workbook"
-                className="px-5 py-3 rounded-full text-sm font-semibold border border-[rgba(255,255,255,0.2)] hover:bg-white/5 text-[#e5e7eb] transition"
+                {/* Dog-ear fold */}
+                <div className="absolute top-0 right-0 w-[20px] h-[20px] bg-[#D5E2D1] shadow-[-2px_2px_3px_rgba(0,0,0,0.15)]" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 100%)' }}></div>
+                <span className="text-2xl drop-shadow-md">📖</span> <span className="tracking-widest">BROWSE WORKBOOKS</span>
+              </Link>
+              <Link
+                to="/custom-pdf"
+                className="relative bg-[#388E3C] text-[#FDFCF9] font-black py-4 px-8 shadow-[6px_6px_0px_rgba(26,54,37,0.3)] hover:-translate-y-1 hover:translate-x-1 hover:shadow-[2px_2px_0px_rgba(26,54,37,0.3)] transition-all flex items-center gap-3 border border-[#2E7D32]"
+                style={{ clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%)' }}
               >
-                Upload Custom PDF
-              </NavLink>
-            </div>
-            <div className="flex flex-wrap gap-3 text-sm text-[#9ca3af]">
-              {highlights.map((h) => (
-                <span
-                  key={h}
-                  className="px-3 py-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-white/5"
-                >
-                  {h}
-                </span>
-              ))}
+                {/* Dog-ear fold */}
+                <div className="absolute top-0 right-0 w-[20px] h-[20px] bg-[#2E7D32] shadow-[-2px_2px_3px_rgba(0,0,0,0.3)]" style={{ clipPath: 'polygon(0 0, 0 100%, 100% 100%)' }}></div>
+                <span className="text-2xl drop-shadow-md">📄</span> <span className="tracking-widest">UPLOAD PDF</span>
+              </Link>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="relative">
-            <div className="absolute -inset-6 bg-gradient-to-r from-[#047857]/10 to-[#065f46]/5 blur-3xl" />
-            <div className="relative bg-gradient-to-br from-[#047857] to-[#065f46] border border-[#10b981]/30 rounded-[22px] p-6 shadow-[0_0_30px_rgba(6,95,70,0.55),0_0_50px_rgba(4,120,87,0.35),0_20px_40px_rgba(0,0,0,0.3)] space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-white">{user ? 'Your Activity' : 'Platform Status'}</p>
-                  <h3 className="text-2xl font-semibold text-white">
-                    {user ? (userStats.totalOrders > 0 ? '📊 Your Stats' : '🎯 Get Started!') : 'All systems ready ✅'}
-                  </h3>
-                </div>
-                <span className="px-3 py-1 rounded-full text-xs bg-[#10b981]/30 text-white border border-[#10b981]/50">
-                  {user ? 'Active' : 'Live'}
-                </span>
-              </div>
+      {/* Border Decorations Container (Frames the features and testimonials, but skips the top hero) */}
+      <div className="relative w-full z-30">
+        <BorderDecorations />
+        
+        {/* Horizontal Divider 1 */}
+        <TreeBranchDivider />
 
-              <div className="grid grid-cols-2 gap-3">
-                {(user ? [
-                  { label: 'Total Orders', value: userStats.totalOrders.toString() },
-                  { label: 'Active Orders', value: userStats.activeOrders.toString() },
-                  { label: 'Completed', value: userStats.completedOrders.toString() },
-                  { label: 'Items Ordered', value: userStats.itemsOrdered.toString() }
-                ] : [
-                  { label: 'Available Books', value: '150+' },
-                  { label: 'Happy Students', value: '5k+' },
-                  { label: 'Delivery Rate', value: '98%' },
-                  { label: 'Avg Delivery', value: '25m' }
-                ]).map((item) => (
-                  <div
-                    key={item.label}
-                    className="bg-white/10 border border-[#10b981]/30 rounded-[16px] p-3 backdrop-blur-sm"
+        {/* Features Section */}
+        <div className="w-full relative z-10" style={{ borderTop: '2px dashed rgba(24, 56, 42, 0.2)' }}>
+          <section id="services" className="pt-20 pb-16 px-6 lg:px-12 max-w-7xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-center text-ink mb-4 flex items-center justify-center gap-4">
+              <span className="text-green-700 text-2xl drop-shadow-sm">🌿</span>
+              Everything you need, in one place
+              <span className="text-green-700 text-2xl drop-shadow-sm">🌿</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12 px-4">
+              {features.map((feature, index) => {
+                
+                // Emulate the specific pins/clips from the user's image
+                let clip;
+                if (index === 0) {
+                  clip = <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-4xl drop-shadow-md z-10" style={{ filter: 'hue-rotate(240deg)' }}>📎</div>; // Greenish clip
+                } else if (index === 2) {
+                  clip = <div className="absolute -top-3 right-6 text-3xl drop-shadow-md z-10" style={{ transform: 'rotate(15deg)' }}>📌</div>; // Pin
+                } else {
+                  clip = <div className="absolute -top-5 right-6 text-4xl drop-shadow-md z-10" style={{ transform: 'rotate(10deg)', filter: 'sepia(1) hue-rotate(-50deg) saturate(3)' }}>📎</div>; // Copper clip
+                }
+
+                return (
+                  <Link 
+                    key={index} 
+                    to={feature.to} 
+                    className="realistic-paper-card p-8 flex flex-col items-center text-center h-full mt-4 cursor-pointer group"
                   >
-                    <p className="text-xs text-white/70">{item.label}</p>
-                    <p className="mt-1 text-lg font-semibold text-white">{item.value}</p>
+                    
+                    {clip}
+
+                    <div className="mb-6 flex justify-center items-center w-full transform group-hover:scale-110 transition-transform duration-300">
+                      {React.createElement(feature.icon, { className: "w-20 h-20" })}
+                    </div>
+                    
+                    <h3 className="text-lg font-serif font-bold text-paper mb-3">{feature.title}</h3>
+                    <p className="text-paper/80 text-xs leading-relaxed flex-1 px-2">{feature.desc}</p>
+
+                    {/* Subtle jagged/torn bottom edge texture overlay */}
+                    <div className="absolute bottom-0 left-0 w-full h-[4px] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjQiPjxwb2x5Z29uIHBvaW50cz0iMCw0IDQsMCA4LDQgOCw0IDAsNCIgZmlsbD0icmdiYSgwLDAsMCwwLjAzKSIvPjwvc3ZnPg==')] opacity-50"></div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+
+        {/* Horizontal Divider 2 */}
+        <TreeBranchDivider />
+
+        {/* Testimonials Section */}
+        <section id="about" className="max-w-6xl mx-auto px-6 py-16 text-center relative z-10">
+          <h3 className="text-2xl font-serif font-bold text-ink mb-16 flex items-center justify-center gap-3">
+            <span className="text-ink-light">🍃</span> 
+            Loved by students, for students 
+            <span className="text-ink-light">🍃</span>
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+            {testimonials.map((t, i) => (
+              <Link to="/feedback" key={i} className="taped-paper p-8 text-left flex flex-col relative hover:scale-105 hover:-translate-y-1 transition-all"
+                style={{
+                  boxShadow: '6px 6px 0px #18382A',
+                  border: '2px solid #18382A',
+                  backgroundColor: '#FAF8F2',
+                  transform: `rotate(${i % 2 === 0 ? '-1deg' : '1deg'})`
+                }}
+              >
+                {/* Paper clip graphic */}
+                <div className="absolute -top-4 right-4 w-8 h-12 border-2 border-green-800/30 rounded-full bg-transparent" style={{ transform: 'rotate(15deg)' }} />
+
+                <div className="flex items-center gap-4 mb-4 border-b border-ink/10 pb-4">
+                  <div className="w-12 h-12 rounded bg-ink/10 flex items-center justify-center text-xl">👤</div>
+                  <div>
+                    <div className="text-green-600 text-xs mb-1">★★★★★</div>
+                    <h4 className="font-bold text-sm">{t.name}</h4>
+                    <p className="text-xs text-ink/70">{t.course}</p>
                   </div>
-                ))}
-              </div>
-
-              <div className="bg-white/10 border border-[#10b981]/30 rounded-[16px] p-4 space-y-3 backdrop-blur-sm">
-                <div className="flex items-center justify-between text-sm text-white">
-                  <span>{user ? 'Order Success Rate' : 'Platform Reliability'}</span>
-                  <span className="font-semibold text-white">
-                    {user ? `${userStats.successRate}%` : '99.5%'}
-                  </span>
                 </div>
-                <div className="h-2 rounded-full bg-white/20 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-[#10b981] to-[#22c55e] shadow-[0_0_15px_rgba(16,185,129,0.4)]" 
-                    style={{ width: user ? `${userStats.successRate}%` : '99.5%' }}
-                  />
-                </div>
-                <div className="flex items-center gap-2 text-xs text-white/70">
-                  <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
-                  {user ? (userStats.totalOrders === 0 ? 'Place your first order to track stats' : 'Real-time tracking enabled') : 'Sign in to view your personal stats'}
-                </div>
-              </div>
+                <p className="text-sm leading-relaxed text-ink/90 italic flex-1">
+                  "{t.quote}"
+                </p>
+                <div className="text-right text-ink/30 mt-4">♡</div>
+              </Link>
+            ))}
+          </div>
+          
+          {/* Trust Banner */}
+          <div className="mt-20 flex justify-center">
+            <div className="paper-ribbon px-8 py-3 flex items-center gap-2 text-sm font-bold text-ink">
+              <span className="text-green-600">💚</span> 
+              Thousands of students trust KampusKart every semester!
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features */}
-      <section className="max-w-5xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-10">
-        {features.map((f, index) => (
-          <NavLink key={f.title} to={f.to} className="group">
-            <div
-              onMouseEnter={() => setHoveredCard(index)}
-              onMouseLeave={() => setHoveredCard(null)}
-              className={`bg-gradient-to-br from-[#10b981] via-[#22c55e] to-[#047857] rounded-[18px] p-0 min-h-[420px] flex flex-col shadow-2xl animate-cardPulse transition-transform duration-300 transform ${hoveredCard !== null && hoveredCard !== index ? 'scale-95' : hoveredCard === index ? '-translate-y-3 scale-[1.1]' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f1116] overflow-hidden`}
-              style={{ boxShadow: '0 0 30px rgba(16, 185, 129, 0.55), 0 0 50px rgba(34, 197, 94, 0.35), 0 20px 40px rgba(0, 0, 0, 0.3)' }}
-            >
-              {index === 0 && (
-                <img 
-                  src={KLlogo} 
-                  alt="KL University Logo" 
-                  className="w-full h-36 object-cover transition-transform duration-300"
-                  style={{ transform: hoveredCard === 0 ? 'scale(1.1)' : 'scale(1)' }}
-                />
-              )}
-              {index === 1 && (
-                <img 
-                  src={custom} 
-                  alt="Custom PDF" 
-                  className="w-full h-36 object-cover transition-transform duration-300"
-                  style={{ transform: hoveredCard === 1 ? 'scale(1.1)' : 'scale(1)' }}
-                />
-              )}
-              {index === 2 && (
-                <img 
-                  src={location} 
-                  alt="Live Tracking" 
-                  className="w-full h-36 object-cover transition-transform duration-300"
-                  style={{ transform: hoveredCard === 2 ? 'scale(1.1)' : 'scale(1)' }}
-                />
-              )}
-              <div className="p-6 flex-1 flex flex-col">
-                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-white text-xl mb-4">
-                  {f.icon}
+        {/* Horizontal Divider 3 */}
+        <TreeBranchDivider />
+      </div> {/* End of BorderDecorations wrapper */}
+
+      {/* Footer */}
+        <footer 
+          id="footer" 
+          className="bg-ink text-paper relative overflow-hidden bg-cover bg-bottom pt-14 pb-12 sm:pb-24 lg:pb-32 px-6 lg:px-12"
+          style={{ backgroundImage: `url(${footerImg})` }}
+        >
+          <div className="relative z-10 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              
+              {/* Brand */}
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-xl border-2 border-paper/30 flex items-center justify-center">
+                    <span className="font-serif font-black text-paper text-base">K</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-serif font-black text-paper leading-tight">KampusKart</h3>
+                    <p className="text-[10px] uppercase tracking-widest text-paper/50 mt-0.5">Price • Track • Deliver</p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-white">{f.title}</h3>
-                <p className="text-white/90 text-base leading-relaxed flex-1">{f.desc}</p>
+                <p className="text-sm text-paper/65 mb-6 leading-relaxed max-w-[220px]">
+                  Your campus printing companion — fast, affordable workbook and PDF printing delivered right to you.
+                </p>
               </div>
-            </div>
-          </NavLink>
-        ))}
-      </section>
 
-      {/* Subjects strip */}
-      <section className="max-w-6xl mx-auto px-6 pb-6">
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 text-sm text-[#9ca3af]">
-          {['CSE', 'ECE', 'EEE', 'IT', 'CIVIL', 'MECH', 'MBA', 'MCA'].map((tag) => (
-            <span
-              key={tag}
-              className="px-4 py-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-white/5 whitespace-nowrap"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </section>
+              {/* Navigate */}
+              <div>
+                <h4 className="text-[11px] font-black text-paper/50 uppercase tracking-[0.18em] mb-5">Navigate</h4>
+                <ul className="space-y-3">
+                  {[
+                    { to: '/', label: 'Home' },
+                    { to: '/workbook', label: 'Workbooks' },
+                    { to: '/about', label: 'About Us' },
+                    { to: '/order-history', label: 'Track Orders' },
+                    { to: '/feedback', label: 'Feedback' },
+                    { to: '/signin', label: 'Sign In' },
+                  ].map(({ to, label }) => (
+                    <li key={to}>
+                      <Link to={to} className="text-sm text-paper/65 hover:text-paper transition flex items-center gap-2.5 group">
+                        <span className="text-paper/25 text-xs group-hover:text-paper/60 transition">→</span>
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-      {/* Testimonials */}
-      <section className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-6">
-        {testimonials.map((t) => (
-          <div
-            key={t.name}
-            className="bg-[#111827] border border-[rgba(255,255,255,0.1)] rounded-[18px] p-6 shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
-          >
-            <div className="mb-3 text-lg text-[#e5e7eb]">“{t.quote}”</div>
-            <div className="flex items-center justify-between text-sm text-[#9ca3af]">
-              <span>{t.name}</span>
-              <span className="text-[#14b8a6] font-semibold">{t.score}</span>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* CTA */}
-      <section className="max-w-6xl mx-auto px-6 pb-14">
-        <div className="relative overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.12)] bg-gradient-to-r from-[#0f1116] via-[#111827] to-[#0f1116]">
-          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_20%_20%,#059669_0,transparent_25%),radial-gradient(circle_at_80%_0%,#047857_0,transparent_22%)]" />
-          <div className="relative p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <p className="text-sm text-[#9ca3af]">Need custom prints?</p>
-              <h3 className="text-3xl font-semibold text-[#e5e7eb]">Upload now, we’ll price and deliver fast.</h3>
-            </div>
-            <NavLink
-              to="/workbook"
-              className="px-5 py-3 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-[#059669] to-[#047857] shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition"
-            >
-              Explore Now
-            </NavLink>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer with About & Services */}
-      <footer id="footer" className="bg-gradient-to-br from-[#047857] to-[#065f46]">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {/* About Section */}
-            <div id="about">
-              <h3 className="text-lg font-bold text-white mb-3">About KampusKart</h3>
-              <div className="space-y-2 text-white/90 text-sm leading-relaxed">
-                <p>KampusKart is a simple, smart and reliable way for students to get their study materials—printed, organized and delivered with real-time tracking.</p>
-                <p>We know how stressful semesters can be. So we built a platform that makes it all effortless.</p>
-                <p className="font-semibold text-white">It's your academic convenience partner — helping you stay organized, save time, and focus on learning.</p>
+              {/* Contact */}
+              <div>
+                <h4 className="text-[11px] font-black text-paper/50 uppercase tracking-[0.18em] mb-5">Contact Us</h4>
+                <ul className="space-y-5">
+                  <li>
+                    <a href="https://www.instagram.com/kampuskart_?igsh=bG9oNTdvdW5ua2ky" target="_blank" rel="noopener noreferrer" 
+                       className="flex items-center gap-3 group hover:opacity-100 opacity-80 transition">
+                      <span className="text-lg">📸</span>
+                      <div>
+                        <div className="text-sm font-bold text-paper group-hover:text-paper transition">Instagram</div>
+                        <div className="text-xs text-paper/45 mt-0.5">@kampuskart_</div>
+                      </div>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://t.me/KampusKart_Klu" target="_blank" rel="noopener noreferrer" 
+                       className="flex items-center gap-3 group hover:opacity-100 opacity-80 transition">
+                      <span className="text-lg">✈️</span>
+                      <div>
+                        <div className="text-sm font-bold text-paper group-hover:text-paper transition">Telegram</div>
+                        <div className="text-xs text-paper/45 mt-0.5">@KampusKart_Klu</div>
+                      </div>
+                    </a>
+                  </li>
+                </ul>
               </div>
             </div>
 
-            {/* Services Section */}
-            <div id="services">
-              <h3 className="text-lg font-bold text-white mb-3">What We Offer</h3>
-              <div className="space-y-2 text-white/90 text-sm">
-                <div>
-                  <p className="font-semibold text-white">📘 Workbook Printing</p>
-                  <p>Professionally printed workbooks with clean formatting.</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-white">📄 Custom PDF Printing</p>
-                  <p>Upload any PDF and we'll print and deliver exactly as you want.</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-white">🚚 Live Tracking System</p>
-                  <p>Track your order in real time with map-based tracking.</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-white">💵 Transparent Pricing</p>
-                  <p>No hidden charges. Clear pricing for all services.</p>
-                </div>
-              </div>
+            {/* Copyright */}
+            <div className="mt-10 pt-6 border-t border-paper/10 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <p className="text-xs text-paper/35 font-medium">© {new Date().getFullYear()} KampusKart. All rights reserved.</p>
+              <p className="text-xs text-paper/35 font-medium">Made with 💚 for students across campuses.</p>
             </div>
           </div>
-
-          {/* Contact */}
-          <div className="border-t border-white/20 pt-4 text-center">
-            <p className="text-white/90 text-sm mb-2">Need Help? Reach us anytime</p>
-            <div className="flex justify-center">
-              <ContactLinks />
-            </div>
-          </div>
-        </div>
-      </footer>
+        </footer>
     </div>
   );
 };

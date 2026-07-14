@@ -114,47 +114,52 @@ const CustomBookCard = ({ onAddToCart }) => {
   };
 
   return (
-    <div className="bg-[#1f1f1f] rounded-2xl shadow-md p-4 pb-6 h-[440px] flex flex-col transition-transform duration-150 ease-out hover:scale-[1.02] hover:shadow-lg card-glow-border">
-      <h3 className="text-lg font-semibold mb-4 text-white">📄 Upload Custom PDF</h3>
+    <div className="realistic-paper-card p-6 min-h-[460px] h-full flex flex-col text-paper relative md:col-span-2 border-2 border-dashed border-[#B8860B] shadow-[0_0_15px_rgba(184,134,11,0.2)]">
+      {/* Decorative Pin */}
+      <div className="absolute -top-3 left-4 text-2xl drop-shadow-md z-10" style={{ transform: 'rotate(-10deg)' }}>📌</div>
+
+      <h3 className="text-xl font-serif font-bold mb-4 drop-shadow-sm border-b border-[rgba(255,255,255,0.1)] pb-2 flex items-center gap-2">
+        <span className="text-2xl filter saturate-150">📄</span> Custom PDF
+      </h3>
 
       {pauseMessage && (
-        <div className="mb-3 text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+        <div className="mb-3 text-sm text-yellow-100 bg-yellow-900/30 border border-yellow-500/30 rounded-sm p-3 font-semibold shadow-inner">
           {pauseMessage}
         </div>
       )}
 
       <div className="mb-3 flex-1">
-        <label className="block text-sm font-medium mb-2 text-white">Upload PDF</label>
+        <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Upload File</label>
         <input
           type="file"
           accept=".pdf"
           onChange={handleFileChange}
-          className="w-full border rounded px-3 py-2 text-black bg-white"
+          className="w-full border-2 border-[rgba(255,255,255,0.2)] rounded-sm px-3 py-2 text-ink bg-[#EDE0C8] font-semibold text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-bold file:bg-ink file:text-[#EDE0C8] hover:file:bg-[#25503C] shadow-inner"
         />
-        {file && <p className="text-sm text-green-400 mt-1">Selected: {file.name}</p>}
+        {file && <p className="text-sm font-bold text-green-300 mt-2 tracking-wide drop-shadow-sm">✓ {file.name}</p>}
         {uploading && (
-          <div className="mt-2">
-            <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div className="mt-3">
+            <div className="w-full bg-[rgba(0,0,0,0.3)] rounded-full h-3 overflow-hidden shadow-inner border border-[rgba(255,255,255,0.1)]">
               <div
-                className="bg-emerald-400 h-2"
+                className="bg-[#EDE0C8] h-3"
                 style={{ width: `${uploadProgress}%`, transition: 'width 0.2s ease' }}
               />
             </div>
-            <p className="text-xs text-gray-200 mt-1">Uploading... {uploadProgress}%</p>
+            <p className="text-xs font-bold text-paper mt-1 opacity-90 text-right">Uploading... {uploadProgress}%</p>
           </div>
         )}
       </div>
 
-      <div className="mb-3 p-3 rounded bg-[#2a2a2a] border border-emerald-700 text-sm text-gray-200">
+      <div className="mb-3 p-3 rounded-sm bg-[rgba(0,0,0,0.15)] border border-[rgba(255,255,255,0.1)] text-xs font-semibold shadow-inner">
         Submit your PDF request. Admin will set the price, then you can add it to cart from Orders and PDF Status.
       </div>
 
       <div className="mb-3">
-        <label className="block text-xs font-medium mb-2 text-white">Sides</label>
+        <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Sides</label>
         <select
           value={sides}
           onChange={(e) => setSides(parseInt(e.target.value))}
-          className="w-full border rounded px-2.5 py-2 text-sm text-black bg-white"
+          className="w-full border-2 border-[rgba(255,255,255,0.2)] rounded-sm px-3 py-2 text-sm text-ink font-bold bg-[#EDE0C8] shadow-inner focus:outline-none focus:ring-2 focus:ring-[#EDE0C8]"
         >
           <option value={1}>Single-sided</option>
           <option value={2}>Double-sided</option>
@@ -162,18 +167,18 @@ const CustomBookCard = ({ onAddToCart }) => {
       </div>
 
       <div className="mb-3">
-        <label className="block text-xs font-medium mb-2 text-white">Quantity</label>
+        <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Quantity</label>
         <div className="flex items-center gap-1.5 mb-2">
           <button
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="bg-gray-200 px-2.5 py-1 rounded text-black text-sm"
+            className="bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] px-3 py-1 rounded-sm text-paper font-bold transition"
           >
             -
           </button>
-            <span className="px-3 text-white text-sm">{quantity}</span>
+            <span className="px-4 text-paper font-bold bg-[rgba(0,0,0,0.2)] py-1 rounded-sm shadow-inner">{quantity}</span>
           <button
             onClick={() => setQuantity(quantity + 1)}
-            className="bg-gray-200 px-2.5 py-1 rounded text-black text-sm"
+            className="bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] px-3 py-1 rounded-sm text-paper font-bold transition"
           >
             +
           </button>
@@ -183,8 +188,8 @@ const CustomBookCard = ({ onAddToCart }) => {
       <button
         onClick={handleSubmitRequest}
         disabled={uploading || (!ordersEnabled && (!user || !user.isAdmin))}
-        className={`mt-auto mt-4 mb-3 w-full text-sm py-1.5 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
-          (ordersEnabled || user?.isAdmin) ? 'bg-primary text-white hover:bg-secondary' : 'bg-gray-500/60 text-white/80 cursor-not-allowed'
+        className={`mt-auto mt-4 w-full border-2 text-sm py-2 rounded-sm font-bold transition hover:scale-[1.02] shadow-md ${
+          (ordersEnabled || user?.isAdmin) ? 'bg-[#EDE0C8] text-ink border-[#D5CEBA] hover:bg-[#F5EBD6]' : 'bg-[rgba(255,255,255,0.1)] text-paper/50 border-transparent cursor-not-allowed shadow-none'
         }`}
       >
         {uploading ? 'Uploading...' : 'Submit Request'}
@@ -193,7 +198,7 @@ const CustomBookCard = ({ onAddToCart }) => {
       {uploading && (
         <button
           onClick={handleCancelUpload}
-          className="w-full bg-gray-700 text-white text-sm py-1.5 rounded-md font-semibold hover:bg-gray-600"
+          className="w-full mt-2 bg-[rgba(0,0,0,0.3)] text-paper text-xs py-1.5 rounded-sm font-bold hover:bg-[rgba(0,0,0,0.5)] transition"
         >
           Cancel Upload
         </button>

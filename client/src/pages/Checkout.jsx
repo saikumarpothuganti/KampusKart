@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { OrigamiPackage, OrigamiClipboard, OrigamiTag, OrigamiStar } from '../components/OrigamiIcons';
 import API from '../lib/api';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { user, ordersEnabled } = useAuth();
-  const { cart, getTotalPrice } = useCart();
+  const { getActiveCart, getActiveCartTotalPrice } = useCart();
+  const cart = getActiveCart() || {};
   const [pickupPoints, setPickupPoints] = useState([]);
   const [loadingPoints, setLoadingPoints] = useState(true);
   const [pauseMessage, setPauseMessage] = useState('');
@@ -84,79 +86,94 @@ const Checkout = () => {
     navigate('/payment');
   };
 
-  const total = getTotalPrice();
+  const total = getActiveCartTotalPrice();
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#059669] to-[#047857] text-white rounded-lg hover:scale-[1.02] transition-transform shadow-lg"
+        className="mb-8 flex items-center gap-2 px-4 py-2 bg-[#FAF8F2] border-2 border-[#18382A] text-[#18382A] font-bold rounded-sm shadow-[4px_4px_0px_#18382A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#18382A] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all"
       >
-        <span className="text-yellow-400 font-bold text-lg">←</span>
-        <span className="font-semibold">Back</span>
+        <span className="text-xl font-black">←</span>
+        <span>Back</span>
       </button>
-      <h1 className="text-3xl font-bold mb-8">📋 Checkout</h1>
+      <h1 className="text-4xl font-serif font-black mb-10 flex items-center gap-4 text-ink drop-shadow-sm">
+        <span className="filter drop-shadow-md"><OrigamiPackage className="w-12 h-12 text-[#18382A]" /></span> 
+        Secure Checkout
+      </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Form */}
-        <div className="md:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="md:col-span-2 taped-paper p-8 relative"
+          style={{
+            boxShadow: '6px 6px 0px #18382A',
+            border: '2px solid #18382A',
+            backgroundColor: '#FAF8F2'
+          }}>
+          <div className="absolute -top-4 -left-4 z-10" style={{ transform: 'rotate(-15deg)' }}>
+            <OrigamiClipboard className="w-10 h-10 text-ink drop-shadow-md" />
+          </div>
+          <div className="absolute -bottom-6 -right-4 z-10" style={{ transform: 'rotate(25deg)' }}>
+            <OrigamiStar className="w-12 h-12 text-green-800 drop-shadow-md" />
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
             <div>
-              <label className="block text-sm font-medium mb-2 text-black">Name *</label>
+              <label className="block text-sm font-serif font-bold text-ink mb-2 uppercase tracking-widest">Name *</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full border rounded px-3 py-2 text-black"
+                className="w-full bg-white/50 border-2 border-ink/20 text-ink font-bold rounded-sm px-4 py-3 shadow-inner focus:outline-none focus:border-ink/50 transition-colors"
                 placeholder="Your Full Name"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-black">College ID *</label>
+              <label className="block text-sm font-serif font-bold text-ink mb-2 uppercase tracking-widest">College ID *</label>
               <input
                 type="text"
                 name="collegeId"
                 value={formData.collegeId}
                 onChange={handleChange}
-                className="w-full border rounded px-3 py-2 text-black"
+                className="w-full bg-white/50 border-2 border-ink/20 text-ink font-bold rounded-sm px-4 py-3 shadow-inner focus:outline-none focus:border-ink/50 transition-colors"
                 placeholder="Your College ID"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-black">Phone *</label>
+              <label className="block text-sm font-serif font-bold text-ink mb-2 uppercase tracking-widest">Phone *</label>
               <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full border rounded px-3 py-2 text-black"
+                className="w-full bg-white/50 border-2 border-ink/20 text-ink font-bold rounded-sm px-4 py-3 shadow-inner focus:outline-none focus:border-ink/50 transition-colors"
                 placeholder="10-digit mobile number"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-black">Pickup Address</label>
+              <label className="block text-sm font-serif font-bold text-ink mb-2 uppercase tracking-widest">Pickup Address</label>
               <input
                 type="text"
                 disabled
                 value="KL University, Vaddeswaram"
-                className="w-full border rounded px-3 py-2 bg-gray-100 text-black"
+                className="w-full bg-ink/5 border-2 border-ink/20 text-ink/70 font-bold rounded-sm px-4 py-3 shadow-inner"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-black">Pickup Point Inside Campus *</label>
+              <label className="block text-sm font-serif font-bold text-ink mb-2 uppercase tracking-widest">Pickup Point Inside Campus *</label>
               <select
                 name="pickupPoint"
                 value={formData.pickupPoint}
                 onChange={handleChange}
-                className="w-full border rounded px-3 py-2 text-black"
+                className="w-full bg-white/50 border-2 border-ink/20 text-ink font-bold rounded-sm px-4 py-3 shadow-inner focus:outline-none focus:border-ink/50 transition-colors"
                 required
                 disabled={loadingPoints}
               >
@@ -175,12 +192,12 @@ const Checkout = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-black">Additional Notes</label>
+              <label className="block text-sm font-serif font-bold text-ink mb-2 uppercase tracking-widest">Additional Notes</label>
               <textarea
                 name="notes"
                 value={formData.notes}
                 onChange={handleChange}
-                className="w-full border rounded px-3 py-2 text-black"
+                className="w-full bg-white/50 border-2 border-ink/20 text-ink font-bold rounded-sm px-4 py-3 shadow-inner focus:outline-none focus:border-ink/50 transition-colors"
                 placeholder="Any special instructions..."
                 rows="4"
               />
@@ -194,38 +211,53 @@ const Checkout = () => {
 
             <button
               type="submit"
-              className={`w-full text-white py-3 rounded-lg font-semibold text-lg ${
-                ordersEnabled ? 'bg-primary hover:bg-secondary' : 'bg-gray-400 cursor-not-allowed opacity-70'
+              className={`w-full py-4 rounded-sm font-black text-lg uppercase tracking-widest border-2 transition-all flex items-center justify-center gap-2 ${
+                ordersEnabled 
+                ? 'bg-[#18382A] border-[#18382A] text-paper shadow-[4px_4px_0px_#B8860B] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#B8860B] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none' 
+                : 'bg-ink/50 border-ink/50 text-paper/50 cursor-not-allowed shadow-none'
               }`}
             >
-              Continue to Payment
+              Continue to Payment <span>→</span>
             </button>
           </form>
         </div>
 
         {/* Order Summary */}
-        <div className="bg-white rounded-lg shadow-md p-6 h-fit">
-          <h2 className="text-xl font-bold mb-4 text-black">Order Summary</h2>
+        <div className="taped-paper p-8 h-fit relative transform rotate-1"
+          style={{
+            boxShadow: '6px 6px 0px #18382A',
+            border: '2px solid #18382A',
+            backgroundColor: '#FAF8F2'
+          }}>
+          <div className="absolute -top-5 right-4 z-10" style={{ transform: 'rotate(10deg)' }}>
+            <OrigamiTag className="w-10 h-10 text-ink drop-shadow-md" />
+          </div>
+          
+          <h2 className="text-2xl font-serif font-black mb-6 text-ink border-b-2 border-dashed border-ink/20 pb-4 flex items-center gap-3">
+            <OrigamiClipboard className="w-8 h-8 text-ink" /> Order Summary
+          </h2>
 
-          <div className="space-y-2 mb-4 pb-4 border-b">
+          <div className="space-y-3 mb-6 pb-6 border-b-2 border-dashed border-ink/20">
             {cart.items && cart.items.map((item, idx) => (
-              <div key={idx} className="flex justify-between text-sm text-black">
+              <div key={idx} className="flex justify-between text-sm font-bold text-ink/90">
                 <span>{item.title} x {item.qty}</span>
                 {item.userPrice ?? item.price ? (
-                  <span>₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</span>
+                  <span className="text-ink">₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</span>
                 ) : (
-                  <span className="text-black">Pending admin price</span>
+                  <span className="text-amber-600 italic">Pending Price</span>
                 )}
               </div>
             ))}
           </div>
 
-          <div className="flex justify-between items-center">
-            <span className="font-bold text-lg text-black">Total:</span>
-            <span className="text-2xl font-bold text-primary">₹{total.toFixed(2)}</span>
+          <div className="flex justify-between items-end mb-2">
+            <span className="font-serif font-black text-xl text-ink">Total:</span>
+            <span className="text-3xl font-black text-ink" style={{ textShadow: '2px 2px 0px rgba(184,134,11,0.5)' }}>₹{total.toFixed(2)}</span>
           </div>
           {total === 0 && (
-            <p className="mt-2 text-xs text-black">Total excludes custom PDFs; admin will set price.</p>
+            <p className="mt-4 text-xs font-bold text-amber-700 bg-amber-100 p-2 border border-amber-300 rounded-sm italic text-center">
+              * Total excludes custom PDFs (Admin will price them)
+            </p>
           )}
         </div>
       </div>

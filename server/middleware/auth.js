@@ -9,6 +9,11 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    
+    // Normalize the ID field to prevent 500 Internal Server Errors from Mongoose
+    // in case the user has an old JWT token structure
+    decoded.id = decoded.id || decoded._id;
+    
     req.user = decoded;
     next();
   } catch (error) {

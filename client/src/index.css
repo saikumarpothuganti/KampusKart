@@ -1,67 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@100..900&family=Bebas+Neue&display=swap');
 @import 'leaflet/dist/leaflet.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes pulseCard {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.03);
-  }
-}
-
-@keyframes cardPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.08);
-  }
-}
-
-@keyframes progress-shine {
+@keyframes paper-emit-out {
   0% {
-    transform: translateX(-100%);
-    opacity: 0;
+    transform: translate(var(--startX), var(--startY)) rotate(0deg) scale(0);
+    opacity: 1;
   }
-  10% {
-    opacity: 0.9;
-  }
-  60% {
-    opacity: 0.9;
+  20% {
+    opacity: 1;
   }
   100% {
-    transform: translateX(150%);
+    transform: translate(var(--endX), var(--endY)) rotate(var(--rot)) scale(1.5);
     opacity: 0;
   }
 }
-
-.progress-fill {
-  position: relative;
-  overflow: hidden;
-}
-
-.progress-shine {
-  position: absolute;
-  inset: -40% auto -40% -60%;
-  width: 50%;
-  background: linear-gradient(120deg, transparent 0%, rgba(0, 255, 153, 0.05) 25%, rgba(0, 255, 153, 0.6) 50%, rgba(0, 255, 153, 0.05) 75%, transparent 100%);
-  filter: drop-shadow(0 0 10px rgba(0, 255, 153, 0.45));
-  animation: progress-shine 2.6s linear infinite;
-  pointer-events: none;
+.animate-paper-emit {
+  animation: paper-emit-out 1.2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
 }
 
 * {
@@ -78,21 +36,17 @@ body,
 }
 
 body {
-  font-family: 'Space Grotesk', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-    'Helvetica Neue', sans-serif;
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Base dark gradient to complement overlays */
-  background: radial-gradient(1200px 600px at 10% -10%, #0b0f14, transparent),
-              radial-gradient(1200px 600px at 110% -10%, #0b0f14, transparent),
-              linear-gradient(180deg, #0f1116 0%, #0b0d12 100%);
-  color: #e5e7eb;
+  background-color: #EDE0C8;
+  /* Subtle paper grain texture */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  color: #18382A;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+h1, h2, h3, h4, h5, h6, .font-serif {
+  font-family: 'Playfair Display', serif;
 }
 
 ::-webkit-scrollbar {
@@ -101,86 +55,213 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #EDE0C8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #18382A;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #25503C;
 }
 
-/* Subtle grid background (used by Background.jsx) */
-.bg-grid {
-  --grid-color: rgba(255, 255, 255, 0.06);
-  --grid-size: 32px;
-  background-image:
-    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-  background-size: var(--grid-size) var(--grid-size);
+/* Realistic Paper Card (Vintage style with curled shadows) */
+.realistic-paper-card {
+  /* Solid matte green base color */
+  background-color: #1a422a;
+  /* Fractal noise overlay to give it realistic physical paper grain texture */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+  
+  position: relative;
+  /* Multi-layered shadow: large soft shadow + tight dark shadow + bright inner edge + dark inner edge for thickness */
+  box-shadow: 
+    0 12px 20px -8px rgba(24, 56, 42, 0.4), 
+    0 4px 6px -2px rgba(24, 56, 42, 0.2),
+    inset 1px 1px 3px rgba(255, 255, 255, 0.15),
+    inset -1px -1px 4px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+  z-index: 1; /* Establish stacking context for pseudo-elements */
 }
 
-@media (max-width: 640px) {
-  .bg-grid { --grid-size: 24px; }
+/* Curled shadow effects for bottom corners are replaced by full background paper layers! */
+.realistic-paper-card::before, 
+.realistic-paper-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  /* Slightly darker greens for the underlying sheets to create depth */
+  background-color: #153823;
+  /* Apply the same physical paper grain to the bottom sheets */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+  
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* Pivot the rotation from the top so it looks like they are pinned together at the top! */
+  transform-origin: top center;
+  /* Shadows for the individual sheets */
+  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.3);
 }
 
-/* Loading Screen Overlay */
+.realistic-paper-card::before {
+  /* Bottom-most sheet */
+  z-index: -2;
+  transform: rotate(-1.5deg);
+  background-color: #112e1c;
+}
+
+.realistic-paper-card::after {
+  /* Middle sheet */
+  z-index: -1;
+  transform: rotate(1deg);
+}
+
+/* Green Paper Navbar */
+.green-paper-nav {
+  background-color: #18382A;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+}
+
+.realistic-paper-card:hover {
+  /* Lift up and slightly scale towards camera */
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 25px 30px -10px rgba(24, 56, 42, 0.5), 
+    0 10px 10px -5px rgba(24, 56, 42, 0.2),
+    inset 1px 1px 3px rgba(255, 255, 255, 0.15),
+    inset -1px -1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Fan the bundle out playfully when hovered! */
+.realistic-paper-card:hover::before {
+  transform: rotate(-2.5deg) translate(-1px, 1px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+.realistic-paper-card:hover::after {
+  transform: rotate(2deg) translate(1px, 1px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+/* Stacked Paper Button */
+.origami-btn {
+  background-color: #FAF8F2;
+  color: #18382A;
+  border: 2px solid #18382A;
+  /* Stack of alternating paper and ink layers */
+  box-shadow: 2px 2px 0px #FAF8F2, 4px 4px 0px #18382A, 6px 6px 0px #FAF8F2, 8px 8px 0px #18382A;
+  transition: all 0.2s ease;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.origami-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #FAF8F2, 2px 2px 0px #18382A, 3px 3px 0px #FAF8F2, 4px 4px 0px #18382A;
+}
+
+.origami-btn:active {
+  transform: translate(8px, 8px);
+  box-shadow: 0px 0px 0px transparent;
+}
+
+.origami-btn.primary {
+  background-color: #18382A;
+  color: #FAF8F2;
+  border: 2px solid #18382A;
+  box-shadow: 2px 2px 0px #18382A, 4px 4px 0px #EDE0C8, 6px 6px 0px #18382A, 8px 8px 0px #EDE0C8;
+}
+
+.origami-btn.primary:hover {
+  box-shadow: 1px 1px 0px #18382A, 2px 2px 0px #EDE0C8, 3px 3px 0px #18382A, 4px 4px 0px #EDE0C8;
+}
+
+.origami-btn.primary:active {
+  box-shadow: 0px 0px 0px transparent;
+}
+
+/* Torn/Taped Paper Effect (Testimonials) */
+.taped-paper {
+  position: relative;
+  background-color: #FAF8F2;
+  border: 2px solid #18382A;
+  box-shadow: 4px 4px 0px #18382A;
+}
+.taped-paper::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 70px;
+  height: 25px;
+  background-color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+/* Filter Pill for Order History */
+.filter-pill {
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(0,0,0,0.03);
+  background-color: #FAF8F2;
+  color: #18382A;
+  transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.02);
+  cursor: pointer;
+}
+
+.filter-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08), 0 3px 6px rgba(0,0,0,0.04);
+}
+
+.filter-pill:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.filter-pill.active {
+  background-color: #064E3B; 
+  color: #FAF8F2;
+  border-color: #064E3B;
+  box-shadow: 0 6px 15px rgba(6, 78, 59, 0.3);
+}
+
+/* Paper Ribbon (Used in features and footer) */
+.paper-ribbon {
+  background-color: #FAF8F2;
+  border: 1px dashed rgba(24, 56, 42, 0.3);
+  box-shadow: 2px 2px 0px rgba(24, 56, 42, 0.1);
+}
+
+/* Loading Screen Overlay (Light theme) */
 .loading-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.15); /* slight tint only */
-  backdrop-filter: blur(8px); /* subtle blur, not pure black */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: all; /* Block all interactions while visible */
-}
-
-.loading-content {
-  text-align: center;
-}
-
-/* Centered looping video for loading */
-.loading-video {
-  width: min(360px, 80vw);
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-
-/* Circular mask container for video */
-.loading-video-circle {
-  position: relative;
-  width: 140px;
-  height: 140px;
-  margin: 0 auto;
-  border-radius: 50%;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.4);
-  box-shadow: 
-    0 0 40px rgba(0, 0, 0, 0.5),
-    inset 0 0 30px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(6px);
-  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: rgba(243, 239, 224, 0.8);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
-/* Centered looping video for loading */
-.loading-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-/* Sparkle ring around the circle (rotating green arc) */
 
 .fade-out {
   animation: kkFadeOut 600ms ease forwards;
@@ -191,64 +272,12 @@ code {
   to { opacity: 0; visibility: hidden; }
 }
 
-/* Rotating spinner animation for loading ring */
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
-.animate-spin-slow {
-  animation: spin-slow 2s linear infinite;
-}
-
-/* Loader wrapper: centers the ring + video */
-.loader-wrapper {
-  position: relative;
-  width: 160px;
-  height: 160px;
-}
-
-/* Rotating green border ring (only this element rotates) */
-.loader-ring {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 160px;
-  height: 160px;
-  border: 4px solid #059669;
-  border-top-color: transparent;
-  border-right-color: transparent;
-  border-radius: 9999px;
-  animation: spin 1.5s linear infinite;
-  box-shadow: 0 0 20px #059669, 0 0 40px #047857, inset 0 0 20px rgba(5, 150, 105, 0.3);
-  filter: drop-shadow(0 0 8px #059669);
-}
-
-/* Static circular video (does NOT rotate) */
-.loader-video {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 130px;
-  height: 130px;
-  border-radius: 9999px;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 10; /* above the ring visually */
-}
-
-/* Spinning animation ONLY for the ring */
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
 

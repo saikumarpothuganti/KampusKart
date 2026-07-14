@@ -29,78 +29,34 @@ const InstallPrompt = () => {
   if (!showBanner) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: '20px',
-        left: '20px',
-        right: '20px',
-        maxWidth: '500px',
-        backgroundColor: '#000000',
-        border: '2px solid #00ff66',
-        borderRadius: '8px',
-        padding: '16px',
-        boxShadow: '0 4px 12px rgba(0, 255, 102, 0.3)',
-        zIndex: 9999,
-        fontFamily: 'Inter, sans-serif',
-      }}
-    >
-      <div style={{ marginBottom: '12px' }}>
-        <p style={{ color: '#00ff66', fontSize: '14px', fontWeight: '600', margin: '0 0 4px 0' }}>
-          📱 Install KampusKart App
-        </p>
-        <p style={{ color: '#cccccc', fontSize: '13px', margin: '0' }}>
-          Access KampusKart faster and offline. Install the app on your device.
-        </p>
-      </div>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-4 w-full max-w-sm">
+      <div className="realistic-paper-card w-full p-6 relative transform -rotate-1 shadow-2xl border-2 border-dashed border-[#B8860B]/40">
+        {/* Fold effect corner */}
+        <div className="absolute top-0 right-0 w-8 h-8 bg-paper border-b border-l border-ink/20 shadow-sm rounded-bl-sm" style={{ clipPath: 'polygon(100% 0, 0 100%, 100% 100%)' }}></div>
+        
+        <div className="mb-4 pr-6">
+          <p className="text-[#B8860B] font-serif font-bold text-lg mb-1 leading-tight">
+            📱 Install KampusKart App
+          </p>
+          <p className="text-[#B8860B]/80 font-serif text-sm">
+            Access KampusKart faster and offline. Install the app on your device.
+          </p>
+        </div>
 
-      <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-        <button
-          onClick={() => setShowBanner(false)}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: 'transparent',
-            border: '1px solid #666666',
-            color: '#999999',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '500',
-            transition: 'all 0.2s',
-          }}
-          onMouseOver={(e) => {
-            e.target.style.borderColor = '#00ff66';
-            e.target.style.color = '#00ff66';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.borderColor = '#666666';
-            e.target.style.color = '#999999';
-          }}
-        >
-          Later
-        </button>
-        <button
-          onClick={handleInstall}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#00ff66',
-            border: 'none',
-            color: '#000000',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '600',
-            transition: 'all 0.2s',
-          }}
-          onMouseOver={(e) => {
-            e.target.style.backgroundColor = '#00dd55';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.backgroundColor = '#00ff66';
-          }}
-        >
-          Install
-        </button>
+        <div className="flex gap-3 justify-end mt-4">
+          <button
+            onClick={() => setShowBanner(false)}
+            className="bg-transparent border-2 border-dashed border-[#B8860B]/50 text-[#B8860B] px-4 py-2 rounded-sm text-sm font-bold shadow-[2px_2px_0px_rgba(184,134,11,0.2)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[1px_1px_0px_rgba(184,134,11,0.2)] transition-all font-serif"
+          >
+            Later
+          </button>
+          <button
+            onClick={handleInstall}
+            className="bg-[#B8860B] text-[#FAF8F2] px-6 py-2 rounded-sm text-sm font-bold shadow-[3px_3px_0px_rgba(184,134,11,0.3)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[2px_2px_0px_rgba(184,134,11,0.3)] transition-all font-serif"
+          >
+            Install
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    avatarIndex: {
+      type: Number,
+      default: 0,
+    },
     isAdmin: {
       type: Boolean,
       default: false,

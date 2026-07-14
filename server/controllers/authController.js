@@ -90,6 +90,7 @@ export const signin = async (req, res) => {
         userId: user.userId,
         email: user.email,
         isAdmin: user.isAdmin,
+        avatarIndex: user.avatarIndex,
       },
     });
   } catch (error) {
@@ -133,6 +134,24 @@ export const changePassword = async (req, res) => {
     await user.save();
 
     res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateAvatar = async (req, res) => {
+  try {
+    const { avatarIndex } = req.body;
+    if (avatarIndex === undefined || avatarIndex < 0 || avatarIndex > 3) {
+      return res.status(400).json({ error: 'Invalid avatar index' });
+    }
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    user.avatarIndex = avatarIndex;
+    await user.save();
+    res.json({ message: 'Avatar updated successfully', avatarIndex });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

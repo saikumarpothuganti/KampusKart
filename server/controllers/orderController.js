@@ -362,3 +362,33 @@ export const acceptRequest = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const markCodPaid = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { orderId } = req.params;
+    
+    const order = await Order.findOne({ orderId });
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.payment.type !== 'COD' || order.payment.remainingAmount <= 0) {
+      return res.status(400).json({ error: 'Order is not COD or has no remaining balance' });
+    }
+
+    // Mark as paid
+    order.payment.paidAmount += order.payment.remainingAmount;
+    order.payment.remainingAmount = 0;
+    order.payment.type = 'FULL'; 
+
+    await order.save();
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

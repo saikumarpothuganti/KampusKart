@@ -3,16 +3,51 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import API from '../lib/api';
-import OrderCard from '../components/OrderCard';
 import LoadingScreen from '../components/LoadingScreen';
+import workbookBg from '../assets/Workbook.png';
+import origamiDeliveryMan from '../assets/origami_delivery_man.png';
+import origamiStudent from '../assets/origami_student.png';
+
+const truncateText = (text, maxLength) => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};
+
+const BookCover = ({ status, title }) => {
+  const isCancelled = status === 'cancelled';
+  const isProcessing = status === 'processing';
+  
+  const baseColor = isCancelled ? '#EF4444' : isProcessing ? '#F59E0B' : '#10B981';
+  const shadowColor = isCancelled ? '#991B1B' : isProcessing ? '#B45309' : '#047857';
+  
+  return (
+    <div className="relative w-24 h-32 flex-shrink-0" style={{ perspective: '1000px' }}>
+      <div className="w-full h-full relative" style={{ transformStyle: 'preserve-3d', transform: 'rotateY(-15deg) rotateX(5deg)' }}>
+        <div className="absolute inset-0 rounded-r-sm shadow-[4px_4px_10px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center p-2 text-center overflow-hidden" 
+             style={{ backgroundColor: baseColor, borderLeft: `6px solid ${shadowColor}` }}>
+          <div className="text-white/90 text-[10px] font-serif font-black leading-tight drop-shadow-sm break-all">
+            {truncateText(title || 'Document', 20)}
+          </div>
+          {/* Decorative origami triangles */}
+          <div className="absolute bottom-2 right-2 w-0 h-0 border-l-[15px] border-l-transparent border-b-[15px] border-b-white/50"></div>
+          <div className="absolute bottom-2 left-2 w-0 h-0 border-r-[10px] border-r-transparent border-b-[10px] border-b-white/50"></div>
+        </div>
+        <div className="absolute right-0 top-1 bottom-1 w-2 bg-[#FAF8F2] shadow-inner" style={{ transform: 'translateX(100%) rotateY(90deg)', transformOrigin: 'left' }}></div>
+      </div>
+    </div>
+  );
+};
 
 const OrderHistory = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addToCart } = useCart();
   const [orders, setOrders] = useState([]);
   const [pdfRequests, setPdfRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('All Orders');
+  const [sortOrder, setSortOrder] = useState('latest');
+  const { addToCart } = useCart();
 
   useEffect(() => {
     if (!user) {
@@ -45,8 +80,8 @@ const OrderHistory = () => {
         title: request.title,
         pdfUrl: request.pdfUrl,
         qty: request.qty,
-        sideType: request.sides === 2 ? 'double' : 'single', // CRITICAL: Set sideType explicitly
-        sides: request.sides, // Keep for backwards compatibility
+        sideType: request.sides === 2 ? 'double' : 'single',
+        sides: request.sides,
         userPrice: request.price,
       });
       await API.post(`/pdf-requests/${request.requestId}/add-to-cart`);
@@ -54,7 +89,7 @@ const OrderHistory = () => {
       alert('Added to cart! Go to cart to checkout.');
       navigate('/cart');
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to add to cart');
+      alert(error?.response?.data?.error || 'Failed to add to cart');
     }
   };
 
@@ -65,7 +100,7 @@ const OrderHistory = () => {
       fetchData();
       alert('Request cancelled');
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to cancel request');
+      alert(error?.response?.data?.error || 'Failed to cancel request');
     }
   };
 
@@ -73,87 +108,366 @@ const OrderHistory = () => {
     return <LoadingScreen duration={0} onFinished={() => {}} />;
   }
 
-  const activePDFRequests = pdfRequests.filter((r) => r.status !== 'added_to_cart' && r.status !== 'cancelled');
+  // Combine and map data
+  const ordersItems = orders.map(o => ({
+      id: o.orderId || o._id,
+      type: 'order',
+      status: o.status === 'pending' || o.status === 'printing' ? 'processing' 
+            : o.status === 'ready' ? 'sent'
+            : o.status === 'completed' ? 'delivered'
+            : 'cancelled',
+      title: o.items && o.items.length > 0 ? (o.items[0].title + (o.items.length > 1 ? ` + ${o.items.length - 1} more` : '')) : 'Order',
+      price: o.total,
+      date: new Date(o.createdAt),
+      deliveryDays: 3,
+      original: o
+  }));
+
+  const pdfItems = pdfRequests.map(p => ({
+      id: p.requestId,
+      type: 'pdf',
+      status: p.status === 'pending' || p.status === 'priced' ? 'processing'
+            : p.status === 'cancelled' ? 'cancelled'
+            : 'delivered', // added_to_cart implies finished lifecycle here
+      title: p.title,
+      price: p.price ? p.price * p.qty : 0,
+      date: new Date(p.createdAt),
+      deliveryDays: 3,
+      original: p
+  }));
+
+  const filterAndSort = (items) => items.filter(item => {
+    if (activeFilter === 'All Orders') return true;
+    return item.status.toLowerCase() === activeFilter.toLowerCase();
+  }).sort((a, b) => {
+    return sortOrder === 'latest' ? b.date - a.date : a.date - b.date;
+  });
+
+  const filteredOrders = filterAndSort(ordersItems);
+  const filteredPDFs = filterAndSort(pdfItems);
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-6 text-[#e5e7eb]">
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#059669] to-[#047857] text-white rounded-lg hover:scale-[1.02] transition-transform shadow-lg"
-      >
-        <span className="text-yellow-400 font-bold text-lg">←</span>
-        <span className="font-semibold">Back</span>
-      </button>
-      <h1 className="text-3xl font-bold mb-8">📜 Orders and PDF Status</h1>
+    <div className="min-h-screen bg-[#FAF8F2] relative pb-20 font-sans overflow-x-hidden">
+      
+      {/* 3D Ambient Origami Characters */}
+      <img src={origamiDeliveryMan} className="absolute top-[350px] -right-4 md:right-10 w-64 h-auto opacity-95 object-contain z-0 pointer-events-none" alt="Origami Delivery" style={{ mixBlendMode: 'multiply' }} />
+      <img src={origamiStudent} className="absolute bottom-[200px] -left-10 md:left-10 w-72 h-auto opacity-95 object-contain z-0 pointer-events-none" alt="Origami Student" style={{ mixBlendMode: 'multiply' }} />
 
-      {activePDFRequests.length > 0 && (
-        <div className="mb-10">
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span>📄 Custom PDF Requests</span>
-            <span className="text-sm bg-blue-500 text-white px-2 py-1 rounded-full">{activePDFRequests.length}</span>
-          </h2>
-          <div className="space-y-4">
-            {activePDFRequests.map((request) => (
-              <div key={request._id} className="bg-[#111827] border border-[rgba(255,255,255,0.12)] rounded-[18px] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-sm text-[#9ca3af]">Request ID</p>
-                    <p className="text-xl font-bold text-[#14b8a6]">{request.requestId}</p>
-                  </div>
-                  <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    request.status === 'pending' ? 'bg-yellow-500 text-white' :
-                    request.status === 'priced' ? 'bg-green-500 text-white' :
-                    'bg-gray-500 text-white'
-                  }`}>
-                    {request.status === 'pending' ? 'Waiting for Price' : request.status === 'priced' ? 'Price Set' : request.status}
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <p className="font-semibold text-lg mb-1">{request.title}</p>
-                  <p className="text-sm text-[#9ca3af]">Qty: {request.qty} | Sides: {request.sides === 1 ? 'Single' : 'Double'}</p>
-                  <a href={request.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-[#14b8a6] hover:underline text-sm inline-block mt-1">📄 View PDF →</a>
-                </div>
-
-                {request.status === 'priced' ? (
-                  <div>
-                    <div className="mb-4 p-3 rounded bg-green-900/20 border border-green-500/30">
-                      <p className="text-green-400 font-semibold">✓ Admin has set the price</p>
-                      <p className="text-xl font-bold text-white mt-1">Price: ₹{request.price} × {request.qty} = ₹{(request.price * request.qty).toFixed(2)}</p>
-                    </div>
-                    <div className="flex gap-3">
-                      <button onClick={() => handleAddPDFToCart(request)} className="flex-1 bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold hover:scale-[1.02] transition">🛒 Add to Cart</button>
-                      <button onClick={() => handleCancelPDFRequest(request.requestId)} className="px-6 bg-red-500/20 border border-red-500/50 text-red-400 py-3 rounded-full font-semibold hover:bg-red-500/30 transition">✗ Cancel</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-center">
-                    <div className="p-3 rounded bg-yellow-900/20 border border-yellow-500/30 text-yellow-400 text-sm flex-1">⏳ Waiting for admin to set the price...</div>
-                    <button onClick={() => handleCancelPDFRequest(request.requestId)} className="ml-3 px-4 bg-red-500/20 border border-red-500/50 text-red-400 py-2 rounded-full text-sm font-semibold hover:bg-red-500/30 transition">Cancel</button>
-                  </div>
-                )}
-              </div>
-            ))}
+      {/* Hero Banner */}
+      <div className="relative w-full h-64 bg-cover bg-center overflow-hidden" 
+           style={{ backgroundImage: `url(${workbookBg})` }}>
+        {/* Soft fade at the bottom to blend with page */}
+        <div className="absolute inset-0 bg-[#FAF8F2]/60 backdrop-blur-[1px]"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#FAF8F2]"></div>
+        
+        <div className="absolute top-10 left-6 md:left-12 z-10">
+          <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-2 px-5 py-2 bg-[#FAF8F2] border-2 border-[#18382A] text-[#18382A] font-bold rounded-full shadow-[4px_4px_0px_#18382A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#18382A] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all">
+            <span className="text-xl font-black">←</span> Back
+          </button>
+          
+          <div className="flex items-center gap-4 text-[#18382A]">
+            <span className="text-5xl md:text-6xl drop-shadow-md">📦</span>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-serif font-black drop-shadow-sm">Orders & PDF Status</h1>
+              <p className="font-medium opacity-80 text-lg md:text-xl mt-1">Track all your orders at a glance</p>
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
-      <div>
-        <h2 className="text-2xl font-bold mb-4">📦 Orders</h2>
-        {orders.length === 0 && activePDFRequests.length === 0 ? (
-          <div className="bg-[#111827] border border-[rgba(255,255,255,0.12)] rounded-[18px] p-8 text-center shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
-            <p className="text-[#9ca3af] mb-4">You haven't placed any orders yet.</p>
-            <a href="/workbook" className="text-[#14b8a6] font-semibold hover:underline">Start Shopping</a>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 mt-6">
+        
+        {/* Filters */}
+        <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-10">
+          {['All Orders', 'Processing', 'Sent', 'Delivered', 'Cancelled'].map(filter => (
+            <button 
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={`filter-pill ${activeFilter === filter ? 'active' : ''}`}
+            >
+              {filter === 'All Orders' ? '🗂️' : 
+               filter === 'Processing' ? '⏳' : 
+               filter === 'Sent' ? '✈️' : 
+               filter === 'Delivered' ? '✓' : '⊗'} {filter}
+            </button>
+          ))}
+          
+          <div className="ml-auto">
+            <select 
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="bg-[#FAF8F2] border border-[#18382A]/20 text-[#18382A] font-bold rounded-full px-4 py-2 shadow-sm focus:outline-none cursor-pointer"
+            >
+              <option value="latest">Latest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
           </div>
-        ) : orders.length === 0 ? (
-          <p className="text-[#9ca3af]">No orders yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {orders.map((order) => (
-              <OrderCard key={order._id} order={order} />
-            ))}
+        </div>
+
+        {/* Custom PDF Requests Section */}
+        {filteredPDFs.length > 0 && (
+          <div className="mb-16">
+            <h2 className="text-3xl font-serif font-black text-[#18382A] mb-8 flex items-center gap-3">
+              <span className="text-4xl drop-shadow-sm">📄</span> Custom PDF Requests
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredPDFs.map(item => (
+                <div key={`pdf-${item.id}`} className="bg-[#FDFBF7] rounded-[20px] relative flex flex-col pt-4 transition-all duration-300"
+                     style={{ border: '1px solid rgba(0,0,0,0.03)', boxShadow: '0 15px 35px rgba(0,0,0,0.05), 0 5px 15px rgba(0,0,0,0.03)' }}>
+                   
+                   {/* Top Status Pill */}
+                   <div className="absolute top-5 left-5 z-10">
+                      <span className={`px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 ${
+                         item.status === 'cancelled' ? 'bg-red-100 text-red-700 border border-red-200' :
+                         item.status === 'processing' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                         'bg-green-100 text-green-700 border border-green-200'
+                      }`}>
+                        {item.status === 'sent' ? '✈️ Sent' : 
+                         item.original.status === 'priced' ? '💰 Priced' :
+                         item.status === 'processing' ? '⏳ Pending' : 
+                         item.status === 'delivered' ? '✓ Finished' : 
+                         '⊗ Cancelled'}
+                      </span>
+                   </div>
+
+                   {/* Order ID */}
+                   <div className="absolute top-5 right-5 text-right z-10">
+                      <div className="text-[10px] uppercase font-bold text-[#18382A]/40 tracking-widest mb-0.5">Request ID</div>
+                      <div className={`font-serif font-black text-xl ${item.status === 'cancelled' ? 'text-red-700' : 'text-green-700'}`}>
+                         {String(item.id).substring(String(item.id).length - 6).toUpperCase()}
+                      </div>
+                   </div>
+
+                   {/* Main Content Body */}
+                   <div className="flex gap-5 px-6 pt-16 pb-4">
+                      <BookCover status={item.status} title={(item.title || '').split(',')[0]} />
+                      
+                      <div className="flex-1 pt-2">
+                         <h3 className="font-serif font-black text-[#18382A] text-lg leading-tight mb-2 break-all line-clamp-2" title={item.title}>
+                            {truncateText(item.title, 40)}
+                         </h3>
+                         <p className="text-xs text-[#18382A]/60 font-bold italic mb-1">
+                            Custom PDF Printing
+                         </p>
+                         <p className="text-[10px] text-[#18382A]/50 font-bold">
+                            Qty: {item.original.qty} | Sides: {item.original.sides === 1 ? 'Single' : 'Double'}
+                         </p>
+                         <a href={item.original.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#059669] hover:underline mt-2 inline-block">
+                            View PDF ↗
+                         </a>
+                      </div>
+                   </div>
+
+                   {/* Divider */}
+                   <div className="mx-6 border-b border-dashed border-[#18382A]/15 my-3"></div>
+
+                   {/* Total Footer */}
+                   <div className="px-6 pt-2 pb-6 flex flex-col relative mt-auto z-30">
+                      <div className="flex justify-between items-end mb-4">
+                         <div className="text-xs font-bold text-[#18382A]/50 uppercase tracking-wide">Total Amount</div>
+                         <div className={`font-black text-2xl mr-8 ${item.status === 'cancelled' ? 'text-red-700' : 'text-green-700'}`}>
+                            {item.price > 0 ? `₹${item.price.toFixed(2)}` : <span className="text-sm text-amber-600">Pending...</span>}
+                         </div>
+                      </div>
+                      
+                      {/* Action Buttons based on status */}
+                      {item.original.status === 'priced' ? (
+                        <div className="flex gap-2 mr-8">
+                          <button onClick={() => handleAddPDFToCart(item.original)} className="flex-1 bg-[#18382A] text-[#FAF8F2] py-2 rounded-lg text-xs font-bold hover:bg-[#064E3B] transition">
+                            Add to Cart
+                          </button>
+                          <button onClick={() => handleCancelPDFRequest(item.id)} className="px-4 border border-red-200 text-red-600 rounded-lg text-xs font-bold hover:bg-red-50 transition">
+                            Cancel
+                          </button>
+                        </div>
+                      ) : item.original.status === 'pending' ? (
+                        <div className="flex justify-between items-center mr-8">
+                           <span className="text-[10px] text-amber-600 font-bold leading-tight flex-1 pr-2">Waiting for admin to set price...</span>
+                           <button onClick={() => handleCancelPDFRequest(item.id)} className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-xs font-bold hover:bg-red-50 transition">
+                             Cancel
+                           </button>
+                        </div>
+                      ) : (
+                        <div className="text-xs font-bold text-[#18382A]/60 italic mr-8">
+                           {item.status === 'cancelled' ? 'This request was cancelled.' : 'Added to cart.'}
+                        </div>
+                      )}
+                   </div>
+
+                   {/* Bottom Right 3D Fold */}
+                   <svg className="absolute bottom-[-1px] right-[-1px] w-16 h-16 z-20 pointer-events-none drop-shadow-md" viewBox="0 0 100 100">
+                      <polygon points="100,0 100,100 0,100" fill="#FAF8F2" />
+                      <polygon points="100,0 0,100 40,40" fill={
+                        item.status === 'cancelled' ? '#EF4444' :
+                        item.status === 'processing' ? '#FBBF24' :
+                        '#10B981'
+                      } />
+                      <polygon points="100,0 40,40 100,30" fill={
+                        item.status === 'cancelled' ? '#B91C1C' :
+                        item.status === 'processing' ? '#D97706' :
+                        '#047857'
+                      } />
+                   </svg>
+                </div>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* Standard Orders Section */}
+        <h2 className="text-3xl font-serif font-black text-[#18382A] mb-8 flex items-center gap-3">
+          <span className="text-4xl drop-shadow-sm">📦</span> Your Orders
+        </h2>
+        
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {filteredOrders.length === 0 ? (
+             <div className="col-span-full py-20 text-center text-[#18382A]/60 font-serif font-bold text-xl">
+                No orders found for this filter.
+             </div>
+          ) : filteredOrders.map(item => (
+            <div key={`order-${item.id}`} className="bg-[#FDFBF7] rounded-[20px] relative flex flex-col pt-4 transition-all duration-300"
+                 style={{ border: '1px solid rgba(0,0,0,0.03)', boxShadow: '0 15px 35px rgba(0,0,0,0.05), 0 5px 15px rgba(0,0,0,0.03)' }}>
+               
+               {/* Top Status Pill */}
+               <div className="absolute top-5 left-5 z-10">
+                  <span className={`px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 ${
+                     item.status === 'cancelled' ? 'bg-red-100 text-red-700 border border-red-200' :
+                     item.status === 'processing' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                     'bg-green-100 text-green-700 border border-green-200'
+                  }`}>
+                    {item.status === 'sent' ? '✈️ Sent' : 
+                     item.status === 'processing' ? '⏳ Processing' : 
+                     item.status === 'delivered' ? '✓ Delivered' : 
+                     '⊗ Cancelled'}
+                  </span>
+               </div>
+
+               {/* Order ID */}
+               <div className="absolute top-5 right-5 text-right z-10">
+                  <div className="text-[10px] uppercase font-bold text-[#18382A]/40 tracking-widest mb-0.5">Order ID</div>
+                  <div className={`font-serif font-black text-xl ${item.status === 'cancelled' ? 'text-red-700' : 'text-green-700'}`}>
+                     {String(item.id).substring(String(item.id).length - 6).toUpperCase()}
+                  </div>
+               </div>
+
+               {/* Main Content Body */}
+               <div className="flex gap-5 px-6 pt-16 pb-4">
+                  <BookCover status={item.status} title={truncateText((item.title || '').split(',')[0], 20)} />
+                  
+                  <div className="flex-1 pt-2">
+                     <h3 className="font-serif font-black text-[#18382A] text-lg leading-tight mb-2 break-words line-clamp-2" title={item.title}>
+                        {truncateText(item.title, 40)}
+                     </h3>
+                     <p className="text-xs text-[#18382A]/60 font-bold italic">
+                        {item.type === 'pdf' ? 'Custom PDF Printing' : 'Semester Workbooks'}
+                     </p>
+                  </div>
+               </div>
+
+               {/* Divider */}
+               <div className="mx-6 border-b border-dashed border-[#18382A]/15 my-3"></div>
+
+               {/* Dates */}
+               <div className="px-6 py-2 flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-2">
+                     <span className="text-xl opacity-80">📅</span>
+                     <div>
+                        <div className="text-[10px] uppercase font-bold text-[#18382A]/40">Placed on</div>
+                        <div className="text-sm font-bold text-[#18382A]">{item.date.toLocaleDateString('en-GB')}</div>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <span className="text-xl opacity-80">⏱️</span>
+                     <div>
+                        <div className="text-[10px] uppercase font-bold text-[#18382A]/40">Est. Delivery</div>
+                        <div className="text-sm font-bold text-[#18382A]">{item.deliveryDays} days</div>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Total Footer */}
+               <div className="px-6 pt-2 pb-6 flex flex-col relative mt-auto">
+                  <div className="flex justify-between items-end mb-2">
+                     <div className="text-xs font-bold text-[#18382A]/50 uppercase tracking-wide">Total Amount</div>
+                     <div className={`font-black text-2xl mr-8 ${item.status === 'cancelled' ? 'text-red-700' : 'text-green-700'}`}>
+                        {item.price > 0 ? `₹${item.price.toFixed(2)}` : <span className="text-sm text-amber-600">Pending</span>}
+                     </div>
+                  </div>
+                  
+                  {/* View Details Link */}
+                  <div 
+                     onClick={() => {
+                        if (item.type === 'pdf') {
+                           alert('Custom PDF requests are tracked here. Once priced by the admin, you will be notified to add it to your cart.');
+                        } else {
+                           navigate(`/order-status/${item.id}`);
+                        }
+                     }}
+                     className="text-xs font-bold text-[#18382A] cursor-pointer hover:underline flex items-center gap-1 opacity-80 hover:opacity-100"
+                  >
+                     View Details <span>→</span>
+                  </div>
+               </div>
+
+               {/* Bottom Right 3D Fold */}
+               <svg className="absolute bottom-[-1px] right-[-1px] w-16 h-16 z-20 pointer-events-none drop-shadow-md" viewBox="0 0 100 100">
+                  {/* The cutout background matching the page */}
+                  <polygon points="100,0 100,100 0,100" fill="#FAF8F2" />
+                  
+                  {/* The folded flap (light color) */}
+                  <polygon points="100,0 0,100 40,40" fill={
+                    item.status === 'cancelled' ? '#EF4444' :
+                    item.status === 'processing' ? '#FBBF24' :
+                    '#10B981'
+                  } />
+                  
+                  {/* The folded flap shadow (dark color) for 3D crease effect */}
+                  <polygon points="100,0 40,40 100,30" fill={
+                    item.status === 'cancelled' ? '#B91C1C' :
+                    item.status === 'processing' ? '#D97706' :
+                    '#047857'
+                  } />
+               </svg>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer Guarantees Bar */}
+        <div className="mt-16 bg-white border border-[#18382A]/10 rounded-full py-6 px-10 shadow-[0_8px_30px_rgba(24,56,42,0.06)] flex flex-wrap justify-between items-center gap-6 relative z-10">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl filter drop-shadow-sm">🛡️</span>
+            <div>
+              <div className="font-bold text-[#18382A] text-sm">Safe & Secure</div>
+              <div className="text-[10px] text-[#18382A]/60 font-medium">Your orders are 100% protected</div>
+            </div>
+          </div>
+          <div className="w-px h-8 bg-[#18382A]/10 hidden md:block"></div>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl filter drop-shadow-sm">🚚</span>
+            <div>
+              <div className="font-bold text-[#18382A] text-sm">On Time Delivery</div>
+              <div className="text-[10px] text-[#18382A]/60 font-medium">We deliver on time, every time</div>
+            </div>
+          </div>
+          <div className="w-px h-8 bg-[#18382A]/10 hidden md:block"></div>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl filter drop-shadow-sm">🏅</span>
+            <div>
+              <div className="font-bold text-[#18382A] text-sm">Quality Printing</div>
+              <div className="text-[10px] text-[#18382A]/60 font-medium">Premium quality assured</div>
+            </div>
+          </div>
+          <div className="w-px h-8 bg-[#18382A]/10 hidden md:block"></div>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl filter drop-shadow-sm">🎧</span>
+            <div>
+              <div className="font-bold text-[#18382A] text-sm">Need Help?</div>
+              <div className="text-[10px] text-[#18382A]/60 font-medium">We're here to assist you</div>
+            </div>
+          </div>
+        </div>
+        
       </div>
     </div>
   );

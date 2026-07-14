@@ -115,78 +115,34 @@ const NotificationPrompt = () => {
   if (!showPrompt) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        maxWidth: '400px',
-        backgroundColor: '#ffffff',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
-        padding: '16px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-        zIndex: 9999,
-        fontFamily: 'Inter, sans-serif',
-      }}
-    >
-      <div style={{ marginBottom: '12px' }}>
-        <p style={{ color: '#111827', fontSize: '14px', fontWeight: '600', margin: '0 0 4px 0' }}>
-          🔔 Enable notifications to get order updates
-        </p>
-        <p style={{ color: '#6b7280', fontSize: '13px', margin: '0' }}>
-          Stay informed about your order status in real-time.
-        </p>
-      </div>
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] px-4 w-full max-w-sm">
+      <div className="realistic-paper-card w-full p-6 relative transform rotate-1 shadow-2xl border-2 border-dashed border-[#B8860B]/40">
+        {/* Fold effect corner */}
+        <div className="absolute top-0 right-0 w-8 h-8 bg-paper border-b border-l border-ink/20 shadow-sm rounded-bl-sm" style={{ clipPath: 'polygon(100% 0, 0 100%, 100% 100%)' }}></div>
+        
+        <div className="mb-4 pr-6">
+          <p className="text-[#B8860B] font-serif font-bold text-lg mb-1 leading-tight">
+            🔔 Enable notifications to get order updates
+          </p>
+          <p className="text-[#B8860B]/80 font-serif text-sm">
+            Stay informed about your order status in real-time.
+          </p>
+        </div>
 
-      <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-        <button
-          onClick={handleLater}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: 'transparent',
-            border: '1px solid #d1d5db',
-            color: '#6b7280',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '500',
-            transition: 'all 0.2s',
-          }}
-          onMouseOver={(e) => {
-            e.target.style.borderColor = '#9ca3af';
-            e.target.style.color = '#374151';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.borderColor = '#d1d5db';
-            e.target.style.color = '#6b7280';
-          }}
-        >
-          Later
-        </button>
-        <button
-          onClick={handleEnable}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#16a34a',
-            border: 'none',
-            color: '#ffffff',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '600',
-            transition: 'all 0.2s',
-          }}
-          onMouseOver={(e) => {
-            e.target.style.backgroundColor = '#15803d';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.backgroundColor = '#16a34a';
-          }}
-        >
-          Enable
-        </button>
+        <div className="flex gap-3 justify-end mt-4">
+          <button
+            onClick={handleLater}
+            className="bg-transparent border-2 border-dashed border-[#B8860B]/50 text-[#B8860B] px-4 py-2 rounded-sm text-sm font-bold shadow-[2px_2px_0px_rgba(184,134,11,0.2)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[1px_1px_0px_rgba(184,134,11,0.2)] transition-all font-serif"
+          >
+            Later
+          </button>
+          <button
+            onClick={handleEnable}
+            className="bg-[#B8860B] text-[#FAF8F2] px-6 py-2 rounded-sm text-sm font-bold shadow-[3px_3px_0px_rgba(184,134,11,0.3)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[2px_2px_0px_rgba(184,134,11,0.3)] transition-all font-serif"
+          >
+            Enable
+          </button>
+        </div>
       </div>
     </div>
   );

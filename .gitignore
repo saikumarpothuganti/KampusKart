@@ -1,29 +1,49 @@
-# Ignore environment files
-client/.env
-server/.env
-
-# Ignore local backup artifacts
-server/backups/
-# Dependencies
-server/node_modules/
-client/node_modules/
-
-# Environment files
-server/.env
-client/.env
-
 # Logs
-server/npm-debug.log*
-client/npm-debug.log*
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
-# Build outputs
-client/dist/
-server/build/
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# Uploads
-server/uploads/
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# Misc
+# Dependency directories
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+.env.development
+.env*.local
+client/.env
+server/.env
+
+# Mac OS X hidden files
 .DS_Store
+
+# Windows hidden files
 Thumbs.db
+
+# Project specific
+server/backups/
+server/uploads/
+server/build/
+client/dist/
+client/.vite/

@@ -4,8 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#059669',
-        secondary: '#047857',
+        paper: '#EDE0C8',
+        'paper-light': '#F5EBD6',
+        ink: '#18382A',
+        'ink-light': '#25503C',
+        primary: '#18382A',
+        secondary: '#25503C',
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        serif: ['"Playfair Display"', 'serif'],
       },
       zIndex: {
         9999: '9999',

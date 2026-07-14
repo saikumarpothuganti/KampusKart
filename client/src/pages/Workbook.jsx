@@ -1,12 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import API from '../lib/api';
 import { useCart } from '../context/CartContext';
 import SubjectCard from '../components/SubjectCard';
 import CustomBookCard from '../components/CustomBookCard';
 import GlowAlert from '../components/GlowAlert';
+import workbookBg from '../assets/Workbook.png';
 
 const Workbook = () => {
-  const { addToCart } = useCart();
+  const { addToCart, carts, createCart } = useCart();
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [selectedItemForCart, setSelectedItemForCart] = useState(null);
+  const [selectedCarts, setSelectedCarts] = useState([]);
+  const [newCartName, setNewCartName] = useState('');
 
   const [year, setYear] = useState('1');
   const [sem, setSem] = useState('1');
@@ -16,191 +21,377 @@ const Workbook = () => {
   const [query, setQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
   const [alertMessage, setAlertMessage] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const availableRef = useRef(null);
   const filtersRef = useRef(null);
 
-  // Auto-scroll to filters on page load
-  useEffect(() => {
-    setTimeout(() => {
-      if (filtersRef.current) {
-        filtersRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
-  }, []);
+  const ITEMS_PER_PAGE = 10; // 10 subjects + 1 custom card (spans 2) = 12 cols total (3 perfect rows on 4-column screen)
 
-  // Auto-scroll to Available Subjects after subjects load
-  useEffect(() => {
-    if (showSubjects && subjects && subjects.length > 0) {
-      // Use a small delay to ensure DOM is painted, helpful on mobile
-      setTimeout(() => {
-        const el = availableRef.current;
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    }
-  }, [showSubjects, subjects]);
+  // Auto-scroll removed as requested
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await API.get(`/subjects?year=${year}&sem=${sem}`);
-      setSubjects(res.data || []);
+      const { data } = await API.get(`/subjects?year=${year}&sem=${sem}`);
+      setSubjects(data);
       setShowSubjects(true);
+      setQuery('');
+      setCurrentPage(1);
     } catch (err) {
-      console.error('Failed to load subjects', err);
-      setSubjects([]);
-      setShowSubjects(true);
+      console.error(err);
+      setAlertMessage('Failed to fetch subjects.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddToCart = async (item) => {
+  const handleAddToCartClick = (item) => {
+    if (!carts || carts.length === 0) {
+      createCart('My Cart').then(newCarts => {
+        addToCart(newCarts[0]._id, item).then(() => {
+          setCartCount((c) => c + 1);
+          setAlertMessage(`Added ${item.title} to new cart!`);
+        });
+      });
+      return;
+    }
+    if (carts.length === 1) {
+      addToCart(carts[0]._id, item).then(() => {
+        setCartCount((c) => c + 1);
+        setAlertMessage(`Added ${item.title} to ${carts[0].name}!`);
+      }).catch(() => {
+        setAlertMessage('Failed to add to cart.');
+      });
+      return;
+    }
+    setSelectedItemForCart(item);
+    setSelectedCarts([]);
+    setShowCartModal(true);
+  };
+
+  const handleAddSelectedCarts = async () => {
+    if (selectedCarts.length === 0) return;
     try {
-      await addToCart(item);
-      setCartCount((c) => c + 1);
-      setAlertMessage('Added to cart');
-    } catch (error) {
-      // Silently fail - no alert for unavailable subjects
-      console.error('Failed to add to cart:', error);
+      await Promise.all(selectedCarts.map(cartId => addToCart(cartId, selectedItemForCart)));
+      setCartCount((c) => c + selectedCarts.length);
+      setAlertMessage(`Added ${selectedItemForCart.title} to ${selectedCarts.length} cart(s)!`);
+      setShowCartModal(false);
+      setSelectedItemForCart(null);
+      setSelectedCarts([]);
+    } catch (e) {
+      setAlertMessage('Failed to add to carts.');
     }
   };
 
-  const filteredSubjects = !showSubjects || !query
-    ? subjects
-    : subjects.filter((s) => {
-        const q = query.trim().toLowerCase();
-        const title = s.title?.toLowerCase() || '';
-        const code = s.code?.toLowerCase() || '';
-        if (q.length <= 3) {
-          return title.startsWith(q) || code.startsWith(q);
-        }
-        return title.includes(q) || code.includes(q);
-      });
+  const handleCreateAndAdd = async () => {
+    if (!newCartName.trim()) return;
+    try {
+      const newCarts = await createCart(newCartName);
+      const created = newCarts[newCarts.length - 1];
+      await addToCart(created._id, selectedItemForCart);
+      setCartCount((c) => c + 1);
+      setAlertMessage(`Added ${selectedItemForCart.title} to ${newCartName}!`);
+      setShowCartModal(false);
+      setSelectedItemForCart(null);
+      setNewCartName('');
+    } catch (e) {
+      setAlertMessage('Failed to create cart.');
+    }
+  };
+
+  const filteredSubjects = useMemo(() => {
+    if (!query.trim()) return subjects;
+    return subjects.filter((s) => {
+      const q = query.trim().toLowerCase();
+      const title = s.title?.toLowerCase() || '';
+      const code = s.code?.toLowerCase() || '';
+      if (q.length <= 3) {
+        return title.startsWith(q) || code.startsWith(q);
+      }
+      return title.includes(q) || code.includes(q);
+    });
+  }, [subjects, query]);
+
+  // Reset page to 1 when search query or subjects change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, subjects]);
+
+  const totalPages = Math.ceil(filteredSubjects.length / ITEMS_PER_PAGE);
+  const paginatedSubjects = filteredSubjects.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const getPaginationGroup = () => {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+    
+    let group = [1];
+    if (start > 2) group.push('...');
+    for (let i = start; i <= end; i++) group.push(i);
+    if (end < totalPages - 1) group.push('...');
+    group.push(totalPages);
+    return group;
+  };
 
   return (
-    <>
-    <style>{`
-      @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-        50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-      }
-      .pulse-highlight {
-        animation: pulse-glow 2s infinite;
-      }
-    `}</style>
-    <div className="max-w-7xl mx-auto py-8 px-4 text-[#e5e7eb]">
-      <button
-        onClick={() => window.history.back()}
-        className="mb-6 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#059669] to-[#047857] text-white rounded-lg hover:scale-[1.02] transition-transform shadow-lg"
-      >
-        <span className="text-yellow-400 font-bold text-lg">←</span>
-        <span className="font-semibold">Back</span>
-      </button>
-      <h1 className="text-3xl font-bold mb-8">📚 Workbook Printing</h1>
+    <div 
+      className="min-h-screen w-full bg-cover bg-center bg-fixed relative overflow-x-hidden"
+      style={{ backgroundImage: `url(${workbookBg})` }}
+    >
+      {/* Giant Fixed Glowing Light to make content readable */}
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vw] h-[150vw] max-w-[1400px] max-h-[1400px] bg-paper/80 blur-[150px] rounded-full pointer-events-none z-0"></div>
 
-      {/* Filters */}
-      <div ref={filtersRef} className="bg-[#111827] border border-[rgba(255,255,255,0.12)] rounded-[18px] p-6 mb-8 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm text-[#9ca3af] mb-2">Year</label>
-            <select
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-3 py-2 pulse-highlight"
-            >
-              <option value="1">1st Year</option>
-              <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-              <option value="4">4th Year</option>
-            </select>
-          </div>
+      <style>{`
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+          50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        }
+        .pulse-highlight {
+          animation: pulse-glow 2s infinite;
+        }
+      `}</style>
 
-          <div>
-            <label className="block text-sm text-[#9ca3af] mb-2">Semester</label>
-            <select
-              value={sem}
-              onChange={(e) => setSem(e.target.value)}
-              className="w-full bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-3 py-2 pulse-highlight"
-            >
-              <option value="1">Semester 1</option>
-              <option value="2">Semester 2</option>
-              
-            </select>
-          </div>
+      <div className="max-w-7xl mx-auto py-8 px-4 text-ink font-sans relative z-10">
+        
+        <h1 className="text-4xl font-serif font-bold mb-8 flex items-center gap-4 text-ink drop-shadow-sm">
+          <span className="text-5xl filter saturate-150 drop-shadow-md">📚</span>
+          Workbook Printing
+        </h1>
 
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-[#059669] to-[#047857] text-white py-3 rounded-full font-semibold shadow-lg shadow-emerald-500/20 hover:scale-[1.01] transition pulse-highlight"
-            >
-              {loading ? 'Loading...' : 'Show Subjects'}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Filters */}
+        <div ref={filtersRef} className="realistic-paper-card p-8 mb-12">
+          {/* Clip for the card */}
+          <div className="absolute -top-4 right-8 text-3xl drop-shadow-md z-10" style={{ transform: 'rotate(10deg)' }}>📌</div>
+          
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+            <div>
+              <label className="block text-sm font-serif font-bold text-paper mb-2 uppercase tracking-widest">Select Year</label>
+              <select
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                className="w-full bg-[#EAD1A6] border-2 border-[rgba(255,255,255,0.2)] text-ink font-bold rounded px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-paper"
+              >
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
+            </div>
 
-      {/* Upload + Subjects - Mixed Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 auto-rows-max">
-        {/* Left: Custom Card */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Upload Your Own Materials</h2>
-          <CustomBookCard onAddToCart={handleAddToCart} />
+            <div>
+              <label className="block text-sm font-serif font-bold text-paper mb-2 uppercase tracking-widest">Select Semester</label>
+              <select
+                value={sem}
+                onChange={(e) => setSem(e.target.value)}
+                className="w-full bg-[#EAD1A6] border-2 border-[rgba(255,255,255,0.2)] text-ink font-bold rounded px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-paper"
+              >
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+              </select>
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-[#EDE0C8] border-2 border-[rgba(255,255,255,0.2)] text-ink shadow-[4px_4px_0px_rgba(24,56,42,0.8)] hover:bg-[#F5EBD6] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_rgba(24,56,42,0.8)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all w-full py-3 text-lg font-serif font-bold h-[52px] rounded-sm"
+              >
+                {loading ? 'Searching...' : 'Find Subjects'}
+              </button>
+            </div>
+          </form>
         </div>
 
-        {/* Right: Subjects (spans 2 columns) */}
-        <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
+        {/* Unified Print Materials Section */}
+        <div className="mb-12">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-4 border-b-2 border-ink/10 gap-4">
             <div className="flex items-center gap-3">
-              <h2 ref={availableRef} className="text-2xl font-bold">Available Subjects</h2>
+              <h2 ref={availableRef} className="text-3xl font-serif font-bold text-ink drop-shadow-sm">Print Materials</h2>
               {cartCount > 0 && (
-                <span className="inline-flex items-center justify-center bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                  {cartCount}
+                <span className="inline-flex items-center justify-center bg-ink text-paper text-sm font-bold px-3 py-1 rounded-full shadow-md">
+                  {cartCount} in Cart
                 </span>
               )}
             </div>
+            
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               disabled={!showSubjects}
-              placeholder={showSubjects ? 'Search by title or code...' : 'Search enabled after Show Subjects'}
-              className={`w-64 bg-[#0f1116] border border-[rgba(255,255,255,0.12)] text-[#e5e7eb] rounded-xl px-3 py-2 ${
-                showSubjects ? 'opacity-100' : 'opacity-60 cursor-not-allowed'
+              placeholder={showSubjects ? 'Search subjects...' : 'Search enabled after Find'}
+              className={`w-full md:w-72 bg-paper/95 backdrop-blur-sm border-2 border-ink/30 text-ink font-serif font-bold rounded-sm px-4 py-2 shadow-[2px_2px_0px_#112e1c] focus:outline-none focus:ring-2 focus:ring-[#B8860B] focus:border-[#B8860B] focus:shadow-[1px_1px_0px_#B8860B] placeholder:text-ink/40 transition-all ${
+                showSubjects ? 'opacity-100 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#112e1c]' : 'opacity-60 cursor-not-allowed'
               }`}
             />
           </div>
 
           {!showSubjects ? (
-            <p className="text-[#9ca3af]">Select year and semester, then click Show Subjects.</p>
-          ) : subjects.length === 0 ? (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-800">
-              <p className="font-semibold mb-2">📚 No subjects available for this selection</p>
-              <p className="text-sm">You can upload a <strong>Custom PDF</strong> instead using the form on the left. All custom PDFs require admin approval and pricing before checkout.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <CustomBookCard onAddToCart={handleAddToCartClick} />
+              <div className="bg-paper/70 backdrop-blur-md rounded-md p-12 flex flex-col items-center justify-center col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2 border-2 border-dashed border-ink/30 shadow-inner">
+                 <p className="text-ink font-serif font-bold text-xl italic text-center drop-shadow-sm">Select your year and semester above to find subjects!</p>
+              </div>
             </div>
-          ) : filteredSubjects.length === 0 ? (
-            <p className="text-[#9ca3af]">No files found for your search.</p>
+          ) : subjects.length === 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <CustomBookCard onAddToCart={handleAddToCartClick} />
+              <div className="realistic-paper-card p-6 text-paper flex flex-col justify-center gap-2 col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-3">
+                <p className="font-bold text-xl drop-shadow-md">No subjects found for this selection</p>
+                <p className="text-base opacity-90">However, you can use the <strong>Custom PDF</strong> form to upload exactly what you need!</p>
+              </div>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSubjects.map((subject) => (
-                <SubjectCard key={subject._id} subject={subject} onAddToCart={handleAddToCart} />
-              ))}
+            <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {/* The Custom Upload Card is always the first item in the grid! */}
+                {currentPage === 1 && <CustomBookCard onAddToCart={handleAddToCartClick} />}
+                
+                {/* The subject cards fill the rest of the grid seamlessly! */}
+                {paginatedSubjects.length > 0 ? (
+                  paginatedSubjects.map((s) => (
+                    <SubjectCard key={s._id} subject={s} onAddToCart={handleAddToCartClick} />
+                  ))
+                ) : (
+                  currentPage === 1 && (
+                    <div className="bg-paper/70 backdrop-blur-md rounded-md p-12 col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2 flex items-center justify-center border-2 border-dashed border-ink/30 shadow-inner">
+                      <p className="text-ink font-serif font-bold text-2xl italic drop-shadow-sm">No files match your search.</p>
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center mt-12 gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="w-10 h-10 flex items-center justify-center bg-[#EDE0C8] border-2 border-[rgba(255,255,255,0.2)] text-ink font-bold rounded-sm shadow-[2px_2px_0px_#18382A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#18382A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    &lt;
+                  </button>
+                  
+                  {getPaginationGroup().map((item, index) => {
+                    if (item === '...') {
+                      return <span key={`ellipsis-${index}`} className="px-2 font-bold opacity-50 text-ink">...</span>;
+                    }
+                    return (
+                      <button
+                        key={item}
+                        onClick={() => setCurrentPage(item)}
+                        className={`w-10 h-10 flex items-center justify-center font-bold rounded-sm transition-all ${
+                          currentPage === item 
+                            ? 'bg-ink text-[#EDE0C8] shadow-inner border-2 border-ink' 
+                            : 'bg-[#EDE0C8] border-2 border-[rgba(255,255,255,0.2)] text-ink shadow-[2px_2px_0px_#18382A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#18382A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="w-10 h-10 flex items-center justify-center bg-[#EDE0C8] border-2 border-[rgba(255,255,255,0.2)] text-ink font-bold rounded-sm shadow-[2px_2px_0px_#18382A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#18382A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    &gt;
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
-    </div>
 
-    <GlowAlert
-      message={alertMessage}
-      onClose={() => setAlertMessage('')}
-      okText="OK"
-      variant="success"
-    />
-    </>
+      {/* Alert Overlay */}
+      {alertMessage && (
+        <GlowAlert 
+          message={alertMessage} 
+          onClose={() => setAlertMessage('')} 
+        />
+      )}
+
+      {/* Cart Selection Modal */}
+      {showCartModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="realistic-paper-card w-full max-w-md p-8 relative transform rotate-1 shadow-2xl">
+            {/* Fold effect corner */}
+            <div className="absolute top-0 right-0 w-8 h-8 bg-paper border-b border-l border-ink/20 shadow-sm rounded-bl-sm" style={{ clipPath: 'polygon(100% 0, 0 100%, 100% 100%)' }}></div>
+            
+            <button onClick={() => setShowCartModal(false)} className="absolute top-4 right-4 text-[#B8860B]/60 hover:text-[#B8860B] text-xl font-bold font-serif hover:scale-110 transition-transform">
+              ✕
+            </button>
+            <h3 className="text-2xl font-bold font-serif text-[#B8860B] mb-2">Select a Cart</h3>
+            <p className="text-[#B8860B]/80 text-sm mb-6 font-serif">Which cart would you like to add <span className="font-bold text-[#B8860B] italic">{selectedItemForCart?.title}</span> to?</p>
+            
+            <div className="space-y-3 max-h-56 overflow-y-auto mb-4 pr-2 custom-scrollbar">
+              {carts.map(c => {
+                const isSelected = selectedCarts.includes(c._id);
+                return (
+                  <label
+                    key={c._id}
+                    className={`w-full flex items-center gap-3 p-3 rounded-sm border cursor-pointer transition-all duration-300 group relative overflow-hidden ${
+                      isSelected 
+                        ? 'border-[#C09A3F] bg-gradient-to-r from-[#C5A059] to-[#B8860B] shadow-[0_4px_15px_rgba(184,134,11,0.4)] transform -translate-y-1' 
+                        : 'border-2 border-dashed border-[#B8860B]/40 hover:border-[#B8860B] hover:bg-[#B8860B]/5'
+                    }`}
+                  >
+                    <input 
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedCarts([...selectedCarts, c._id]);
+                        else setSelectedCarts(selectedCarts.filter(id => id !== c._id));
+                      }}
+                      className="w-5 h-5 accent-[#1a422a] rounded cursor-pointer"
+                    />
+                    <div className="flex-1 flex justify-between items-center">
+                      <span className={`font-serif font-bold transition-transform origin-left ${isSelected ? 'text-[#FAF8F2] drop-shadow-md' : 'text-[#B8860B]'}`}>{c.name}</span>
+                      <span className={`text-xs px-2 py-1 rounded-sm font-bold shadow-inner ${isSelected ? 'text-[#B8860B] bg-[#FAF8F2]' : 'text-[#FAF8F2] bg-[#B8860B] shadow-[2px_2px_0px_rgba(184,134,11,0.3)]'}`}>{c.items?.length || 0} items</span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+            
+            <button
+              onClick={handleAddSelectedCarts}
+              disabled={selectedCarts.length === 0}
+              className="w-full mb-6 bg-[#B8860B] text-[#FAF8F2] px-4 py-3 rounded-sm font-bold shadow-[3px_3px_0px_rgba(184,134,11,0.3)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[2px_2px_0px_rgba(184,134,11,0.3)] disabled:opacity-50 transition-all font-serif flex items-center justify-center gap-2"
+            >
+              Add to Selected Carts ({selectedCarts.length})
+            </button>
+
+            <div className="border-t-2 border-dashed border-[#B8860B]/30 pt-5 mt-2">
+              <p className="text-xs font-bold text-[#B8860B]/70 uppercase tracking-wider mb-3 font-serif">Or scribe a new cart</p>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="e.g. Project Print..." 
+                  className="flex-1 bg-[#FAF8F2] border-2 border-dashed border-[#B8860B] rounded-sm px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#B8860B]/50 font-serif text-[#1a422a] placeholder:text-[#1a422a]/50 transition-all shadow-inner"
+                  value={newCartName}
+                  onChange={(e) => setNewCartName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreateAndAdd()}
+                />
+                <button 
+                  onClick={handleCreateAndAdd}
+                  disabled={!newCartName.trim()}
+                  className="bg-[#B8860B] text-[#FAF8F2] px-4 py-2 rounded-sm text-sm font-bold shadow-[3px_3px_0px_rgba(184,134,11,0.3)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[2px_2px_0px_rgba(184,134,11,0.3)] disabled:opacity-50 transition-all font-serif"
+                >
+                  Create & Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

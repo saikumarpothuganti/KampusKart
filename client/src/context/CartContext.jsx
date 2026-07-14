@@ -4,36 +4,56 @@ import API from '../lib/api.js';
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState({ items: [] });
+  const [carts, setCarts] = useState([]);
+  const [activeCartId, setActiveCartId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchCart = async () => {
-    // Don't fetch if no token (user not logged in)
+  const fetchCarts = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      setCart({ items: [] });
+      setCarts([]);
+      setActiveCartId(null);
       return;
     }
 
     try {
       setLoading(true);
       const res = await API.get('/cart');
-      setCart(res.data);
-    } catch (error) {
-      // Don't log error if it's a 401 (will be handled by interceptor)
-      if (error.response?.status !== 401) {
-        console.error('Failed to fetch cart:', error);
+      const cartsData = Array.isArray(res.data) ? res.data : [];
+      setCarts(cartsData);
+      if (cartsData.length > 0 && !activeCartId) {
+        setActiveCartId(cartsData[0]._id);
       }
-      setCart({ items: [] });
+    } catch (error) {
+      if (error.response?.status !== 401) {
+        console.error('Failed to fetch carts:', error);
+      }
+      setCarts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const addToCart = async (item) => {
+  const createCart = async (name) => {
     try {
-      const res = await API.post('/cart/add', item);
-      setCart(res.data);
+      const res = await API.post('/cart/create', { name });
+      const newCarts = Array.isArray(res.data) ? res.data : carts;
+      setCarts(newCarts);
+      // Auto-switch to the newly created cart (it's the last one)
+      if (newCarts.length > 0) {
+        setActiveCartId(newCarts[newCarts.length - 1]._id);
+      }
+      return newCarts;
+    } catch (error) {
+      console.error('Failed to create cart:', error);
+      throw error;
+    }
+  };
+
+  const addToCart = async (cartId, item) => {
+    try {
+      const res = await API.post(`/cart/${cartId}/add`, item);
+      setCarts(Array.isArray(res.data) ? res.data : carts);
       return res.data;
     } catch (error) {
       console.error('Failed to add to cart:', error);
@@ -41,10 +61,10 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const updateItem = async (itemIndex, updates) => {
+  const updateItem = async (cartId, itemIndex, updates) => {
     try {
-      const res = await API.put(`/cart/${itemIndex}`, updates);
-      setCart(res.data);
+      const res = await API.put(`/cart/${cartId}/${itemIndex}`, updates);
+      setCarts(Array.isArray(res.data) ? res.data : carts);
       return res.data;
     } catch (error) {
       console.error('Failed to update cart item:', error);
@@ -52,10 +72,10 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const removeItem = async (itemIndex) => {
+  const removeItem = async (cartId, itemIndex) => {
     try {
-      const res = await API.delete(`/cart/${itemIndex}`);
-      setCart(res.data);
+      const res = await API.delete(`/cart/${cartId}/${itemIndex}`);
+      setCarts(Array.isArray(res.data) ? res.data : carts);
       return res.data;
     } catch (error) {
       console.error('Failed to remove from cart:', error);
@@ -63,34 +83,60 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const clearCart = async () => {
+  const deleteCart = async (cartId) => {
     try {
-      await API.delete('/cart');
-      setCart({ items: [] });
+      const res = await API.delete(`/cart/${cartId}`);
+      const newCarts = Array.isArray(res.data) ? res.data : carts;
+      setCarts(newCarts);
+      if (activeCartId === cartId && newCarts.length > 0) {
+        setActiveCartId(newCarts[0]._id);
+      }
+      return newCarts;
     } catch (error) {
-      console.error('Failed to clear cart:', error);
+      console.error('Failed to delete cart:', error);
       throw error;
     }
   };
 
-  const getTotalPrice = () => {
-    return cart.items.reduce((total, item) => {
+  const getCartCount = () => {
+    if (!Array.isArray(carts)) return 0;
+    return carts.reduce((sum, cart) => {
+      return sum + (cart.items ? cart.items.length : 0);
+    }, 0);
+  };
+
+  const getActiveCartTotalPrice = () => {
+    if (!Array.isArray(carts)) return 0;
+    const activeCart = carts.find(c => c._id === activeCartId);
+    if (!activeCart || !activeCart.items) return 0;
+    
+    return activeCart.items.reduce((total, item) => {
       const price = item.userPrice ?? item.price ?? 0;
       return total + price * item.qty;
     }, 0);
   };
 
+  const getActiveCart = () => {
+    if (!Array.isArray(carts)) return { items: [] };
+    return carts.find(c => c._id === activeCartId) || { items: [] };
+  };
+
   return (
     <CartContext.Provider
       value={{
-        cart,
+        carts,
+        activeCartId,
+        setActiveCartId,
         loading,
-        fetchCart,
+        fetchCart: fetchCarts, // keeping legacy name to avoid breaking some imports
+        createCart,
         addToCart,
         updateItem,
         removeItem,
-        clearCart,
-        getTotalPrice,
+        deleteCart,
+        getCartCount,
+        getActiveCartTotalPrice,
+        getActiveCart,
       }}
     >
       {children}
@@ -98,10 +144,4 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within CartProvider');
-  }
-  return context;
-};
+export const useCart = () => useContext(CartContext);

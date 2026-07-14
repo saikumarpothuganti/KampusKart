@@ -11,6 +11,7 @@ import {
   setCustomPDFPrice,
   acceptRequest,
   updateDeliveryDays,
+  markCodPaid,
 } from '../controllers/orderController.js';
 import authMiddleware from '../middleware/auth.js';
 
@@ -30,5 +31,6 @@ router.delete('/:orderId', authMiddleware, deleteOrder);
 router.put('/:orderId/live-location', authMiddleware, toggleLiveLocation);
 router.put('/:orderId/set-price', authMiddleware, setCustomPDFPrice);
 router.put('/:orderId/delivery-days', authMiddleware, updateDeliveryDays);
+router.put('/:orderId/mark-cod-paid', authMiddleware, markCodPaid);
 
 export default router;

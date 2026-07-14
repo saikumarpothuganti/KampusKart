@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
@@ -22,18 +22,32 @@ import SignUp from './pages/SignUp';
 import Admin from './pages/Admin';
 import DeliveryLocation from './pages/DeliveryLocation';
 import Feedback from './pages/Feedback';
+import About from './pages/About';
 
 import './index.css';
 
 function AppContent() {
   const [showInitialLoader, setShowInitialLoader] = useState(true);
+  const [isRouteLoading, setIsRouteLoading] = useState(false);
   const { isLoading } = useLoading();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    // Only trigger route loading if initial load is finished
+    if (!showInitialLoader) {
+      setIsRouteLoading(true);
+    }
+  }, [location.pathname]);
 
   return (
     <div className="relative min-h-screen bg-transparent">
       {/* Initial load screen */}
       {showInitialLoader && (
         <LoadingScreen duration={2500} onFinished={() => setShowInitialLoader(false)} />
+      )}
+      {/* Route Transition Loader */}
+      {!showInitialLoader && isRouteLoading && (
+        <LoadingScreen duration={2000} onFinished={() => setIsRouteLoading(false)} />
       )}
       {/* Button click loader */}
       {isLoading && (
@@ -56,6 +70,7 @@ function AppContent() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/about" element={<About />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/delivery/update-location/:orderId" element={<DeliveryLocation />} />
         <Route path="/feedback" element={<Feedback />} />
