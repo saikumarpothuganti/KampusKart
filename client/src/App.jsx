@@ -43,11 +43,11 @@ function AppContent() {
     <div className="relative min-h-screen bg-transparent">
       {/* Initial load screen */}
       {showInitialLoader && (
-        <LoadingScreen duration={2500} onFinished={() => setShowInitialLoader(false)} />
+        <LoadingScreen duration={2000} onFinished={() => setShowInitialLoader(false)} />
       )}
       {/* Route Transition Loader */}
       {!showInitialLoader && isRouteLoading && (
-        <LoadingScreen duration={2000} onFinished={() => setIsRouteLoading(false)} />
+        <LoadingScreen duration={1500} onFinished={() => setIsRouteLoading(false)} />
       )}
       {/* Button click loader */}
       {isLoading && (
