@@ -109,15 +109,15 @@ const Feedback = () => {
                style={{boxShadow:'0 20px 60px rgba(24,56,42,0.08), 0 6px 20px rgba(24,56,42,0.05)'}}>
 
             {/* Order History link in header */}
-            <div className="bg-[#18382A] px-8 py-4 flex justify-between items-center relative overflow-hidden">
+            <div className="bg-[#18382A] px-6 sm:px-8 py-4 flex justify-between items-center relative overflow-hidden">
               <div className="absolute top-0 right-0 w-0 h-0 border-l-[50px] border-l-transparent border-t-[50px] border-t-white/5"></div>
-              <span className="text-[#FAF8F2]/70 text-sm font-medium">Fill out the form below</span>
+              <span className="text-[#FAF8F2]/70 text-xs sm:text-sm font-medium">Fill out the form below</span>
               <Link to="/order-history" className="text-sm font-bold text-[#FAF8F2] hover:text-amber-300 transition flex items-center gap-1">
                 View Orders →
               </Link>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+            <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
               {errorMsg && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
                   {errorMsg}

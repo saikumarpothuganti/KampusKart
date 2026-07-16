@@ -24,6 +24,7 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('Home');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -191,7 +192,7 @@ const Navbar = () => {
           })}
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-3 md:gap-5">
           <div className="relative">
             <Link
               to="/cart"
@@ -303,9 +304,57 @@ const Navbar = () => {
               </div>
             )}
           </div>
+          </div>
+
+          {/* Hamburger Menu Toggle (Mobile) */}
+          <button 
+            className="md:hidden text-paper ml-2 focus:outline-none flex flex-col items-center justify-center gap-1.5 w-8 h-8"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Menu"
+          >
+            <span className={`block w-6 h-0.5 bg-paper transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
+            <span className={`block w-6 h-0.5 bg-paper transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+            <span className={`block w-6 h-0.5 bg-paper transition-transform duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+          </button>
         </div>
       </div>
       
+      {/* Mobile Navigation Menu */}
+      <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-[#204a2e] border-t border-paper/10 ${isMobileMenuOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="flex flex-col py-2 px-2 space-y-1">
+          {navLinks.map((link) => {
+            const isHomePage = location.pathname === '/';
+            let isCurrent = false;
+            if (isHomePage) isCurrent = activeSection === link.label;
+
+            return link.scroll ? (
+              <button
+                key={link.label}
+                onClick={() => {
+                  handleScrollToFooter(link.scroll);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`text-left w-full py-3 px-4 rounded-md transition-colors ${isCurrent ? 'bg-paper/10 text-paper font-bold' : 'text-paper/80 hover:text-paper hover:bg-paper/5'}`}
+              >
+                {link.label}
+              </button>
+            ) : (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`block py-3 px-4 rounded-md transition-colors ${
+                  (isHomePage && link.label === 'Home' ? isCurrent : location.pathname === link.to) 
+                    ? 'bg-paper/10 text-paper font-bold' 
+                    : 'text-paper/80 hover:text-paper hover:bg-paper/5'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
     </nav>
   );
 };

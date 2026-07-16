@@ -91,8 +91,8 @@ const Home = () => {
                <OrigamiText text="Welcome To" className="text-xl md:text-2xl" />
             </div>
             
-            <div className="-ml-3 py-2">
-              <OrigamiText text="KAMPUSKART" className="text-3xl md:text-5xl lg:text-[65px]" />
+            <div className="-ml-1 md:-ml-3 py-2">
+              <OrigamiText text="KAMPUSKART" className="text-2xl min-[400px]:text-3xl md:text-5xl lg:text-[65px]" />
             </div>
 
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-ink mt-4 drop-shadow-[0_2px_4px_rgba(24,56,42,0.3)]">
@@ -103,18 +103,18 @@ const Home = () => {
               Your one-stop place for workbooks, custom printing and delivery. made for students, by students.
             </p>
             
-            <div className="flex flex-wrap gap-6 pt-6 relative z-50 pointer-events-auto mt-4">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pt-6 relative z-50 pointer-events-auto mt-4 w-full">
               <Link
                 to="/workbook"
-                className="relative bg-gradient-to-br from-[#599A69] to-[#388E3C] text-[#FDFCF9] font-black py-4 px-8 rounded-tl-[24px] rounded-br-[24px] rounded-tr-md rounded-bl-md shadow-[4px_6px_15px_rgba(24,56,42,0.3)] hover:-translate-y-1 hover:shadow-[6px_8px_20px_rgba(24,56,42,0.4)] transition-all duration-300 flex items-center gap-3 border border-[#8FAD8C]/30"
+                className="relative bg-gradient-to-br from-[#599A69] to-[#388E3C] text-[#FDFCF9] font-black py-4 px-6 md:px-8 rounded-tl-[24px] rounded-br-[24px] rounded-tr-md rounded-bl-md shadow-[4px_6px_15px_rgba(24,56,42,0.3)] hover:-translate-y-1 hover:shadow-[6px_8px_20px_rgba(24,56,42,0.4)] transition-all duration-300 flex items-center justify-center gap-3 border border-[#8FAD8C]/30 w-full sm:w-auto"
               >
-                <span className="text-2xl drop-shadow-md">📖</span> <span className="tracking-widest">BROWSE WORKBOOKS</span>
+                <span className="text-2xl drop-shadow-md">📖</span> <span className="tracking-widest text-sm md:text-base">BROWSE WORKBOOKS</span>
               </Link>
               <Link
                 to="/custom-pdf"
-                className="relative bg-gradient-to-br from-[#8FAD8C] to-[#599A69] text-[#1a3625] font-black py-4 px-8 rounded-tr-[24px] rounded-bl-[24px] rounded-tl-md rounded-br-md shadow-[4px_6px_15px_rgba(24,56,42,0.2)] hover:-translate-y-1 hover:shadow-[6px_8px_20px_rgba(24,56,42,0.3)] transition-all duration-300 flex items-center gap-3 border border-[#FDFCF9]/50"
+                className="relative bg-gradient-to-br from-[#8FAD8C] to-[#599A69] text-[#1a3625] font-black py-4 px-6 md:px-8 rounded-tr-[24px] rounded-bl-[24px] rounded-tl-md rounded-br-md shadow-[4px_6px_15px_rgba(24,56,42,0.2)] hover:-translate-y-1 hover:shadow-[6px_8px_20px_rgba(24,56,42,0.3)] transition-all duration-300 flex items-center justify-center gap-3 border border-[#FDFCF9]/50 w-full sm:w-auto"
               >
-                <span className="text-2xl drop-shadow-md">📄</span> <span className="tracking-widest">UPLOAD PDF</span>
+                <span className="text-2xl drop-shadow-md">📄</span> <span className="tracking-widest text-sm md:text-base">UPLOAD PDF</span>
               </Link>
             </div>
           </div>

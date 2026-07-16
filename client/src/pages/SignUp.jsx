@@ -73,7 +73,7 @@ const SignUp = () => {
              style={{boxShadow:'0 20px 60px rgba(24,56,42,0.10), 0 6px 20px rgba(24,56,42,0.06)'}}>
 
           {/* Green header strip */}
-          <div className="bg-[#18382A] px-8 py-6 relative overflow-hidden">
+          <div className="bg-[#18382A] px-6 sm:px-8 py-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-0 h-0 border-l-[60px] border-l-transparent border-t-[60px] border-t-white/5"></div>
             <div className="absolute bottom-0 left-0 w-0 h-0 border-r-[40px] border-r-transparent border-b-[40px] border-b-white/5"></div>
             <div className="flex items-center gap-3">
@@ -86,7 +86,7 @@ const SignUp = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-4">
+          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
                 {error}
