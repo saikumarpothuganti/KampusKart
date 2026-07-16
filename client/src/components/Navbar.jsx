@@ -304,7 +304,6 @@ const Navbar = () => {
               </div>
             )}
           </div>
-          </div>
 
           {/* Hamburger Menu Toggle (Mobile) */}
           <button 
