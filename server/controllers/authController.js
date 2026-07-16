@@ -1,6 +1,9 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const signup = async (req, res) => {
   try {
@@ -154,5 +157,63 @@ export const updateAvatar = async (req, res) => {
     res.json({ message: 'Avatar updated successfully', avatarIndex });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+export const googleAuth = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId } = payload;
+    
+    let user = await User.findOne({ email: email.toLowerCase() });
+    
+    if (!user) {
+      // Create new user, auto-generate a userId (e.g. from email)
+      const baseId = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      const uniqueSuffix = Math.floor(Math.random() * 10000);
+      const userId = `${baseId}${uniqueSuffix}`;
+      
+      user = new User({
+        name,
+        email: email.toLowerCase(),
+        userId,
+        googleId,
+        avatarIndex: Math.floor(Math.random() * 4)
+      });
+      await user.save();
+    } else if (!user.googleId) {
+       // Link googleId to existing user
+       user.googleId = googleId;
+       await user.save();
+    }
+    
+    const jwtToken = jwt.sign(
+      { id: user._id, userId: user.userId, email: user.email, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token: jwtToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        userId: user.userId,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        avatarIndex: user.avatarIndex,
+      },
+    });
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    res.status(500).json({ error: 'Authentication failed. Please try again.' });
   }
 };

@@ -4,12 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { useLoading } from '../context/LoadingContext';
 import NavLink from '../components/NavLink';
 import GlowAlert from '../components/GlowAlert';
+import { GoogleLogin } from '@react-oauth/google';
 import origamiStudent from '../assets/origami_student.png';
 import origamiDeliveryMan from '../assets/origami_delivery_man.png';
 
 const SignIn = () => {
   const navigate = useNavigate();
-  const { signin } = useAuth();
+  const { signin, googleLogin } = useAuth();
   const { showLoader } = useLoading();
   const [formData, setFormData] = useState({ userId: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -43,6 +44,24 @@ const SignIn = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      showLoader(1200);
+      const data = await googleLogin(credentialResponse.credential);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      if (data?.user?.isAdmin) navigate('/admin');
+      else navigate('/');
+    } catch (err) {
+      setAlertState({ message: 'Google sign in failed. Please try again.', variant: 'error' });
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setAlertState({ message: 'Google sign in was cancelled or failed.', variant: 'error' });
   };
 
   return (
@@ -129,6 +148,18 @@ const SignIn = () => {
               <div className="flex-1 border-t border-dashed border-[#18382A]/15"></div>
               <span className="text-xs text-[#18382A]/30 font-bold uppercase tracking-widest">or</span>
               <div className="flex-1 border-t border-dashed border-[#18382A]/15"></div>
+            </div>
+
+            <div className="flex justify-center w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                shape="rectangular"
+                theme="outline"
+                size="large"
+                text="continue_with"
+                width="100%"
+              />
             </div>
 
             <p className="text-center text-sm text-[#18382A]/50 font-medium">

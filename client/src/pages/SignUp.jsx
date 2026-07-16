@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLoading } from '../context/LoadingContext';
 import NavLink from '../components/NavLink';
+import { GoogleLogin } from '@react-oauth/google';
 import origamiDeliveryMan from '../assets/origami_delivery_man.png';
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, googleLogin } = useAuth();
   const { showLoader } = useLoading();
   const [formData, setFormData] = useState({
     name: '', userId: '', email: '', password: '', confirmPassword: '',
@@ -44,6 +45,22 @@ const SignUp = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      showLoader(800);
+      await googleLogin(credentialResponse.credential);
+      navigate('/');
+    } catch (err) {
+      setError('Google sign in failed. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign in was cancelled or failed.');
   };
 
   const inputClass = "w-full bg-[#FAF8F2] border-2 border-[#18382A]/10 text-[#18382A] rounded-xl px-4 py-3 focus:outline-none focus:border-[#18382A]/40 transition font-medium placeholder:text-[#18382A]/30";
@@ -133,6 +150,18 @@ const SignUp = () => {
               <div className="flex-1 border-t border-dashed border-[#18382A]/15"></div>
               <span className="text-xs text-[#18382A]/30 font-bold uppercase tracking-widest">or</span>
               <div className="flex-1 border-t border-dashed border-[#18382A]/15"></div>
+            </div>
+
+            <div className="flex justify-center w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                shape="rectangular"
+                theme="outline"
+                size="large"
+                text="continue_with"
+                width="100%"
+              />
             </div>
 
             <p className="text-center text-sm text-[#18382A]/50 font-medium">
