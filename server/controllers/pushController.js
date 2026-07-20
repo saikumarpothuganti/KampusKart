@@ -1,5 +1,6 @@
 import webpush from 'web-push';
 import PushSubscription from '../models/PushSubscription.js';
+import Message from '../models/Message.js';
 
 // Configure web-push with VAPID keys (do this once at import time)
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.VAPID_SUBJECT) {
@@ -167,6 +168,19 @@ export const sendCustomNotification = async (req, res) => {
 
     // Loop through each user and send notification
     for (const userId of userIds) {
+      // 1. Save the message to the user's Inbox
+      try {
+        const newMessage = new Message({
+          userId,
+          title,
+          body,
+        });
+        await newMessage.save();
+      } catch (err) {
+        console.error(`[Push] Failed to save message for user ${userId}:`, err);
+      }
+
+      // 2. Send the push notification
       const result = await sendNotificationToUser(userId, title, body, icon);
       if (result.success) {
         totalSent += result.sentCount;

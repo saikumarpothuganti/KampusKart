@@ -46,6 +46,7 @@ const Admin = () => {
   const [deliveryDaysEdits, setDeliveryDaysEdits] = useState({});
   const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
   const [pdfRequestsSearchQuery, setPdfRequestsSearchQuery] = useState('');
+  const [accountsSearchQuery, setAccountsSearchQuery] = useState('');
   
   // Accounts Tab State
   const [selectedUserIds, setSelectedUserIds] = useState([]);
@@ -181,9 +182,11 @@ const Admin = () => {
         title: 'KampusKart Update',
         body: pushMessage
       });
-      alert(`Sent successfully to ${res.data.sentCount} devices.`);
-      setPushMessage('');
-      setSelectedUserIds([]);
+      if (res.status === 200) {
+        setPushMessage('');
+        setSelectedUserIds([]);
+        alert('Message sent and saved to user Inbox!');
+      }
     } catch (err) {
       console.error(err);
       alert('Failed to send push notifications');
@@ -1899,47 +1902,72 @@ const Admin = () => {
           </button>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-lg relative z-10 realistic-paper-card overflow-x-auto">
+        <div className="bg-white p-6 rounded-xl shadow-lg relative z-10 realistic-paper-card overflow-x-auto text-paper">
           <h3 className="text-xl font-bold mb-4">All Accounts</h3>
-          <table className="w-full text-left border-collapse min-w-[600px]">
+          
+          <div className="mb-4 flex gap-4">
+            <input
+              type="text"
+              placeholder="Search users by name or email..."
+              value={accountsSearchQuery}
+              onChange={(e) => setAccountsSearchQuery(e.target.value)}
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-black"
+            />
+            <button
+              onClick={() => {
+                if (selectedUserIds.length === users.length) setSelectedUserIds([]);
+                else setSelectedUserIds(users.map(u => u._id));
+              }}
+              className="bg-paper text-ink px-4 py-2 rounded-lg font-bold shadow hover:bg-paper-light transition"
+            >
+              {selectedUserIds.length === users.length && users.length > 0 ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+
+          <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b border-paper/20">
                 <th className="p-3">
                   <input
                     type="checkbox"
                     checked={selectedUserIds.length === users.length && users.length > 0}
                     onChange={(e) => {
-                      if (e.target.checked) setSelectedUserIds(users.map(u => u.userId));
+                      if (e.target.checked) setSelectedUserIds(users.map(u => u._id));
                       else setSelectedUserIds([]);
                     }}
                   />
                 </th>
                 <th className="p-3">Name</th>
                 <th className="p-3">Email</th>
+                <th className="p-3">Joined Date</th>
                 <th className="p-3">Total Orders</th>
                 <th className="p-3">Total Spent</th>
               </tr>
             </thead>
             <tbody>
-              {users.map(u => {
-                const userOrders = orders.filter(o => o.student?.userId === u.userId);
+              {users.filter(u => 
+                u.name?.toLowerCase().includes(accountsSearchQuery.toLowerCase()) || 
+                u.email?.toLowerCase().includes(accountsSearchQuery.toLowerCase())
+              ).map(u => {
+                const userOrders = orders.filter(o => o.userId === u._id);
                 const totalSpent = userOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
                 return (
-                  <tr key={u.userId} className="border-b hover:bg-gray-50">
+                  <tr key={u._id} className="border-b border-paper/10 hover:bg-white/5 transition-colors">
                     <td className="p-3">
                       <input
                         type="checkbox"
-                        checked={selectedUserIds.includes(u.userId)}
+                        checked={selectedUserIds.includes(u._id)}
                         onChange={(e) => {
-                          if (e.target.checked) setSelectedUserIds([...selectedUserIds, u.userId]);
-                          else setSelectedUserIds(selectedUserIds.filter(id => id !== u.userId));
+                          if (e.target.checked) setSelectedUserIds([...selectedUserIds, u._id]);
+                          else setSelectedUserIds(selectedUserIds.filter(id => id !== u._id));
                         }}
                       />
                     </td>
                     <td className="p-3">{u.name}</td>
-                    <td className="p-3">{u.email}</td>
+                    <td className="p-3 text-paper/80">{u.email}</td>
+                    <td className="p-3 text-sm">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
                     <td className="p-3 font-semibold">{userOrders.length}</td>
-                    <td className="p-3 font-bold text-emerald-600">₹{totalSpent.toFixed(2)}</td>
+                    <td className="p-3 font-bold text-[#EAD1A6]">₹{totalSpent.toFixed(2)}</td>
                   </tr>
                 );
               })}

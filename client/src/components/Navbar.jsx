@@ -8,6 +8,7 @@ import API from '../lib/api';
 import logo from '../assets/logo2.png';
 import { NavbarDecorations } from './NavbarDecorations';
 import { OrigamiCart } from './OrigamiIcons';
+import InboxDropdown from './InboxDropdown';
 import profile1 from '../assets/profile1.png';
 import profile2 from '../assets/profile2.png';
 import profile3 from '../assets/profile3.png';
@@ -207,6 +208,12 @@ const Navbar = () => {
               </span>
             )}
           </div>
+
+          {user && (
+            <div className="relative mr-2">
+              <InboxDropdown />
+            </div>
+          )}
 
           <div className="relative">
             <button

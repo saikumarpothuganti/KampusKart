@@ -18,6 +18,7 @@
   import pushRoutes from './routes/pushRoutes.js';
   import toggleRoutes from './routes/toggleRoutes.js';
   import settingsRoutes from './routes/settingsRoutes.js';
+  import messageRoutes from './routes/messageRoutes.js';
 
   const app = express();
   const httpServer = createServer(app);
@@ -81,6 +82,7 @@ if (process.env.CLIENT_URL) {
   app.use('/api/push', pushRoutes);
   app.use('/api/admin', toggleRoutes);
   app.use('/api/settings', settingsRoutes);
+  app.use('/api/messages', messageRoutes);
 
   // Health check
   app.get('/api/health', (req, res) => {
