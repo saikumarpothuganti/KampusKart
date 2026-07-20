@@ -148,3 +148,41 @@ export const sendTestNotification = async (req, res) => {
     res.status(500).json({ error: 'Failed to send test notifications' });
   }
 };
+
+// POST /api/push/custom (Send custom notification to specific users)
+export const sendCustomNotification = async (req, res) => {
+  try {
+    const { userIds, title, body, icon } = req.body;
+
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: 'An array of userIds is required' });
+    }
+
+    if (!title || !body) {
+      return res.status(400).json({ error: 'Title and body are required' });
+    }
+
+    let totalSent = 0;
+    let totalFailures = 0;
+
+    // Loop through each user and send notification
+    for (const userId of userIds) {
+      const result = await sendNotificationToUser(userId, title, body, icon);
+      if (result.success) {
+        totalSent += result.sentCount;
+        totalFailures += result.failureCount || 0;
+      } else {
+        totalFailures++;
+      }
+    }
+
+    res.json({
+      message: 'Custom notifications sent successfully',
+      sentCount: totalSent,
+      failureCount: totalFailures,
+    });
+  } catch (error) {
+    console.error('[Push] Custom notification error:', error);
+    res.status(500).json({ error: 'Failed to send custom notifications' });
+  }
+};

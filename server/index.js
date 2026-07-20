@@ -17,6 +17,7 @@
   import pickupPointRoutes from './routes/pickupPointRoutes.js';
   import pushRoutes from './routes/pushRoutes.js';
   import toggleRoutes from './routes/toggleRoutes.js';
+  import settingsRoutes from './routes/settingsRoutes.js';
 
   const app = express();
   const httpServer = createServer(app);
@@ -79,6 +80,7 @@ if (process.env.CLIENT_URL) {
   app.use('/api/pickup-points', pickupPointRoutes);
   app.use('/api/push', pushRoutes);
   app.use('/api/admin', toggleRoutes);
+  app.use('/api/settings', settingsRoutes);
 
   // Health check
   app.get('/api/health', (req, res) => {

@@ -160,6 +160,16 @@ export const updateAvatar = async (req, res) => {
   }
 };
 
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-passwordHash').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+};
+
 export const googleAuth = async (req, res) => {
   try {
     const { token } = req.body;

@@ -13,6 +13,8 @@ const Admin = () => {
   const [pdfRequests, setPdfRequests] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
   const [pickupPoints, setPickupPoints] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [paymentQrUrl, setPaymentQrUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [alertState, setAlertState] = useState({ message: '', onConfirm: null });
   const [ordersEnabled, setOrdersEnabledState] = useState(ordersEnabledFromContext);
@@ -44,6 +46,12 @@ const Admin = () => {
   const [deliveryDaysEdits, setDeliveryDaysEdits] = useState({});
   const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
   const [pdfRequestsSearchQuery, setPdfRequestsSearchQuery] = useState('');
+  
+  // Accounts Tab State
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [pushMessage, setPushMessage] = useState('');
+  const [isSendingPush, setIsSendingPush] = useState(false);
+  const [isUploadingQr, setIsUploadingQr] = useState(false);
 
   // Resolver function: Unified logic for determining item.sideType
   const resolveSideType = (item) => {
@@ -97,16 +105,20 @@ const Admin = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [ordersRes, subjectsRes, pdfRequestsRes, pickupPointsRes] = await Promise.all([
+      const [ordersRes, subjectsRes, pdfRequestsRes, pickupPointsRes, usersRes, qrRes] = await Promise.all([
         API.get('/orders/admin/all'),
         API.get('/subjects/all'),
         API.get('/pdf-requests/admin/all'),
         API.get('/pickup-points/admin/all'),
+        API.get('/auth/admin/all'),
+        API.get('/settings/paymentQrUrl'),
       ]);
       setOrders(ordersRes.data);
       setSubjects(subjectsRes.data);
       setPdfRequests(pdfRequestsRes.data);
       setPickupPoints(pickupPointsRes.data);
+      setUsers(usersRes.data);
+      if (qrRes.data?.value) setPaymentQrUrl(qrRes.data.value);
       
       // Fetch feedbacks separately to avoid breaking admin panel if it fails
       try {
@@ -150,10 +162,62 @@ const Admin = () => {
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword
       });
-      setPasswordSuccess('Password changed successfully!');
+
+      setPasswordSuccess('Password changed successfully');
       setPasswordForm({ userId: '', oldPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error) {
-      setPasswordError(error.response?.data?.error || 'Failed to change password');
+    } catch (err) {
+      setPasswordError(err.response?.data?.error || 'Failed to change password');
+    }
+  };
+
+  const handleSendPush = async () => {
+    if (selectedUserIds.length === 0) return alert('Select at least one user');
+    if (!pushMessage.trim()) return alert('Enter a message');
+    
+    try {
+      setIsSendingPush(true);
+      const res = await API.post('/push/custom', {
+        userIds: selectedUserIds,
+        title: 'KampusKart Update',
+        body: pushMessage
+      });
+      alert(`Sent successfully to ${res.data.sentCount} devices.`);
+      setPushMessage('');
+      setSelectedUserIds([]);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to send push notifications');
+    } finally {
+      setIsSendingPush(false);
+    }
+  };
+
+  const handleQrUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingQr(true);
+      const formData = new FormData();
+      formData.append('screenshot', file);
+
+      // Upload to cloudinary
+      const uploadRes = await API.post('/upload/screenshot', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      
+      const newUrl = uploadRes.data.url;
+
+      // Save to settings
+      await API.put('/settings/paymentQrUrl', { value: newUrl });
+      
+      setPaymentQrUrl(newUrl);
+      alert('QR Code updated successfully!');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update QR Code');
+    } finally {
+      setIsUploadingQr(false);
     }
   };
 
@@ -572,6 +636,26 @@ const Admin = () => {
           }`}
         >
           Change Password
+        </button>
+        <button
+          onClick={() => setTab('accounts')}
+          className={`px-4 py-2 font-semibold ${
+            tab === 'accounts'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600'
+          }`}
+        >
+          Accounts ({users.length})
+        </button>
+        <button
+          onClick={() => setTab('settings')}
+          className={`px-4 py-2 font-semibold ${
+            tab === 'settings'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600'
+          }`}
+        >
+          Settings
         </button>
       </div>
 
@@ -1790,6 +1874,105 @@ const Admin = () => {
             >
               Save
             </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {tab === 'accounts' && (
+      <div>
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-6 relative z-10 realistic-paper-card">
+          <h3 className="text-xl font-bold mb-4">Send Push Notification</h3>
+          <textarea
+            className="w-full border p-3 rounded-lg mb-4"
+            rows="3"
+            placeholder="Type your message here..."
+            value={pushMessage}
+            onChange={(e) => setPushMessage(e.target.value)}
+          />
+          <button
+            onClick={handleSendPush}
+            disabled={isSendingPush || selectedUserIds.length === 0}
+            className="bg-primary text-white px-6 py-2 rounded-lg font-bold disabled:opacity-50"
+          >
+            {isSendingPush ? 'Sending...' : `Send to ${selectedUserIds.length} users`}
+          </button>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-lg relative z-10 realistic-paper-card overflow-x-auto">
+          <h3 className="text-xl font-bold mb-4">All Accounts</h3>
+          <table className="w-full text-left border-collapse min-w-[600px]">
+            <thead>
+              <tr className="border-b">
+                <th className="p-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedUserIds.length === users.length && users.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedUserIds(users.map(u => u.userId));
+                      else setSelectedUserIds([]);
+                    }}
+                  />
+                </th>
+                <th className="p-3">Name</th>
+                <th className="p-3">Email</th>
+                <th className="p-3">Total Orders</th>
+                <th className="p-3">Total Spent</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(u => {
+                const userOrders = orders.filter(o => o.student?.userId === u.userId);
+                const totalSpent = userOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
+                return (
+                  <tr key={u.userId} className="border-b hover:bg-gray-50">
+                    <td className="p-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedUserIds.includes(u.userId)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedUserIds([...selectedUserIds, u.userId]);
+                          else setSelectedUserIds(selectedUserIds.filter(id => id !== u.userId));
+                        }}
+                      />
+                    </td>
+                    <td className="p-3">{u.name}</td>
+                    <td className="p-3">{u.email}</td>
+                    <td className="p-3 font-semibold">{userOrders.length}</td>
+                    <td className="p-3 font-bold text-emerald-600">₹{totalSpent.toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
+
+    {tab === 'settings' && (
+      <div>
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-6 relative z-10 realistic-paper-card">
+          <h3 className="text-xl font-bold mb-4">Payment QR Code</h3>
+          <p className="text-gray-600 mb-4">Upload a new QR code image to display on the payment page.</p>
+          
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <label className="block w-full cursor-pointer border-2 border-dashed border-gray-300 p-8 text-center rounded-xl hover:border-primary hover:bg-green-50 transition-colors">
+                <input type="file" className="hidden" accept="image/*" onChange={handleQrUpload} disabled={isUploadingQr} />
+                <div className="flex flex-col items-center">
+                  <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                  <span className="text-sm text-gray-600 font-semibold">{isUploadingQr ? 'Uploading...' : 'Click to Upload QR Code'}</span>
+                </div>
+              </label>
+            </div>
+            
+            <div className="flex-1 border p-4 rounded-xl flex items-center justify-center bg-gray-50">
+              {paymentQrUrl ? (
+                <img src={paymentQrUrl} alt="Current QR" className="max-h-64 object-contain" />
+              ) : (
+                <span className="text-gray-400">No custom QR code set.</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -30,6 +30,7 @@ const Payment = () => {
   const [paymentType, setPaymentType] = useState('FULL');
   const [paidNow, setPaidNow] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
+  const [paymentQrUrl, setPaymentQrUrl] = useState(null);
 
   // Removed bulk order limit for partial payments
   const isBulkOrder = () => true;
@@ -58,6 +59,19 @@ const Payment = () => {
       return;
     }
     setCheckoutData(JSON.parse(data));
+
+    // Fetch dynamic QR code
+    const fetchQr = async () => {
+      try {
+        const res = await API.get('/settings/paymentQrUrl');
+        if (res.data?.value) {
+          setPaymentQrUrl(res.data.value);
+        }
+      } catch (e) {
+        console.error('Failed to fetch dynamic QR', e);
+      }
+    };
+    fetchQr();
   }, [user, navigate, ordersEnabled]);
 
   const handleScreenshotChange = (e) => {
@@ -272,8 +286,8 @@ const Payment = () => {
             </p>
             <div className="bg-white p-4 rounded text-center">
               <p className="text-black text-sm mb-2">QR Code</p>
-              <div className="w-64 h-64 mx-auto rounded overflow-hidden">
-                <img src={QRCode} alt="Payment QR Code" className="w-full h-full object-contain" />
+              <div className="bg-white p-4 rounded-xl shadow-inner w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center relative z-10 group-hover:scale-105 transition-transform duration-300">
+                <img src={paymentQrUrl || QRCode} alt="Payment QR Code" className="w-full h-full object-contain" />
               </div>
             </div>
             <div className="mt-4 pt-4 border-t">
