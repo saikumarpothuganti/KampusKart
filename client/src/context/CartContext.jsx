@@ -57,6 +57,11 @@ export const CartProvider = ({ children }) => {
       return res.data;
     } catch (error) {
       console.error('Failed to add to cart:', error);
+      if (error.response?.status === 404) {
+        // Cart not found (maybe deleted in another tab or checkout)
+        // Refresh carts from backend
+        await fetchCarts();
+      }
       throw error;
     }
   };

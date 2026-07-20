@@ -60,8 +60,12 @@ const Workbook = () => {
       addToCart(carts[0]._id, item).then(() => {
         setCartCount((c) => c + 1);
         setAlertMessage(`Added ${item.title} to ${carts[0].name}!`);
-      }).catch(() => {
-        setAlertMessage('Failed to add to cart.');
+      }).catch((err) => {
+        if (err.response?.status === 404) {
+          setAlertMessage('Cart sync error. Please click Add to Cart again.');
+        } else {
+          setAlertMessage('Failed to add to cart. Please try again later.');
+        }
       });
       return;
     }

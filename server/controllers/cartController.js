@@ -55,6 +55,7 @@ export const addToCart = async (req, res) => {
     const carts = await Cart.find({ userId: req.user.id });
     res.json(carts);
   } catch (error) {
+    console.error('addToCart error:', error);
     res.status(500).json({ error: error.message });
   }
 };
