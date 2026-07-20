@@ -128,6 +128,11 @@ const SignIn = () => {
                 placeholder="••••••••"
                 required
               />
+              <div className="text-right mt-2">
+                <NavLink to="/forgot-password" className="text-xs text-[#18382A]/60 font-bold hover:text-[#18382A] hover:underline">
+                  Forgot Password?
+                </NavLink>
+              </div>
             </div>
 
             <button

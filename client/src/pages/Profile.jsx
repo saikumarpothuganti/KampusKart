@@ -219,6 +219,17 @@ const Profile = () => {
                   <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent"></div>
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-[#E8F0E5] rounded-full flex items-center justify-center text-[#2E7D32] shadow-inner">
+                      <OrigamiUser className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Gender</p>
+                      <p className="font-bold text-[#1a3625] capitalize">{profile.gender || 'Not Specified'}</p>
+                    </div>
+                  </div>
+
+                  <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent"></div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-[#E8F0E5] rounded-full flex items-center justify-center text-[#2E7D32] shadow-inner">
                       <OrigamiCalendar className="w-5 h-5" />
                     </div>
                     <div>

@@ -3,16 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLoading } from '../context/LoadingContext';
 import NavLink from '../components/NavLink';
-import { GoogleLogin } from '@react-oauth/google';
 import origamiDeliveryMan from '../assets/origami_delivery_man.png';
 import API from '../lib/api';
 
-const SignUp = () => {
+const ForgotPassword = () => {
   const navigate = useNavigate();
-  const { signup, googleLogin } = useAuth();
+  const { resetPassword } = useAuth();
   const { showLoader } = useLoading();
   const [formData, setFormData] = useState({
-    name: '', userId: '', email: '', password: '', confirmPassword: '', otp: '', gender: 'Other'
+    email: '', otp: '', newPassword: '', confirmPassword: ''
   });
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -25,26 +24,18 @@ const SignUp = () => {
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setError('');
-    if (!formData.name || !formData.userId || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Please fill all fields');
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+    if (!formData.email) {
+      setError('Please enter your email');
       return;
     }
     if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
       setError('Please use a @gmail.com address. University emails block our verification codes.');
       return;
     }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
 
     try {
       setLoading(true);
-      await API.post('/auth/send-otp', { email: formData.email });
+      await API.post('/auth/send-otp', { email: formData.email, type: 'reset' });
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to send OTP. Please try again.');
@@ -60,33 +51,25 @@ const SignUp = () => {
       setError('Please enter the OTP');
       return;
     }
+    if (formData.newPassword !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    if (formData.newPassword.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
     
     try {
       setLoading(true);
       showLoader(800);
-      await signup(formData.name, formData.userId, formData.email, formData.password, formData.otp, formData.gender);
+      await resetPassword(formData.email, formData.otp, formData.newPassword);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to sign up. Please try again.');
+      setError(err.response?.data?.error || err.message || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      setLoading(true);
-      showLoader(800);
-      await googleLogin(credentialResponse.credential);
-      navigate('/');
-    } catch (err) {
-      setError('Google sign in failed. Please try again.');
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleError = () => {
-    setError('Google sign in was cancelled or failed.');
   };
 
   const inputClass = "w-full bg-[#FAF8F2] border-2 border-[#18382A]/10 text-[#18382A] rounded-xl px-4 py-3 focus:outline-none focus:border-[#18382A]/40 transition font-medium placeholder:text-[#18382A]/30";
@@ -112,10 +95,10 @@ const SignUp = () => {
             <div className="absolute top-0 right-0 w-0 h-0 border-l-[60px] border-l-transparent border-t-[60px] border-t-white/5"></div>
             <div className="absolute bottom-0 left-0 w-0 h-0 border-r-[40px] border-r-transparent border-b-[40px] border-b-white/5"></div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl">✨</div>
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl">🔑</div>
               <div>
-                <h1 className="text-2xl font-serif font-black text-[#FAF8F2]">Join KampusKart</h1>
-                <p className="text-[#FAF8F2]/60 text-sm">{step === 1 ? 'Create your account to get started' : 'Verify your email address'}</p>
+                <h1 className="text-2xl font-serif font-black text-[#FAF8F2]">Reset Password</h1>
+                <p className="text-[#FAF8F2]/60 text-sm">{step === 1 ? 'Enter your email to get a code' : 'Create your new password'}</p>
               </div>
             </div>
           </div>
@@ -130,34 +113,10 @@ const SignUp = () => {
             {step === 1 ? (
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className={labelClass}>Full Name</label>
-                  <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} placeholder="John Doe" required />
-                </div>
-                <div className="col-span-2">
-                  <label className={labelClass}>Student ID (for sign in)</label>
-                  <input type="text" name="userId" value={formData.userId} onChange={handleChange} className={inputClass} placeholder="e.g. jdoe2024" required />
-                </div>
-                <div className="col-span-2">
                   <label className={labelClass}>
-                    Email <span className="text-[10px] text-orange-500 ml-1">(Only @gmail.com supported)</span>
+                    Email Address <span className="text-[10px] text-orange-500 ml-1">(Only @gmail.com supported)</span>
                   </label>
                   <input type="email" name="email" value={formData.email} onChange={handleChange} className={inputClass} placeholder="you@gmail.com" required />
-                </div>
-                <div className="col-span-2">
-                  <label className={labelClass}>Gender (For Default Profile Pic)</label>
-                  <select name="gender" value={formData.gender} onChange={handleChange} className={inputClass} required>
-                    <option value="Other">Other</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Password</label>
-                  <input type="password" name="password" value={formData.password} onChange={handleChange} className={inputClass} placeholder="••••••••" required />
-                </div>
-                <div>
-                  <label className={labelClass}>Confirm</label>
-                  <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className={inputClass} placeholder="••••••••" required />
                 </div>
               </div>
             ) : (
@@ -179,6 +138,14 @@ const SignUp = () => {
                     required 
                   />
                 </div>
+                <div>
+                  <label className={labelClass}>New Password</label>
+                  <input type="password" name="newPassword" value={formData.newPassword} onChange={handleChange} className={inputClass} placeholder="••••••••" required />
+                </div>
+                <div>
+                  <label className={labelClass}>Confirm New Password</label>
+                  <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className={inputClass} placeholder="••••••••" required />
+                </div>
                 <div className="text-center mt-2">
                   <button type="button" onClick={() => setStep(1)} className="text-xs text-[#18382A]/50 hover:text-[#18382A] font-bold uppercase tracking-widest transition">
                     ← Change Email
@@ -192,33 +159,11 @@ const SignUp = () => {
               disabled={loading}
               className="w-full bg-[#18382A] text-[#FAF8F2] py-3.5 rounded-xl font-bold text-base shadow-lg hover:bg-[#064E3B] transition disabled:opacity-60 mt-2"
             >
-              {loading ? 'Please wait...' : (step === 1 ? 'Send OTP →' : 'Verify & Create Account')}
+              {loading ? 'Please wait...' : (step === 1 ? 'Send Reset OTP →' : 'Reset Password & Sign In')}
             </button>
 
-            {step === 1 && (
-              <>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 border-t border-dashed border-[#18382A]/15"></div>
-                  <span className="text-xs text-[#18382A]/30 font-bold uppercase tracking-widest">or</span>
-                  <div className="flex-1 border-t border-dashed border-[#18382A]/15"></div>
-                </div>
-
-                <div className="flex justify-center w-full">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleError}
-                    shape="rectangular"
-                    theme="outline"
-                    size="large"
-                    text="continue_with"
-                    width="100%"
-                  />
-                </div>
-              </>
-            )}
-
             <p className="text-center text-sm text-[#18382A]/50 font-medium pt-2">
-              Already have an account?{' '}
+              Remembered your password?{' '}
               <NavLink to="/signin" className="text-[#18382A] font-black hover:underline">
                 Sign In
               </NavLink>
@@ -235,4 +180,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default ForgotPassword;

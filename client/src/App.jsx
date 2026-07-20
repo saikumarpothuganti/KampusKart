@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
 import Navbar from './components/Navbar';
@@ -19,6 +19,7 @@ import OrderHistory from './pages/OrderHistory';
 import Profile from './pages/Profile';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import ForgotPassword from './pages/ForgotPassword';
 import Admin from './pages/Admin';
 import DeliveryLocation from './pages/DeliveryLocation';
 import Feedback from './pages/Feedback';
@@ -30,6 +31,7 @@ function AppContent() {
   const [showInitialLoader, setShowInitialLoader] = useState(true);
   const [isRouteLoading, setIsRouteLoading] = useState(false);
   const { isLoading } = useLoading();
+  const { user } = useAuth();
   const location = useLocation();
 
   React.useEffect(() => {
@@ -68,8 +70,9 @@ function AppContent() {
         <Route path="/order-status/:orderId" element={<OrderStatus />} />
         <Route path="/order-history" element={<OrderHistory />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signin" element={!user ? <SignIn /> : <Navigate to="/" />} />
+        <Route path="/signup" element={!user ? <SignUp /> : <Navigate to="/" />} />
+        <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/" />} />
         <Route path="/about" element={<About />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/delivery/update-location/:orderId" element={<DeliveryLocation />} />

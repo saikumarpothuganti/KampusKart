@@ -59,8 +59,16 @@ export const AuthProvider = ({ children }) => {
     fetchOrdersEnabled();
   }, []);
 
-  const signup = async (name, userId, email, password) => {
-    const res = await API.post('/auth/signup', { name, userId, email, password });
+  const signup = async (name, userId, email, password, otp, gender) => {
+    const res = await API.post('/auth/signup', { name, userId, email, password, otp, gender });
+    localStorage.setItem('token', res.data.token);
+    setToken(res.data.token);
+    setUser(res.data.user);
+    return res.data;
+  };
+
+  const resetPassword = async (email, otp, newPassword) => {
+    const res = await API.post('/auth/reset-password', { email, otp, newPassword });
     localStorage.setItem('token', res.data.token);
     setToken(res.data.token);
     setUser(res.data.user);
@@ -112,7 +120,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, ordersEnabled, refreshOrdersEnabled, signup, signin, googleLogin, logout, updateAvatar }}>
+    <AuthContext.Provider value={{ user, token, loading, ordersEnabled, refreshOrdersEnabled, signup, resetPassword, signin, googleLogin, logout, updateAvatar }}>
       {children}
     </AuthContext.Provider>
   );

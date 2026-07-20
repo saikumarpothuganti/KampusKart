@@ -47,7 +47,8 @@ const OrderHistory = () => {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All Orders');
   const [sortOrder, setSortOrder] = useState('latest');
-  const { addToCart } = useCart();
+  const [activeTab, setActiveTab] = useState('orders'); // 'orders' or 'pdfs'
+  const { addToCart, activeCartId, createCart } = useCart();
 
   useEffect(() => {
     if (!user) {
@@ -75,7 +76,15 @@ const OrderHistory = () => {
 
   const handleAddPDFToCart = async (request) => {
     try {
-      await addToCart({
+      let currentCartId = activeCartId;
+      if (!currentCartId) {
+        const newCarts = await createCart('My Cart');
+        if (newCarts && newCarts.length > 0) {
+          currentCartId = newCarts[newCarts.length - 1]._id;
+        }
+      }
+
+      await addToCart(currentCartId, {
         type: 'custom',
         title: request.title,
         pdfUrl: request.pdfUrl,
@@ -108,20 +117,29 @@ const OrderHistory = () => {
     return <LoadingScreen duration={0} onFinished={() => {}} />;
   }
 
-  // Combine and map data
-  const ordersItems = orders.map(o => ({
-      id: o.orderId || o._id,
-      type: 'order',
-      status: o.status === 'pending' || o.status === 'printing' ? 'processing' 
-            : o.status === 'ready' ? 'sent'
-            : o.status === 'completed' ? 'delivered'
-            : 'cancelled',
-      title: o.items && o.items.length > 0 ? (o.items[0].title + (o.items.length > 1 ? ` + ${o.items.length - 1} more` : '')) : 'Order',
-      price: o.total,
-      date: new Date(o.createdAt),
-      deliveryDays: 3,
-      original: o
-  }));
+  const getOrderStatus = (o) => {
+    if (o.status === 'sent') return 'sent';
+    if (o.status === 'placed') return 'placed';
+    if (o.status === 'printing') return 'printing';
+    if (o.status === 'out_for_delivery') return 'out_for_delivery';
+    if (o.status === 'delivered') return 'delivered';
+    if (o.status === 'pending_price') return 'pending_price';
+    return 'cancelled'; // default to cancelled for unrecognized or 'cancelled' status
+  };
+
+  const ordersItems = orders.map(o => {
+      const mappedStatus = getOrderStatus(o);
+      return {
+          id: o.orderId || o._id,
+          type: 'order',
+          status: mappedStatus,
+          title: o.items && o.items.length > 0 ? (o.items[0].title + (o.items.length > 1 ? ` + ${o.items.length - 1} more` : '')) : 'Order',
+          price: o.amount || o.total || 0,
+          date: new Date(o.createdAt),
+          deliveryDays: o.deliveryDays || 3,
+          original: o
+      };
+  });
 
   const pdfItems = pdfRequests.map(p => ({
       id: p.requestId,
@@ -136,15 +154,25 @@ const OrderHistory = () => {
       original: p
   }));
 
-  const filterAndSort = (items) => items.filter(item => {
+  const filterAndSort = (items, type) => items.filter(item => {
     if (activeFilter === 'All Orders') return true;
-    return item.status.toLowerCase() === activeFilter.toLowerCase();
+    if (type === 'pdf') return true; // PDF filter logic if we want, currently all
+    
+    // Map dropdown options to status names
+    const statusMap = {
+      'Sent': 'sent',
+      'Order Placed': 'placed',
+      'Printing': 'printing',
+      'Out for Delivery': 'out_for_delivery',
+      'Delivered': 'delivered'
+    };
+    return item.status === statusMap[activeFilter];
   }).sort((a, b) => {
     return sortOrder === 'latest' ? b.date - a.date : a.date - b.date;
   });
 
-  const filteredOrders = filterAndSort(ordersItems);
-  const filteredPDFs = filterAndSort(pdfItems);
+  const filteredOrders = filterAndSort(ordersItems, 'order');
+  const filteredPDFs = filterAndSort(pdfItems, 'pdf');
 
   return (
     <div className="min-h-screen bg-[#FAF8F2] relative pb-20 font-sans overflow-x-hidden">
@@ -177,35 +205,57 @@ const OrderHistory = () => {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 mt-6">
         
-        {/* Filters */}
-        <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-10">
-          {['All Orders', 'Processing', 'Sent', 'Delivered', 'Cancelled'].map(filter => (
+        {/* Tabs */}
+        <div className="flex justify-center mb-8">
+          <div className="flex bg-[#F6F8F5] p-1 rounded-full border border-[#E8F0E5] shadow-sm">
             <button 
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`filter-pill ${activeFilter === filter ? 'active' : ''}`}
+              onClick={() => setActiveTab('pdfs')}
+              className={`px-8 py-3 rounded-full font-bold text-sm transition-all ${activeTab === 'pdfs' ? 'bg-[#18382A] text-[#FAF8F2] shadow-md' : 'text-[#18382A]/70 hover:bg-[#E8F0E5]'}`}
             >
-              {filter === 'All Orders' ? '🗂️' : 
-               filter === 'Processing' ? '⏳' : 
-               filter === 'Sent' ? '✈️' : 
-               filter === 'Delivered' ? '✓' : '⊗'} {filter}
+              PDFs
             </button>
-          ))}
-          
-          <div className="ml-auto">
-            <select 
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="bg-[#FAF8F2] border border-[#18382A]/20 text-[#18382A] font-bold rounded-full px-4 py-2 shadow-sm focus:outline-none cursor-pointer"
+            <button 
+              onClick={() => setActiveTab('orders')}
+              className={`px-8 py-3 rounded-full font-bold text-sm transition-all ${activeTab === 'orders' ? 'bg-[#18382A] text-[#FAF8F2] shadow-md' : 'text-[#18382A]/70 hover:bg-[#E8F0E5]'}`}
             >
-              <option value="latest">Latest First</option>
-              <option value="oldest">Oldest First</option>
-            </select>
+              Orders
+            </button>
           </div>
         </div>
 
+        {/* Filters (Dropdown) */}
+        {activeTab === 'orders' && (
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-10">
+            <div>
+              <select 
+                value={activeFilter}
+                onChange={(e) => setActiveFilter(e.target.value)}
+                className="bg-white border border-[#18382A]/20 text-[#18382A] font-bold rounded-full px-5 py-2.5 shadow-sm focus:outline-none focus:border-[#18382A]/50 cursor-pointer text-sm"
+              >
+                <option value="All Orders">🗂️ All Orders</option>
+                <option value="Sent">✈️ Sent</option>
+                <option value="Order Placed">📦 Order Placed</option>
+                <option value="Printing">🖨️ Printing</option>
+                <option value="Out for Delivery">🚚 Out for Delivery</option>
+                <option value="Delivered">✓ Delivered</option>
+              </select>
+            </div>
+            
+            <div>
+              <select 
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="bg-white border border-[#18382A]/20 text-[#18382A] font-bold rounded-full px-5 py-2.5 shadow-sm focus:outline-none focus:border-[#18382A]/50 cursor-pointer text-sm"
+              >
+                <option value="latest">Latest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         {/* Custom PDF Requests Section */}
-        {filteredPDFs.length > 0 && (
+        {activeTab === 'pdfs' && (
           <div className="mb-16">
             <h2 className="text-3xl font-serif font-black text-[#18382A] mb-8 flex items-center gap-3">
               <span className="text-4xl drop-shadow-sm">📄</span> Custom PDF Requests
@@ -315,9 +365,11 @@ const OrderHistory = () => {
         )}
 
         {/* Standard Orders Section */}
-        <h2 className="text-3xl font-serif font-black text-[#18382A] mb-8 flex items-center gap-3">
-          <span className="text-4xl drop-shadow-sm">📦</span> Your Orders
-        </h2>
+        {activeTab === 'orders' && (
+          <>
+            <h2 className="text-3xl font-serif font-black text-[#18382A] mb-8 flex items-center gap-3">
+              <span className="text-4xl drop-shadow-sm">📦</span> Your Orders
+            </h2>
         
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
@@ -330,15 +382,19 @@ const OrderHistory = () => {
                  style={{ border: '1px solid rgba(0,0,0,0.03)', boxShadow: '0 15px 35px rgba(0,0,0,0.05), 0 5px 15px rgba(0,0,0,0.03)' }}>
                
                {/* Top Status Pill */}
-               <div className="absolute top-5 left-5 z-10">
+                <div className="absolute top-5 left-5 z-10">
                   <span className={`px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 ${
                      item.status === 'cancelled' ? 'bg-red-100 text-red-700 border border-red-200' :
-                     item.status === 'processing' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                     (item.status === 'placed' || item.status === 'printing' || item.status === 'out_for_delivery') ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                     item.status === 'pending_price' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
                      'bg-green-100 text-green-700 border border-green-200'
                   }`}>
                     {item.status === 'sent' ? '✈️ Sent' : 
-                     item.status === 'processing' ? '⏳ Processing' : 
+                     item.status === 'placed' ? '📦 Order Placed' : 
+                     item.status === 'printing' ? '🖨️ Printing' : 
+                     item.status === 'out_for_delivery' ? '🚚 Out for Delivery' : 
                      item.status === 'delivered' ? '✓ Delivered' : 
+                     item.status === 'pending_price' ? '⏳ Pending Price' : 
                      '⊗ Cancelled'}
                   </span>
                </div>
@@ -432,6 +488,8 @@ const OrderHistory = () => {
             </div>
           ))}
         </div>
+        </>
+        )}
 
         {/* Footer Guarantees Bar */}
         <div className="mt-16 bg-white border border-[#18382A]/10 rounded-full py-6 px-10 shadow-[0_8px_30px_rgba(24,56,42,0.06)] flex flex-wrap justify-between items-center gap-6 relative z-10">

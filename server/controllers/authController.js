@@ -1,16 +1,104 @@
 import User from '../models/User.js';
+import OTP from '../models/OTP.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
+import nodemailer from 'nodemailer';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+export const sendOtp = async (req, res) => {
+  try {
+    const { email, type } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const existingEmail = await User.findOne({ email: email.toLowerCase() });
+    
+    if (type === 'reset') {
+      if (!existingEmail) {
+        return res.status(404).json({ error: 'Email not found' });
+      }
+    } else {
+      if (existingEmail) {
+        return res.status(400).json({ error: 'Email already registered' });
+      }
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Delete any existing OTPs for this email to prevent spam issues
+    await OTP.deleteMany({ email: email.toLowerCase() });
+
+    // Save new OTP
+    const newOtp = new OTP({
+      email: email.toLowerCase(),
+      otp,
+    });
+    await newOtp.save();
+
+    // Send email
+    const mailOptions = {
+      from: `"KampusKart" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Verify Your KampusKart Account',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; border: 1px solid #e5e5e5; border-radius: 10px;">
+          <h2 style="color: #1a422a;">KampusKart Email Verification</h2>
+          <p style="color: #555; font-size: 16px;">Thank you for signing up for KampusKart!</p>
+          <p style="color: #555; font-size: 16px;">Please use the following 6-digit code to complete your registration:</p>
+          <div style="background-color: #f4f4f4; padding: 15px; margin: 20px 0; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333;">
+            ${otp}
+          </div>
+          <p style="color: #888; font-size: 12px;">This code will expire in 10 minutes.</p>
+        </div>
+      `,
+    };
+
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false, // true for 465, false for other ports
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+        await transporter.sendMail(mailOptions);
+      } catch (mailErr) {
+        console.error('--- EMAIL BLOCKED BY WI-FI (SMTP ERROR) ---');
+        console.error(mailErr.message);
+        console.log(`Email: ${email} | FALLBACK OTP: ${otp}`);
+        console.log('-------------------------------------------');
+        // We still return success so the frontend UI can proceed to step 2 for testing
+      }
+    } else {
+      console.log('--- OTP GENERATED LOCALLY (Email credentials missing) ---');
+      console.log(`Email: ${email} | OTP: ${otp}`);
+      console.log('---------------------------------------------------------');
+    }
+
+    res.json({ message: 'OTP sent successfully' });
+  } catch (err) {
+    console.error('Failed to send OTP:', err);
+    res.status(500).json({ error: 'Failed to send OTP. Please try again later.' });
+  }
+};
+
 export const signup = async (req, res) => {
   try {
-    const { name, userId, email, password } = req.body;
+    const { name, userId, email, password, otp, gender } = req.body;
 
-    if (!name || !userId || !email || !password) {
-      return res.status(400).json({ error: 'All fields required' });
+    if (!name || !userId || !email || !password || !otp) {
+      return res.status(400).json({ error: 'All fields including OTP are required' });
+    }
+
+    // Verify OTP
+    const validOtp = await OTP.findOne({ email: email.toLowerCase(), otp });
+    if (!validOtp) {
+      return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
     const existingUserId = await User.findOne({ userId: userId.toLowerCase() });
@@ -23,12 +111,24 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
+    // Delete OTP now that it has been successfully used
+    await OTP.deleteOne({ _id: validOtp._id });
+
+    let avatarIndex = Math.floor(Math.random() * 4); // Default random
+    if (gender === 'Female') {
+      avatarIndex = Math.random() < 0.5 ? 1 : 2; // Pick 2nd or 3rd
+    } else if (gender === 'Male') {
+      avatarIndex = Math.random() < 0.5 ? 0 : 3; // Pick 1st or 4th
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       name,
       userId: userId.toLowerCase(),
       email: email.toLowerCase(),
       passwordHash: hashedPassword,
+      gender: gender || 'Other',
+      avatarIndex,
     });
 
     await newUser.save();
@@ -46,7 +146,55 @@ export const signup = async (req, res) => {
         name: newUser.name,
         userId: newUser.userId,
         email: newUser.email,
+        gender: newUser.gender,
         isAdmin: newUser.isAdmin,
+        avatarIndex: newUser.avatarIndex,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ error: 'Email, OTP, and new password are required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const validOtp = await OTP.findOne({ email: email.toLowerCase(), otp });
+    if (!validOtp) {
+      return res.status(400).json({ error: 'Invalid or expired OTP' });
+    }
+
+    await OTP.deleteOne({ _id: validOtp._id });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.passwordHash = hashedPassword;
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, userId: user.userId, email: user.email, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        userId: user.userId,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        avatarIndex: user.avatarIndex,
       },
     });
   } catch (error) {
