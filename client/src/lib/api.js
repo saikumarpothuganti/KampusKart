@@ -21,6 +21,22 @@ API.interceptors.request.use((config) => {
 API.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Normalize generic/network errors to a standard message
+    const isNetworkError = !error.response;
+    const isServerError = error.response && error.response.status >= 500;
+    const isUnknownError = error.response && !error.response.data?.error;
+
+    if (error.code !== 'ERR_CANCELED' && (isNetworkError || isServerError || isUnknownError)) {
+      const genericMsg = "Network / Internet issue. Please refresh.";
+      error.message = genericMsg;
+      if (!error.response) {
+        error.response = { data: { error: genericMsg }, status: 0 };
+      } else {
+        error.response.data = error.response.data || {};
+        error.response.data.error = genericMsg;
+      }
+    }
+
     if (error.response?.status === 401) {
       // Only remove token, don't redirect here
       // Components will detect missing token and redirect properly
