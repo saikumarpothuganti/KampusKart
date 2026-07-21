@@ -50,17 +50,30 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const addToCart = async (cartId, item) => {
+  const addToCart = async (cartId, item, isRetry = false) => {
     try {
       const res = await API.post(`/cart/${cartId}/add`, item);
       setCarts(Array.isArray(res.data) ? res.data : carts);
       return res.data;
     } catch (error) {
       console.error('Failed to add to cart:', error);
-      if (error.response?.status === 404) {
+      if (error.response?.status === 404 && !isRetry) {
         // Cart not found (maybe deleted in another tab or checkout)
-        // Refresh carts from backend
-        await fetchCarts();
+        try {
+          const updatedCartsRes = await API.get('/cart');
+          const updatedCarts = Array.isArray(updatedCartsRes.data) ? updatedCartsRes.data : [];
+          setCarts(updatedCarts);
+          
+          if (updatedCarts.length > 0) {
+            // Auto-retry with the first available cart
+            const retryRes = await API.post(`/cart/${updatedCarts[0]._id}/add`, item);
+            setCarts(Array.isArray(retryRes.data) ? retryRes.data : updatedCarts);
+            return retryRes.data;
+          }
+        } catch (retryError) {
+          console.error('Auto-retry failed:', retryError);
+          throw retryError;
+        }
       }
       throw error;
     }
