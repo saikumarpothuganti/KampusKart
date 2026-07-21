@@ -100,13 +100,25 @@ const SubjectCard = ({ subject, onAddToCart }) => {
         </div>
       </div>
 
-      <button
-        onClick={handleAddToCart}
-        disabled={!available}
-        className="mt-auto mt-4 w-full bg-[#EDE0C8] text-ink border-2 border-[#D5CEBA] text-sm py-2 rounded-sm font-bold hover:bg-[#F5EBD6] hover:scale-[1.02] shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {available ? 'Add to Cart' : 'Unavailable'}
-      </button>
+      <div className="mt-auto flex flex-col gap-2 mt-4">
+        {subject.pdfUrl && (
+          <a
+            href={subject.pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-[rgba(255,255,255,0.1)] text-paper border border-[rgba(255,255,255,0.3)] text-sm py-2 rounded-sm font-bold text-center hover:bg-[rgba(255,255,255,0.2)] transition shadow-sm"
+          >
+            👁️ View PDF
+          </a>
+        )}
+        <button
+          onClick={handleAddToCart}
+          disabled={!available}
+          className="w-full bg-[#EDE0C8] text-ink border-2 border-[#D5CEBA] text-sm py-2 rounded-sm font-bold hover:bg-[#F5EBD6] hover:scale-[1.02] shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {available ? 'Add to Cart' : 'Unavailable'}
+        </button>
+      </div>
     </div>
   );
 };

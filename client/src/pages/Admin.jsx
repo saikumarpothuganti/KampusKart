@@ -40,6 +40,8 @@ const Admin = () => {
     sem: '1',
     singleSidePrice: '',
     doubleSidePrice: '',
+    coverUrl: '',
+    pdfUrl: '',
     availability: true,
   });
   const [editSubjectData, setEditSubjectData] = useState(null);
@@ -309,8 +311,6 @@ const Admin = () => {
   };
 
   const handleAddSubject = async () => {
-    console.log('Current newSubject state:', newSubject);
-    
     if (!newSubject.title?.trim() || !newSubject.code?.trim()) {
       alert('Fill title and code');
       return;
@@ -332,12 +332,12 @@ const Admin = () => {
         sem: newSubject.sem,
         singleSidePrice: singlePrice,
         doubleSidePrice: doublePrice,
+        coverUrl: newSubject.coverUrl.trim(),
+        pdfUrl: newSubject.pdfUrl.trim() || null,
         availability: newSubject.availability,
       };
-      console.log('Sending payload:', JSON.stringify(payload, null, 2));
       
       const res = await API.post('/subjects', payload);
-      console.log('Server response:', res.data);
       
       setSubjects([...subjects, res.data]);
       setNewSubject({
@@ -347,12 +347,13 @@ const Admin = () => {
         sem: '1',
         singleSidePrice: '',
         doubleSidePrice: '',
+        coverUrl: '',
+        pdfUrl: '',
         availability: true,
       });
       alert('Subject added successfully!');
     } catch (error) {
-      console.error('Full error object:', error);
-      console.error('Error response:', error.response?.data);
+      console.error('Error adding subject:', error);
       alert(error.response?.data?.error || error.message || 'Failed to add subject');
     }
   };
@@ -374,12 +375,13 @@ const Admin = () => {
       title: subject.title,
       singleSidePrice: subject.singleSidePrice ?? '',
       doubleSidePrice: subject.doubleSidePrice ?? '',
+      pdfUrl: subject.pdfUrl || '',
       availability: subject.availability ?? true,
     });
   };
 
   const handleUpdateSubject = async () => {
-    if (!editingSubjectId || !editSubjectData?.title || editSubjectData.price === '') {
+    if (!editingSubjectId || !editSubjectData?.title) {
       alert('Please fill all fields');
       return;
     }
@@ -389,6 +391,7 @@ const Admin = () => {
         title: editSubjectData.title,
         singleSidePrice: editSubjectData.singleSidePrice ? parseFloat(editSubjectData.singleSidePrice) : null,
         doubleSidePrice: editSubjectData.doubleSidePrice ? parseFloat(editSubjectData.doubleSidePrice) : null,
+        pdfUrl: editSubjectData.pdfUrl?.trim() || null,
         availability: editSubjectData.availability,
       });
       setSubjects(subjects.map((s) => (s._id === editingSubjectId ? res.data : s)));
@@ -1600,6 +1603,16 @@ const Admin = () => {
                 value={newSubject.doubleSidePrice}
                 onChange={(e) => setNewSubject({ ...newSubject, doubleSidePrice: e.target.value })}
                 className="border rounded px-3 py-2"
+              />
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-1">PDF URL (Optional)</label>
+              <input
+                type="text"
+                placeholder="https://... (Link for users to view the PDF)"
+                className="w-full border rounded px-3 py-2"
+                value={newSubject.pdfUrl}
+                onChange={(e) => setNewSubject({ ...newSubject, pdfUrl: e.target.value })}
               />
             </div>
             <button

@@ -38,6 +38,10 @@ const subjectSchema = new mongoose.Schema(
       type: String,
       default: 'https://via.placeholder.com/150?text=Workbook',
     },
+    pdfUrl: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

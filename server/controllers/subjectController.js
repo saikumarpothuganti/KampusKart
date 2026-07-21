@@ -34,6 +34,7 @@ export const createSubject = async (req, res) => {
       singleSidePrice,
       doubleSidePrice,
       coverUrl,
+      pdfUrl,
       availability,
     } = req.body;
 
@@ -60,6 +61,7 @@ export const createSubject = async (req, res) => {
       singleSidePrice: singleSidePrice && singleSidePrice !== null ? parseFloat(singleSidePrice) : undefined,
       doubleSidePrice: doubleSidePrice && doubleSidePrice !== null ? parseFloat(doubleSidePrice) : undefined,
       coverUrl,
+      pdfUrl: pdfUrl || null,
       availability: availability !== undefined ? availability : true,
     });
 
@@ -74,7 +76,7 @@ export const createSubject = async (req, res) => {
 export const updateSubject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, code, year, sem, singleSidePrice, doubleSidePrice, coverUrl, availability } = req.body;
+    const { title, code, year, sem, singleSidePrice, doubleSidePrice, coverUrl, pdfUrl, availability } = req.body;
 
     const subject = await Subject.findByIdAndUpdate(
       id,
@@ -86,6 +88,7 @@ export const updateSubject = async (req, res) => {
         singleSidePrice: singleSidePrice ? parseFloat(singleSidePrice) : null,
         doubleSidePrice: doubleSidePrice ? parseFloat(doubleSidePrice) : null,
         coverUrl,
+        pdfUrl: pdfUrl || null,
         ...(availability !== undefined ? { availability } : {}),
       },
       { new: true }
@@ -104,12 +107,13 @@ export const adminUpdateSubject = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { title, singleSidePrice, doubleSidePrice, availability } = req.body;
+    const { title, singleSidePrice, doubleSidePrice, pdfUrl, availability } = req.body;
 
     const updatePayload = {};
     if (title !== undefined) updatePayload.title = title;
     if (singleSidePrice !== undefined) updatePayload.singleSidePrice = singleSidePrice ? parseFloat(singleSidePrice) : null;
     if (doubleSidePrice !== undefined) updatePayload.doubleSidePrice = doubleSidePrice ? parseFloat(doubleSidePrice) : null;
+    if (pdfUrl !== undefined) updatePayload.pdfUrl = pdfUrl || null;
     if (availability !== undefined) updatePayload.availability = availability;
 
     const subject = await Subject.findByIdAndUpdate(id, updatePayload, { new: true });
