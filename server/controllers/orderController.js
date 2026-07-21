@@ -25,7 +25,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    const { items, amount, paymentScreenshotUrl, student, pickupPoint, paymentType, paidAmount, remainingAmount } = req.body;
+    const { items, amount, paymentScreenshotUrl, student, pickupPoint, paymentType, paidAmount, remainingAmount, referralCode } = req.body;
 
     if (!items || amount === undefined || amount === null || !student) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -72,6 +72,7 @@ export const createOrder = async (req, res) => {
       payment: paymentInfo,
       student,
       pickupPoint: pickupPoint || 'Main Gate',
+      referralCode,
     });
 
     await newOrder.save();

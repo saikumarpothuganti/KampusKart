@@ -14,7 +14,8 @@ import {
   OrigamiPackage, 
   OrigamiStar, 
   OrigamiClipboard, 
-  OrigamiChevronRight 
+  OrigamiChevronRight,
+  OrigamiTag
 } from '../components/OrigamiIcons';
 import { X } from 'lucide-react'; // Keeping X just for the modal close button for simplicity, or we can use a basic button
 import origamiLandscape from '../assets/origami_landscape.png';
@@ -188,7 +189,7 @@ const Profile = () => {
               <div className="pt-2 text-center sm:text-left flex-1 relative z-10">
                 <h2 className="text-4xl font-['Playfair_Display'] font-bold text-[#1a3625] mb-2">{profile.name}</h2>
                 <span className="inline-block px-4 py-1.5 bg-[#E8F0E5] text-[#2E7D32] font-semibold text-sm rounded-full mb-3 capitalize border border-[#D5E2D1] shadow-sm">
-                  {profile.role === 'admin' ? 'Administrator' : profile.role}
+                  {profile.isAdmin ? 'Administrator' : (profile.isMarketing ? 'Marketing Man' : 'User')}
                 </span>
                 <p className="text-gray-500 font-medium">{profile.email}</p>
                 
@@ -212,7 +213,7 @@ const Profile = () => {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 font-medium">Role</p>
-                      <p className="font-bold text-[#1a3625] capitalize">{profile.role}</p>
+                      <p className="font-bold text-[#1a3625] capitalize">{profile.isAdmin ? 'Admin' : (profile.isMarketing ? 'Marketing Man' : 'User')}</p>
                     </div>
                   </div>
 
@@ -238,6 +239,32 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent"></div>
+                  
+                  {profile.isMarketing && profile.referralCode && (
+                    <>
+                      <div className="flex items-center gap-4 bg-green-50 p-4 rounded-xl border border-green-100">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-[#2E7D32] shadow-inner">
+                          <OrigamiTag className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-green-800 font-medium mb-1">Your Referral Code</p>
+                          <div className="flex items-center gap-3">
+                            <code className="bg-white px-3 py-1 rounded text-[#1a3625] font-bold border border-green-200 text-lg tracking-widest">{profile.referralCode}</code>
+                            <button 
+                              onClick={() => {
+                                navigator.clipboard.writeText(profile.referralCode);
+                                alert('Referral code copied to clipboard!');
+                              }}
+                              className="text-xs bg-[#488A58] text-white px-3 py-1.5 rounded hover:bg-[#3A764A] transition-colors font-bold shadow-sm"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent"></div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

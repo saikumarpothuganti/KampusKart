@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import nodemailer from 'nodemailer';
+import Order from '../models/Order.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -316,6 +317,79 @@ export const getAllUsers = async (req, res) => {
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
+  }
+};
+
+export const toggleMarketingStatus = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.isMarketing = !user.isMarketing;
+    
+    // If enabling marketing and they don't have a code, generate one
+    if (user.isMarketing && !user.referralCode) {
+      const randomDigits = Math.floor(1000 + Math.random() * 9000);
+      user.referralCode = `${user.userId}${randomDigits}`;
+    }
+
+    await user.save();
+    res.json(user);
+  } catch (error) {
+    console.error('Error toggling marketing status:', error);
+    res.status(500).json({ error: 'Failed to toggle marketing status' });
+  }
+};
+
+export const getReferralUsers = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const marketingUsers = await User.find({ isMarketing: true }, '-passwordHash').sort({ createdAt: -1 });
+    
+    const results = [];
+    for (const user of marketingUsers) {
+      const code = user.referralCode;
+      let totalOrders = 0;
+      let totalBooksSold = 0;
+      let orders = [];
+
+      if (code) {
+        orders = await Order.find({ referralCode: code }).sort({ createdAt: -1 });
+        totalOrders = orders.length;
+        for (const order of orders) {
+          if (order.status !== 'cancelled') {
+             for (const item of order.items) {
+               totalBooksSold += (item.qty || 1);
+             }
+          }
+        }
+      }
+
+      results.push({
+        user,
+        stats: {
+          totalOrders,
+          totalBooksSold
+        },
+        orders
+      });
+    }
+
+    res.json(results);
+  } catch (error) {
+    console.error('Error fetching referral users:', error);
+    res.status(500).json({ error: 'Failed to fetch referral users' });
   }
 };
 

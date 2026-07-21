@@ -50,6 +50,8 @@ const Admin = () => {
   const [isUploadingSubjectPdf, setIsUploadingSubjectPdf] = useState(false);
   const [deliveryDaysEdits, setDeliveryDaysEdits] = useState({});
   const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
+  const [feedbacksSearchQuery, setFeedbacksSearchQuery] = useState('');
+  const [referralUsers, setReferralUsers] = useState([]);
   const [pdfRequestsSearchQuery, setPdfRequestsSearchQuery] = useState('');
   const [accountsSearchQuery, setAccountsSearchQuery] = useState('');
   
@@ -134,11 +136,29 @@ const Admin = () => {
         console.error('Failed to load feedbacks:', feedbackError);
         setFeedbacks([]);
       }
+
+      // Fetch referral users
+      try {
+        const referralsRes = await API.get('/auth/admin/referrals');
+        setReferralUsers(referralsRes.data);
+      } catch (referralError) {
+        console.error('Failed to load referral users:', referralError);
+        setReferralUsers([]);
+      }
     } catch (error) {
       console.error('Failed to load admin data:', error);
       alert('Failed to load admin data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleMarketing = async (userId) => {
+    try {
+      await API.put(`/auth/admin/marketing/${userId}`);
+      fetchData();
+    } catch (error) {
+      alert('Failed to toggle marketing status');
     }
   };
 
@@ -696,6 +716,16 @@ const Admin = () => {
           }`}
         >
           Accounts ({users.length})
+        </button>
+        <button
+          onClick={() => setTab('referrals')}
+          className={`px-4 py-2 font-semibold ${
+            tab === 'referrals'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600'
+          }`}
+        >
+          Referral Users
         </button>
         <button
           onClick={() => setTab('settings')}
@@ -2014,6 +2044,7 @@ const Admin = () => {
                 <th className="p-3">Name</th>
                 <th className="p-3">Email</th>
                 <th className="p-3">Joined Date</th>
+                <th className="p-3">Marketing Man</th>
                 <th className="p-3">Total Orders</th>
                 <th className="p-3">Total Spent</th>
               </tr>
@@ -2040,6 +2071,20 @@ const Admin = () => {
                     <td className="p-3">{u.name}</td>
                     <td className="p-3 text-paper/80">{u.email}</td>
                     <td className="p-3 text-sm">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
+                    <td className="p-3">
+                      <label className="flex items-center cursor-pointer">
+                        <div className="relative">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only" 
+                            checked={u.isMarketing || false} 
+                            onChange={() => handleToggleMarketing(u._id)} 
+                          />
+                          <div className={`block w-10 h-6 rounded-full transition-colors ${u.isMarketing ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                          <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${u.isMarketing ? 'transform translate-x-4' : ''}`}></div>
+                        </div>
+                      </label>
+                    </td>
                     <td className="p-3 font-semibold">{userOrders.length}</td>
                     <td className="p-3 font-bold text-[#EAD1A6]">₹{totalSpent.toFixed(2)}</td>
                   </tr>
@@ -2047,6 +2092,72 @@ const Admin = () => {
               })}
             </tbody>
           </table>
+        </div>
+      </div>
+    )}
+
+    {tab === 'referrals' && (
+      <div>
+        <div className="bg-white p-6 rounded-xl shadow-lg relative z-10 realistic-paper-card text-ink">
+          <h3 className="text-xl font-bold mb-4">Marketing Men (Referral Users)</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {referralUsers.map((refData) => (
+              <div key={refData.user._id} className="bg-white p-5 rounded-xl border border-gray-200 shadow flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-bold text-lg text-[#18382A]">{refData.user.name}</h4>
+                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold border border-green-200">
+                      {refData.user.referralCode}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">{refData.user.email}</p>
+                </div>
+                
+                <div className="flex justify-between items-center border-t border-gray-100 pt-4 mt-2">
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Orders</p>
+                    <p className="text-2xl font-black">{refData.stats.totalOrders}</p>
+                  </div>
+                  <div className="h-8 w-px bg-gray-200"></div>
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Books Sold</p>
+                    <p className="text-2xl font-black text-[#18382A]">{refData.stats.totalBooksSold}</p>
+                  </div>
+                </div>
+
+                <details className="mt-4 group">
+                  <summary className="cursor-pointer text-sm font-semibold text-primary hover:text-green-700 transition-colors outline-none">
+                    View Orders ({refData.orders.length})
+                  </summary>
+                  <div className="mt-3 space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                    {refData.orders.length === 0 ? (
+                      <p className="text-xs text-gray-500 italic">No orders yet.</p>
+                    ) : (
+                      refData.orders.map(o => (
+                        <div key={o._id} className="bg-gray-50 p-2 rounded text-xs border border-gray-200">
+                          <div className="flex justify-between mb-1">
+                            <span className="font-mono text-gray-700">{o.orderId}</span>
+                            <span className="font-bold text-[#18382A]">₹{o.amount}</span>
+                          </div>
+                          <div className="flex justify-between text-gray-500">
+                            <span>{new Date(o.createdAt).toLocaleDateString()}</span>
+                            <span className="capitalize">{o.status.replace('_', ' ')}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </details>
+              </div>
+            ))}
+            
+            {referralUsers.length === 0 && (
+              <div className="col-span-full p-8 text-center text-gray-500 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+                No Marketing Men found. Go to the Accounts tab to assign this role to users.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     )}

@@ -31,6 +31,7 @@ const Payment = () => {
   const [paidNow, setPaidNow] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
   const [paymentQrUrl, setPaymentQrUrl] = useState(null);
+  const [referralCode, setReferralCode] = useState('');
 
   // Removed bulk order limit for partial payments
   const isBulkOrder = () => true;
@@ -162,6 +163,7 @@ const Payment = () => {
         },
         pickupPoint: checkoutData.pickupPoint || 'Main Gate',
         notes: checkoutData.notes,
+        referralCode: referralCode.trim() || undefined,
       };
 
       const orderRes = await API.post('/orders', payload);
@@ -319,6 +321,20 @@ const Payment = () => {
               {successMsg}
             </div>
           )}
+
+          {/* Referral Code */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2 text-black">
+              Referral Code (Optional)
+            </label>
+            <input
+              type="text"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+              placeholder="Enter referral code if you have one"
+            />
+          </div>
 
           {needsPayment ? (
             <div className="mb-6">
