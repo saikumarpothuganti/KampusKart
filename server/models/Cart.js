@@ -31,6 +31,11 @@ const cartSchema = new mongoose.Schema(
           type: String,
           enum: ['single', 'double'],
         },
+        quality: {
+          type: String,
+          enum: ['basic', 'standard', 'premium'],
+          default: 'standard',
+        },
         pricePerPage: Number,
         price: Number,
         userPrice: Number,

@@ -300,7 +300,7 @@ const OrderHistory = () => {
                             Custom PDF Printing
                          </p>
                          <p className="text-[10px] text-[#18382A]/50 font-bold">
-                            Qty: {item.original.qty} | Sides: {item.original.sides === 1 ? 'Single' : 'Double'}
+                            Qty: {item.original.qty} | Sides: {item.original.sides === 1 ? 'Single' : 'Double'} | Quality: <span className="capitalize">{item.original.quality || 'Standard'}</span>
                          </p>
                          <a href={item.original.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#059669] hover:underline mt-2 inline-block">
                             View PDF ↗

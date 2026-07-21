@@ -7,6 +7,7 @@ const CustomBookCard = ({ onAddToCart }) => {
   const { user, ordersEnabled } = useAuth();
   const [file, setFile] = useState(null);
   const [sides, setSides] = useState(1);
+  const [quality, setQuality] = useState('standard');
   const [quantity, setQuantity] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -78,6 +79,7 @@ const CustomBookCard = ({ onAddToCart }) => {
         pdfUrl: uploadRes.data.url,
         qty: quantity,
         sides,
+        quality,
       };
       
       console.log('Creating PDF request:', requestPayload);
@@ -88,6 +90,7 @@ const CustomBookCard = ({ onAddToCart }) => {
 
       setFile(null);
       setSides(1);
+      setQuality('standard');
       setQuantity(1);
       setUploadProgress(0);
       abortControllerRef.current = null;
@@ -119,7 +122,7 @@ const CustomBookCard = ({ onAddToCart }) => {
   };
 
   return (
-    <div className="realistic-paper-card p-6 min-h-[460px] h-full flex flex-col text-paper relative md:col-span-2 border-2 border-dashed border-[#B8860B] shadow-[0_0_15px_rgba(184,134,11,0.2)]">
+    <div className="realistic-paper-card p-4 sm:p-5 flex flex-col h-full text-paper relative md:col-span-2 border-2 border-dashed border-[#B8860B] shadow-[0_0_15px_rgba(184,134,11,0.2)]">
       {/* Decorative Pin */}
       <div className="absolute -top-3 left-4 text-2xl drop-shadow-md z-10" style={{ transform: 'rotate(-10deg)' }}>📌</div>
 
@@ -169,6 +172,71 @@ const CustomBookCard = ({ onAddToCart }) => {
           <option value={1}>Single-sided</option>
           <option value={2}>Double-sided</option>
         </select>
+      </div>
+
+      <div className="mb-3">
+        <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Book Quality</label>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setQuality('basic')}
+              className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
+                quality === 'basic'
+                  ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
+                  : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
+              }`}
+            >
+              Basic
+            </button>
+            <button
+              onClick={() => setQuality('standard')}
+              className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border relative ${
+                quality === 'standard'
+                  ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
+                  : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
+              }`}
+            >
+              Standard
+              <span className="absolute -top-2 -right-1 text-[8px] bg-emerald-500 text-white px-1 rounded shadow">Rec.</span>
+            </button>
+            <button
+              onClick={() => setQuality('premium')}
+              className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
+                quality === 'premium'
+                  ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
+                  : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
+              }`}
+            >
+              Premium
+            </button>
+          </div>
+          
+          <div className="text-[10px] leading-relaxed p-2 bg-[rgba(0,0,0,0.2)] rounded border border-[rgba(255,255,255,0.05)]">
+            {quality === 'basic' && (
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li className="text-[#4ade80] font-bold">Low price and affordable</li>
+                <li>Classic KL Cover Page common to all subjects</li>
+                <li>Subject name is <strong>not printed</strong> on cover page</li>
+                <li>Stapled moderate binding</li>
+                <li className="text-red-400 font-bold">* Please contact admin to view the different styles of books</li>
+              </ul>
+            )}
+            {quality === 'standard' && (
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li className="text-[#4ade80] font-bold">Regularly used and ordered books</li>
+                <li>Standard KL Cover page (subject name is shown)</li>
+                <li>Standard binding</li>
+              </ul>
+            )}
+            {quality === 'premium' && (
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li>Highly smooth premium cover page</li>
+                <li>A transparent cover is covered on the book</li>
+                <li>Subject name is shown</li>
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="mb-3">

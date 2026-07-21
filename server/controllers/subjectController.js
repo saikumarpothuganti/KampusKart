@@ -33,6 +33,10 @@ export const createSubject = async (req, res) => {
       sem,
       singleSidePrice,
       doubleSidePrice,
+      basic_singleSidePrice,
+      basic_doubleSidePrice,
+      premium_singleSidePrice,
+      premium_doubleSidePrice,
       coverUrl,
       pdfUrl,
       availability,
@@ -60,6 +64,10 @@ export const createSubject = async (req, res) => {
       sem: parsedSem,
       singleSidePrice: singleSidePrice && singleSidePrice !== null ? parseFloat(singleSidePrice) : undefined,
       doubleSidePrice: doubleSidePrice && doubleSidePrice !== null ? parseFloat(doubleSidePrice) : undefined,
+      basic_singleSidePrice: basic_singleSidePrice ? parseFloat(basic_singleSidePrice) : undefined,
+      basic_doubleSidePrice: basic_doubleSidePrice ? parseFloat(basic_doubleSidePrice) : undefined,
+      premium_singleSidePrice: premium_singleSidePrice ? parseFloat(premium_singleSidePrice) : undefined,
+      premium_doubleSidePrice: premium_doubleSidePrice ? parseFloat(premium_doubleSidePrice) : undefined,
       coverUrl,
       pdfUrl: pdfUrl || null,
       availability: availability !== undefined ? availability : true,
@@ -76,7 +84,7 @@ export const createSubject = async (req, res) => {
 export const updateSubject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, code, year, sem, singleSidePrice, doubleSidePrice, coverUrl, pdfUrl, availability } = req.body;
+    const { title, code, year, sem, singleSidePrice, doubleSidePrice, basic_singleSidePrice, basic_doubleSidePrice, premium_singleSidePrice, premium_doubleSidePrice, coverUrl, pdfUrl, availability } = req.body;
 
     const subject = await Subject.findByIdAndUpdate(
       id,
@@ -87,6 +95,10 @@ export const updateSubject = async (req, res) => {
         sem: parseInt(sem),
         singleSidePrice: singleSidePrice ? parseFloat(singleSidePrice) : null,
         doubleSidePrice: doubleSidePrice ? parseFloat(doubleSidePrice) : null,
+        basic_singleSidePrice: basic_singleSidePrice ? parseFloat(basic_singleSidePrice) : null,
+        basic_doubleSidePrice: basic_doubleSidePrice ? parseFloat(basic_doubleSidePrice) : null,
+        premium_singleSidePrice: premium_singleSidePrice ? parseFloat(premium_singleSidePrice) : null,
+        premium_doubleSidePrice: premium_doubleSidePrice ? parseFloat(premium_doubleSidePrice) : null,
         coverUrl,
         pdfUrl: pdfUrl || null,
         ...(availability !== undefined ? { availability } : {}),
@@ -107,12 +119,16 @@ export const adminUpdateSubject = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { title, singleSidePrice, doubleSidePrice, pdfUrl, availability } = req.body;
+    const { title, singleSidePrice, doubleSidePrice, basic_singleSidePrice, basic_doubleSidePrice, premium_singleSidePrice, premium_doubleSidePrice, pdfUrl, availability } = req.body;
 
     const updatePayload = {};
     if (title !== undefined) updatePayload.title = title;
     if (singleSidePrice !== undefined) updatePayload.singleSidePrice = singleSidePrice ? parseFloat(singleSidePrice) : null;
     if (doubleSidePrice !== undefined) updatePayload.doubleSidePrice = doubleSidePrice ? parseFloat(doubleSidePrice) : null;
+    if (basic_singleSidePrice !== undefined) updatePayload.basic_singleSidePrice = basic_singleSidePrice ? parseFloat(basic_singleSidePrice) : null;
+    if (basic_doubleSidePrice !== undefined) updatePayload.basic_doubleSidePrice = basic_doubleSidePrice ? parseFloat(basic_doubleSidePrice) : null;
+    if (premium_singleSidePrice !== undefined) updatePayload.premium_singleSidePrice = premium_singleSidePrice ? parseFloat(premium_singleSidePrice) : null;
+    if (premium_doubleSidePrice !== undefined) updatePayload.premium_doubleSidePrice = premium_doubleSidePrice ? parseFloat(premium_doubleSidePrice) : null;
     if (pdfUrl !== undefined) updatePayload.pdfUrl = pdfUrl || null;
     if (availability !== undefined) updatePayload.availability = availability;
 

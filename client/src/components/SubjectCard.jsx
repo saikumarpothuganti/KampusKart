@@ -5,11 +5,22 @@ import '../styles/CardAnimations.css';
 const SubjectCard = ({ subject, onAddToCart }) => {
   const [quantity, setQuantity] = React.useState(1);
   const [sideType, setSideType] = React.useState('single');
+  const [quality, setQuality] = React.useState(
+    (subject.basic_singleSidePrice !== undefined && subject.basic_singleSidePrice !== null) || 
+    (subject.basic_doubleSidePrice !== undefined && subject.basic_doubleSidePrice !== null) 
+      ? 'basic' 
+      : 'standard'
+  );
 
   const getDisplayPrice = () => {
-    if (sideType === 'single') return subject.singleSidePrice ?? 0;
-    if (sideType === 'double') return subject.doubleSidePrice ?? 0;
-    return 0;
+    if (quality === 'basic') {
+      return sideType === 'single' ? subject.basic_singleSidePrice : subject.basic_doubleSidePrice;
+    }
+    if (quality === 'premium') {
+      return sideType === 'single' ? subject.premium_singleSidePrice : subject.premium_doubleSidePrice;
+    }
+    // Standard
+    return sideType === 'single' ? subject.singleSidePrice : subject.doubleSidePrice;
   };
 
   const displayPrice = getDisplayPrice();
@@ -23,17 +34,24 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       qty: quantity,
       sides: sideType === 'double' ? 2 : 1,
       sideType,
+      quality,
       pricePerPage: displayPrice,
       price: displayPrice,
     });
     setQuantity(1);
     setSideType('single');
+    setQuality(
+      (subject.basic_singleSidePrice !== undefined && subject.basic_singleSidePrice !== null) || 
+      (subject.basic_doubleSidePrice !== undefined && subject.basic_doubleSidePrice !== null) 
+        ? 'basic' 
+        : 'standard'
+    );
   };
 
   const available = subject.availability !== false;
 
   return (
-    <div className="realistic-paper-card p-6 min-h-[460px] h-full flex flex-col text-paper">
+    <div className="realistic-paper-card p-4 sm:p-5 min-h-[460px] h-full flex flex-col text-paper transform transition-all hover:scale-[1.01] hover:shadow-[8px_8px_0px_#18382A]">
       
       {/* Decorative Pin */}
       <div className="absolute -top-3 right-4 text-2xl drop-shadow-md z-10" style={{ transform: 'rotate(15deg)' }}>📌</div>
@@ -41,20 +59,86 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       <img
         src={KLlogo}
         alt="KL University"
-        className="h-24 w-full mb-4 rounded-md logo-grow object-cover border border-[rgba(255,255,255,0.1)] shadow-inner"
+        className="h-[90px] w-[95%] mx-auto mb-3 rounded-md logo-grow object-cover object-[center_35%] border border-[rgba(255,255,255,0.1)] shadow-inner"
       />
 
-      <div className="flex-1 space-y-4">
-        <h3 className="text-lg font-serif font-bold mb-1 leading-tight">{subject.title}</h3>
-        <p className="text-xs mb-2 opacity-80 font-mono tracking-wider">CODE: {subject.code}</p>
+      <div className="flex-1 space-y-3">
+        <h3 className="text-base sm:text-lg font-serif font-bold mb-0.5 leading-tight">{subject.title}</h3>
+        <p className="text-[10px] sm:text-xs mb-2 opacity-80 font-mono tracking-wider">CODE: {subject.code}</p>
         <div className="flex items-center justify-between mb-3 border-b border-[rgba(255,255,255,0.1)] pb-2">
-          <p className="text-xl font-bold text-[#EDE0C8] drop-shadow-sm">₹{displayPrice}</p>
+          <p className="text-lg sm:text-xl font-bold text-[#EDE0C8] drop-shadow-sm">
+            {displayPrice !== null && displayPrice !== undefined ? `₹${displayPrice}` : 'N/A'}
+          </p>
           <span className={`text-xs px-2 py-1 border rounded font-semibold tracking-wide ${available ? 'border-green-400/50 text-green-300 bg-green-900/20' : 'border-red-400/50 text-red-300 bg-red-900/20'}`}>
             {available ? 'AVAILABLE' : 'UNAVAILABLE'}
           </span>
         </div>
 
         <div>
+          <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Book Quality</label>
+          <div className="flex flex-col gap-2 mb-3">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setQuality('basic')}
+                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
+                  quality === 'basic'
+                    ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
+                    : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
+                }`}
+              >
+                Basic
+              </button>
+              <button
+                onClick={() => setQuality('standard')}
+                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border relative ${
+                  quality === 'standard'
+                    ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
+                    : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
+                }`}
+              >
+                Standard
+                <span className="absolute -top-2 -right-1 text-[8px] bg-emerald-500 text-white px-1 rounded shadow">Rec.</span>
+              </button>
+              <button
+                onClick={() => setQuality('premium')}
+                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
+                  quality === 'premium'
+                    ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
+                    : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
+                }`}
+              >
+                Premium
+              </button>
+            </div>
+            
+            {/* Quality Descriptions */}
+            <div className="text-[10px] leading-relaxed p-2 bg-[rgba(0,0,0,0.2)] rounded border border-[rgba(255,255,255,0.05)]">
+              {quality === 'basic' && (
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li className="text-[#4ade80] font-bold">Low price and affordable</li>
+                  <li>Classic KL Cover Page common to all subjects</li>
+                  <li>Subject name is <strong>not printed</strong> on cover page</li>
+                  <li>Stapled moderate binding</li>
+                  <li className="text-red-400 font-bold">* Please contact admin to view the different styles of books</li>
+                </ul>
+              )}
+              {quality === 'standard' && (
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li className="text-[#4ade80] font-bold">Regularly used and ordered books</li>
+                  <li>Standard KL Cover page (subject name is shown)</li>
+                  <li>Standard binding</li>
+                </ul>
+              )}
+              {quality === 'premium' && (
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li>Highly smooth premium cover page</li>
+                  <li>A transparent cover is covered on the book</li>
+                  <li>Subject name is shown</li>
+                </ul>
+              )}
+            </div>
+          </div>
+          
           <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Printing Type</label>
           <div className="flex gap-2">
             <button
@@ -113,10 +197,10 @@ const SubjectCard = ({ subject, onAddToCart }) => {
         )}
         <button
           onClick={handleAddToCart}
-          disabled={!available}
+          disabled={!available || displayPrice === null || displayPrice === undefined}
           className="w-full bg-[#EDE0C8] text-ink border-2 border-[#D5CEBA] text-sm py-2 rounded-sm font-bold hover:bg-[#F5EBD6] hover:scale-[1.02] shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {available ? 'Add to Cart' : 'Unavailable'}
+          {available && displayPrice !== null && displayPrice !== undefined ? 'Add to Cart' : 'Unavailable for this selection'}
         </button>
       </div>
     </div>

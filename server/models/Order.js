@@ -32,6 +32,11 @@ const orderSchema = new mongoose.Schema(
           enum: ['single', 'double'],
           default: 'single',
         },
+        quality: {
+          type: String,
+          enum: ['basic', 'standard', 'premium'],
+          default: 'standard',
+        },
         pricePerPage: Number,
         price: Number,
         userPrice: Number,

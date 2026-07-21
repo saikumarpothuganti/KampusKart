@@ -213,7 +213,7 @@ const OrderStatus = () => {
                     <div className="flex justify-between">
                       <div>
                         <p className="font-semibold text-white">{item.title} {item.code ? `(${item.code})` : ''}</p>
-                        <p className="text-xs text-white/90">Print: Single · Qty: {item.qty} · Price/page: ₹{item.pricePerPage ?? (item.userPrice ?? item.price ?? '-')}</p>
+                        <p className="text-xs text-white/90">Print: Single · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span> · Price/page: ₹{item.pricePerPage ?? (item.userPrice ?? item.price ?? '-')}</p>
                       </div>
                       {item.userPrice ?? item.price ? (
                         <p className="font-bold text-white">₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</p>
@@ -231,7 +231,7 @@ const OrderStatus = () => {
                     <div className="flex justify-between">
                       <div>
                         <p className="font-semibold text-white">{item.title} {item.code ? `(${item.code})` : ''}</p>
-                        <p className="text-xs text-white/90">Print: Double · Qty: {item.qty} · Price/page: ₹{item.pricePerPage ?? (item.userPrice ?? item.price ?? '-')}</p>
+                        <p className="text-xs text-white/90">Print: Double · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span> · Price/page: ₹{item.pricePerPage ?? (item.userPrice ?? item.price ?? '-')}</p>
                       </div>
                       {item.userPrice ?? item.price ? (
                         <p className="font-bold text-white">₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</p>

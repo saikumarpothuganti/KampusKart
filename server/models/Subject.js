@@ -30,6 +30,22 @@ const subjectSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    basic_singleSidePrice: {
+      type: Number,
+      default: null,
+    },
+    basic_doubleSidePrice: {
+      type: Number,
+      default: null,
+    },
+    premium_singleSidePrice: {
+      type: Number,
+      default: null,
+    },
+    premium_doubleSidePrice: {
+      type: Number,
+      default: null,
+    },
     availability: {
       type: Boolean,
       default: true,

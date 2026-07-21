@@ -166,9 +166,9 @@ const Workbook = () => {
         }
       `}</style>
 
-      <div className="max-w-7xl mx-auto py-8 px-4 text-ink font-sans relative z-10">
+      <div className="max-w-[95%] xl:max-w-[98%] mx-auto py-8 px-2 md:px-6 text-ink font-sans relative z-10">
         
-        <h1 className="text-4xl font-serif font-bold mb-8 flex items-center gap-4 text-ink drop-shadow-sm">
+        <h1 className="text-4xl font-serif font-bold mb-8 inline-flex items-center gap-4 text-ink drop-shadow-sm bg-paper/80 backdrop-blur-sm px-6 py-3 rounded-lg shadow-sm border border-ink/10">
           <span className="text-5xl filter saturate-150 drop-shadow-md">📚</span>
           Workbook Printing
         </h1>
@@ -221,7 +221,7 @@ const Workbook = () => {
         <div className="mb-12">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-4 border-b-2 border-ink/10 gap-4">
             <div className="flex items-center gap-3">
-              <h2 ref={availableRef} className="text-3xl font-serif font-bold text-ink drop-shadow-sm">Print Materials</h2>
+              <h2 ref={availableRef} className="text-3xl font-serif font-bold text-ink drop-shadow-sm bg-paper/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm border border-ink/10">Print Materials</h2>
               {cartCount > 0 && (
                 <span className="inline-flex items-center justify-center bg-ink text-paper text-sm font-bold px-3 py-1 rounded-full shadow-md">
                   {cartCount} in Cart

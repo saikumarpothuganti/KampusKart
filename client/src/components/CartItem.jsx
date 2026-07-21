@@ -43,6 +43,7 @@ const CartItem = ({ item, itemIndex, onUpdateQty, onUpdateSides, onRemove }) => 
         <div className="text-sm text-[#4A3B32] space-y-1">
           {item.code && <p><span className="font-medium opacity-80">Code:</span> {item.code}</p>}
           <p><span className="font-medium opacity-80">Printing:</span> {printingType}</p>
+          <p><span className="font-medium opacity-80">Quality:</span> <span className="capitalize">{item.quality || 'Standard'}</span></p>
         </div>
 
         <div className="pt-1">

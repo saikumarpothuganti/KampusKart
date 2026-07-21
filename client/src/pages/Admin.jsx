@@ -418,6 +418,10 @@ const Admin = () => {
       title: subject.title,
       singleSidePrice: subject.singleSidePrice ?? '',
       doubleSidePrice: subject.doubleSidePrice ?? '',
+      basic_singleSidePrice: subject.basic_singleSidePrice ?? '',
+      basic_doubleSidePrice: subject.basic_doubleSidePrice ?? '',
+      premium_singleSidePrice: subject.premium_singleSidePrice ?? '',
+      premium_doubleSidePrice: subject.premium_doubleSidePrice ?? '',
       pdfUrl: subject.pdfUrl || '',
       availability: subject.availability ?? true,
     });
@@ -454,6 +458,10 @@ const Admin = () => {
         title: editSubjectData.title,
         singleSidePrice: editSubjectData.singleSidePrice ? parseFloat(editSubjectData.singleSidePrice) : null,
         doubleSidePrice: editSubjectData.doubleSidePrice ? parseFloat(editSubjectData.doubleSidePrice) : null,
+        basic_singleSidePrice: editSubjectData.basic_singleSidePrice ? parseFloat(editSubjectData.basic_singleSidePrice) : null,
+        basic_doubleSidePrice: editSubjectData.basic_doubleSidePrice ? parseFloat(editSubjectData.basic_doubleSidePrice) : null,
+        premium_singleSidePrice: editSubjectData.premium_singleSidePrice ? parseFloat(editSubjectData.premium_singleSidePrice) : null,
+        premium_doubleSidePrice: editSubjectData.premium_doubleSidePrice ? parseFloat(editSubjectData.premium_doubleSidePrice) : null,
         pdfUrl: finalPdfUrl,
         availability: editSubjectData.availability,
       });
@@ -842,7 +850,7 @@ const Admin = () => {
                                   <p className="font-semibold text-gray-900">
                                     {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
                                   </p>
-                                  <p className="text-xs text-gray-600">Print: Single · Qty: {item.qty}</p>
+                                  <p className="text-xs text-gray-600">Print: Single · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span></p>
                                 </div>
                                 <div className="text-sm text-gray-800">
                                   {item.pricePerPage !== undefined && item.pricePerPage !== null && (
@@ -872,7 +880,7 @@ const Admin = () => {
                                   <p className="font-semibold text-gray-900">
                                     {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
                                   </p>
-                                  <p className="text-xs text-gray-600">Print: Double · Qty: {item.qty}</p>
+                                  <p className="text-xs text-gray-600">Print: Double · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span></p>
                                 </div>
                                 <div className="text-sm text-gray-800">
                                   {item.pricePerPage !== undefined && item.pricePerPage !== null && (
@@ -945,7 +953,7 @@ const Admin = () => {
                             <div key={idx} className="bg-white rounded p-3 mb-2">
                               <p className="font-semibold mb-2">📄 {item.title}</p>
                               <p className="text-sm text-gray-600 mb-2">
-                                Qty: {item.qty} | Sides: {resolveSideType(item) === 'double' ? 'Double' : 'Single'}
+                                Qty: {item.qty} | Sides: {resolveSideType(item) === 'double' ? 'Double' : 'Single'} | Quality: <span className="capitalize">{item.quality || 'standard'}</span>
                               </p>
                               {item.pdfUrl && (
                                 <a
@@ -1305,7 +1313,7 @@ const Admin = () => {
                                         <p className="font-semibold text-gray-900">
                                           {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
                                         </p>
-                                        <p className="text-xs text-gray-600">Print: Single · Qty: {item.qty}</p>
+                                        <p className="text-xs text-gray-600">Print: Single · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span></p>
                                       </div>
                                       <div className="text-sm text-gray-800">
                                         {item.pricePerPage !== undefined && item.pricePerPage !== null && (
@@ -1335,7 +1343,7 @@ const Admin = () => {
                                         <p className="font-semibold text-gray-900">
                                           {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
                                         </p>
-                                        <p className="text-xs text-gray-600">Print: Double · Qty: {item.qty}</p>
+                                        <p className="text-xs text-gray-600">Print: Double · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span></p>
                                       </div>
                                       <div className="text-sm text-gray-800">
                                         {item.pricePerPage !== undefined && item.pricePerPage !== null && (
@@ -1514,7 +1522,7 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
                       <p className="text-sm text-gray-600">Quantity</p>
                       <p className="font-semibold">{request.qty}</p>
@@ -1522,6 +1530,10 @@ const Admin = () => {
                     <div>
                       <p className="text-sm text-gray-600">Sides</p>
                       <p className="font-semibold">{request.sides === 1 ? 'Single-sided' : 'Double-sided'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Quality</p>
+                      <p className="font-semibold capitalize">{request.quality || 'Standard'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Date</p>
@@ -1921,29 +1933,88 @@ const Admin = () => {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Single-Side Price (₹/page)</label>
-              <input
-                type="number"
-                value={editSubjectData.singleSidePrice}
-                onChange={(e) => setEditSubjectData({ ...editSubjectData, singleSidePrice: e.target.value })}
-                className="w-full border rounded px-3 py-2"
-                min="0"
-                step="0.01"
-                placeholder="Leave blank to use base price"
-              />
+            <div className="grid grid-cols-2 gap-4 border-t pt-4 border-gray-200">
+              <div className="col-span-2">
+                <h4 className="text-sm font-bold text-gray-800 border-b pb-1">Basic Quality Prices</h4>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Single-Side (₹)</label>
+                <input
+                  type="number"
+                  value={editSubjectData.basic_singleSidePrice}
+                  onChange={(e) => setEditSubjectData({ ...editSubjectData, basic_singleSidePrice: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Double-Side (₹)</label>
+                <input
+                  type="number"
+                  value={editSubjectData.basic_doubleSidePrice}
+                  onChange={(e) => setEditSubjectData({ ...editSubjectData, basic_doubleSidePrice: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Double-Side Price (₹/page)</label>
-              <input
-                type="number"
-                value={editSubjectData.doubleSidePrice}
-                onChange={(e) => setEditSubjectData({ ...editSubjectData, doubleSidePrice: e.target.value })}
-                className="w-full border rounded px-3 py-2"
-                min="0"
-                step="0.01"
-                placeholder="Leave blank to use base price"
-              />
+
+            <div className="grid grid-cols-2 gap-4 border-t pt-4 border-gray-200">
+              <div className="col-span-2">
+                <h4 className="text-sm font-bold text-gray-800 border-b pb-1">Standard Quality Prices</h4>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Single-Side (₹)</label>
+                <input
+                  type="number"
+                  value={editSubjectData.singleSidePrice}
+                  onChange={(e) => setEditSubjectData({ ...editSubjectData, singleSidePrice: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Double-Side (₹)</label>
+                <input
+                  type="number"
+                  value={editSubjectData.doubleSidePrice}
+                  onChange={(e) => setEditSubjectData({ ...editSubjectData, doubleSidePrice: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 border-t pt-4 border-gray-200">
+              <div className="col-span-2">
+                <h4 className="text-sm font-bold text-gray-800 border-b pb-1">Premium Quality Prices</h4>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Single-Side (₹)</label>
+                <input
+                  type="number"
+                  value={editSubjectData.premium_singleSidePrice}
+                  onChange={(e) => setEditSubjectData({ ...editSubjectData, premium_singleSidePrice: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Double-Side (₹)</label>
+                <input
+                  type="number"
+                  value={editSubjectData.premium_doubleSidePrice}
+                  onChange={(e) => setEditSubjectData({ ...editSubjectData, premium_doubleSidePrice: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-gray-700">Availability</span>
