@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import API from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import SubjectCard from '../components/SubjectCard';
 import CustomBookCard from '../components/CustomBookCard';
@@ -7,6 +8,7 @@ import GlowAlert from '../components/GlowAlert';
 import workbookBg from '../assets/Workbook.png';
 
 const Workbook = () => {
+  const { user } = useAuth();
   const { addToCart, carts, createCart } = useCart();
   const [showCartModal, setShowCartModal] = useState(false);
   const [selectedItemForCart, setSelectedItemForCart] = useState(null);
@@ -47,6 +49,11 @@ const Workbook = () => {
   };
 
   const handleAddToCartClick = (item) => {
+    if (!user) {
+      setAlertMessage('Please sign in to add items to your cart!');
+      return;
+    }
+    
     if (!carts || carts.length === 0) {
       createCart('My Cart').then(newCarts => {
         addToCart(newCarts[0]._id, item).then(() => {

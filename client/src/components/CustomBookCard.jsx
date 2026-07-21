@@ -24,8 +24,13 @@ const CustomBookCard = ({ onAddToCart }) => {
   };
 
   const handleSubmitRequest = async () => {
+    if (!user) {
+      alert('Please sign in to upload a custom PDF request.');
+      return;
+    }
+    
     if (!ordersEnabled) {
-      if (!user || !user.isAdmin) {
+      if (!user.isAdmin) {
         alert(
           "We've received more orders than expected.\n" +
           "Orders are temporarily paused.\n" +
