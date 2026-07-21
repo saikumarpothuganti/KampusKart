@@ -1,5 +1,7 @@
   import dotenv from 'dotenv';
   dotenv.config();
+  import dns from 'dns';
+  dns.setDefaultResultOrder('ipv4first'); // Fixes DNS IPv6 timeouts on some hosts like Render
   import express from 'express';
   import { createServer } from 'http';
   import { Server } from 'socket.io';
