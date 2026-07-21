@@ -44,7 +44,10 @@ const Admin = () => {
     pdfUrl: '',
     availability: true,
   });
+  const [pdfFile, setPdfFile] = useState(null);
   const [editSubjectData, setEditSubjectData] = useState(null);
+  const [editPdfFile, setEditPdfFile] = useState(null);
+  const [isUploadingSubjectPdf, setIsUploadingSubjectPdf] = useState(false);
   const [deliveryDaysEdits, setDeliveryDaysEdits] = useState({});
   const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
   const [pdfRequestsSearchQuery, setPdfRequestsSearchQuery] = useState('');
@@ -324,6 +327,25 @@ const Admin = () => {
       return;
     }
     
+    let finalPdfUrl = newSubject.pdfUrl.trim() || null;
+
+    if (pdfFile) {
+      setIsUploadingSubjectPdf(true);
+      const formData = new FormData();
+      formData.append('pdf', pdfFile);
+      try {
+        const uploadRes = await API.post('/upload/pdf', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        finalPdfUrl = uploadRes.data.url;
+      } catch (err) {
+        setIsUploadingSubjectPdf(false);
+        alert('Failed to upload PDF: ' + (err.response?.data?.error || err.message));
+        return;
+      }
+      setIsUploadingSubjectPdf(false);
+    }
+    
     try {
       const payload = {
         title: newSubject.title.trim(),
@@ -333,7 +355,7 @@ const Admin = () => {
         singleSidePrice: singlePrice,
         doubleSidePrice: doublePrice,
         coverUrl: newSubject.coverUrl.trim(),
-        pdfUrl: newSubject.pdfUrl.trim() || null,
+        pdfUrl: finalPdfUrl,
         availability: newSubject.availability,
       };
       
@@ -351,6 +373,7 @@ const Admin = () => {
         pdfUrl: '',
         availability: true,
       });
+      setPdfFile(null);
       alert('Subject added successfully!');
     } catch (error) {
       console.error('Error adding subject:', error);
@@ -378,6 +401,7 @@ const Admin = () => {
       pdfUrl: subject.pdfUrl || '',
       availability: subject.availability ?? true,
     });
+    setEditPdfFile(null);
   };
 
   const handleUpdateSubject = async () => {
@@ -386,17 +410,37 @@ const Admin = () => {
       return;
     }
 
+    let finalPdfUrl = editSubjectData.pdfUrl?.trim() || null;
+    
+    if (editPdfFile) {
+      setIsUploadingSubjectPdf(true);
+      const formData = new FormData();
+      formData.append('pdf', editPdfFile);
+      try {
+        const uploadRes = await API.post('/upload/pdf', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        finalPdfUrl = uploadRes.data.url;
+      } catch (err) {
+        setIsUploadingSubjectPdf(false);
+        alert('Failed to upload PDF: ' + (err.response?.data?.error || err.message));
+        return;
+      }
+      setIsUploadingSubjectPdf(false);
+    }
+
     try {
       const res = await API.patch(`/admin/subjects/${editingSubjectId}`, {
         title: editSubjectData.title,
         singleSidePrice: editSubjectData.singleSidePrice ? parseFloat(editSubjectData.singleSidePrice) : null,
         doubleSidePrice: editSubjectData.doubleSidePrice ? parseFloat(editSubjectData.doubleSidePrice) : null,
-        pdfUrl: editSubjectData.pdfUrl?.trim() || null,
+        pdfUrl: finalPdfUrl,
         availability: editSubjectData.availability,
       });
       setSubjects(subjects.map((s) => (s._id === editingSubjectId ? res.data : s)));
       setEditingSubjectId(null);
       setEditSubjectData(null);
+      setEditPdfFile(null);
       alert('Subject updated');
     } catch (error) {
       alert(error.response?.data?.error || 'Failed to update subject');
@@ -1606,20 +1650,20 @@ const Admin = () => {
               />
             </div>
             <div className="mt-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-1">PDF URL (Optional)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">PDF File (Optional)</label>
               <input
-                type="text"
-                placeholder="https://... (Link for users to view the PDF)"
+                type="file"
+                accept=".pdf"
                 className="w-full border rounded px-3 py-2"
-                value={newSubject.pdfUrl}
-                onChange={(e) => setNewSubject({ ...newSubject, pdfUrl: e.target.value })}
+                onChange={(e) => setPdfFile(e.target.files[0])}
               />
             </div>
             <button
               onClick={handleAddSubject}
-              className="mt-4 bg-primary text-white px-6 py-2 rounded font-semibold hover:bg-secondary"
+              disabled={isUploadingSubjectPdf}
+              className="mt-4 bg-primary text-white px-6 py-2 rounded font-semibold hover:bg-secondary disabled:opacity-50"
             >
-              Add Subject
+              {isUploadingSubjectPdf ? 'Uploading PDF...' : 'Add Subject'}
             </button>
           </div>
 
@@ -1817,7 +1861,7 @@ const Admin = () => {
         </div>
       )}
     </div>
-    {editingSubjectId && editSubjectData && (
+{editingSubjectId && editSubjectData && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
           <h3 className="text-xl font-bold mb-4">Edit Subject</h3>
@@ -1832,6 +1876,21 @@ const Admin = () => {
               />
             </div>
             
+            <div className="col-span-2">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Upload New PDF (Optional)</label>
+              <input
+                type="file"
+                accept=".pdf"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-lg px-4 py-3 focus:outline-none focus:border-emerald-500 transition"
+                onChange={(e) => setEditPdfFile(e.target.files[0])}
+              />
+              {editSubjectData.pdfUrl && (
+                <p className="mt-2 text-sm text-gray-600">
+                  Current PDF: <a href={editSubjectData.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View File</a>
+                </p>
+              )}
+            </div>
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Single-Side Price (₹/page)</label>
               <input
@@ -1879,6 +1938,7 @@ const Admin = () => {
               onClick={() => {
                 setEditingSubjectId(null);
                 setEditSubjectData(null);
+                setEditPdfFile(null);
               }}
               className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300"
             >
@@ -1886,9 +1946,10 @@ const Admin = () => {
             </button>
             <button
               onClick={handleUpdateSubject}
-              className="px-4 py-2 rounded bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+              disabled={isUploadingSubjectPdf}
+              className="px-4 py-2 rounded bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50"
             >
-              Save
+              {isUploadingSubjectPdf ? 'Uploading...' : 'Save'}
             </button>
           </div>
         </div>
