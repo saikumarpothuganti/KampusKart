@@ -113,14 +113,11 @@ const SubjectCard = ({ subject, onAddToCart }) => {
                 <span className="absolute -top-2 -right-1 text-[8px] bg-emerald-500 text-white px-1 rounded shadow">Rec.</span>
               </button>
               <button
-                onClick={() => setQuality('premium')}
-                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
-                  quality === 'premium'
-                    ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
-                    : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
-                }`}
+                disabled={true}
+                className="flex-1 py-1.5 rounded-sm text-[10px] sm:text-xs font-bold transition border bg-transparent text-paper border-[rgba(255,255,255,0.2)] opacity-50 cursor-not-allowed"
+                title="Currently Out of Stock"
               >
-                Premium
+                Premium (OOS)
               </button>
             </div>
             
