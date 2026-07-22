@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/CardAnimations.css';
+import basicBookImg from '../assets/basic books (1).jpeg';
+import standardBookImg from '../assets/standard books.jpeg';
 import API from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,6 +13,7 @@ const CustomBookCard = ({ onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
   const [pauseMessage, setPauseMessage] = useState('');
   const abortControllerRef = React.useRef(null);
 
@@ -158,8 +161,6 @@ const CustomBookCard = ({ onAddToCart }) => {
         )}
       </div>
 
-
-
       <div className="mb-3 p-3 rounded-sm bg-[rgba(0,0,0,0.15)] border border-[rgba(255,255,255,0.1)] text-xs font-semibold shadow-inner">
         Submit your PDF request. Admin will set the price, then you can add it to cart from Orders and PDF Status.
       </div>
@@ -182,46 +183,33 @@ const CustomBookCard = ({ onAddToCart }) => {
           <div className="flex gap-2">
             <button
               onClick={() => setQuality('basic')}
-              className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
+              className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border relative ${
                 quality === 'basic'
                   ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
                   : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
               }`}
             >
               Basic
+              <span className="absolute -top-2 -right-1 text-[8px] bg-red-500 text-white px-1 rounded shadow">Best seller</span>
             </button>
             <button
               onClick={() => setQuality('standard')}
-              className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border relative ${
+              className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
                 quality === 'standard'
                   ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
                   : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
               }`}
             >
               Standard
-              <span className="absolute -top-2 -right-1 text-[8px] bg-emerald-500 text-white px-1 rounded shadow">Rec.</span>
             </button>
-
           </div>
-          
-          <div className="text-[10px] leading-relaxed p-2 bg-[rgba(0,0,0,0.2)] rounded border border-[rgba(255,255,255,0.05)]">
-            {quality === 'basic' && (
-              <ul className="list-disc pl-4 space-y-0.5">
-                <li className="text-[#4ade80] font-bold">Affordable prices</li>
-                <li>Classic binding with pins</li>
-                <li>Smooth quality cover page</li>
-                <li className="text-red-400 font-bold">* Please contact admin to view the different styles of books</li>
-              </ul>
-            )}
-            {quality === 'standard' && (
-              <ul className="list-disc pl-4 space-y-0.5">
-                <li className="text-[#4ade80] font-bold">Regularly used and ordered books</li>
-                <li>Smooth and quality cover page</li>
-                <li>Standard binding with glue</li>
-              </ul>
-            )}
 
-          </div>
+          <button 
+            onClick={(e) => { e.preventDefault(); setShowPreview(true); }}
+            className="w-full mt-2 py-1.5 bg-[rgba(0,0,0,0.2)] rounded border border-[rgba(255,255,255,0.05)] text-[10px] font-bold hover:bg-[rgba(255,255,255,0.1)] transition-colors flex items-center justify-center gap-1"
+          >
+            <span className="text-sm">👀</span> Preview of Book
+          </button>
         </div>
       </div>
 

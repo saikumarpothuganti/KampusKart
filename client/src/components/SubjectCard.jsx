@@ -1,5 +1,7 @@
 import React from 'react';
 import KLlogo from '../assets/KLlogo.png';
+import basicBookImg from '../assets/basic books (1).jpeg';
+import standardBookImg from '../assets/standard books.jpeg';
 import '../styles/CardAnimations.css';
 
 const SubjectCard = ({ subject, onAddToCart }) => {
@@ -11,6 +13,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       ? 'basic' 
       : 'standard'
   );
+  const [showPreview, setShowPreview] = React.useState(false);
 
   const getDisplayPrice = () => {
     if (quality === 'basic') {
@@ -93,24 +96,24 @@ const SubjectCard = ({ subject, onAddToCart }) => {
             <div className="flex gap-2">
               <button
                 onClick={() => setQuality('basic')}
-                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
+                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border relative ${
                   quality === 'basic'
                     ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
                     : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
                 }`}
               >
                 Basic
+                <span className="absolute -top-2 -right-1 text-[8px] bg-red-500 text-white px-1 rounded shadow">Best seller</span>
               </button>
               <button
                 onClick={() => setQuality('standard')}
-                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border relative ${
+                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
                   quality === 'standard'
                     ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
                     : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
                 }`}
               >
                 Standard
-                <span className="absolute -top-2 -right-1 text-[8px] bg-emerald-500 text-white px-1 rounded shadow">Rec.</span>
               </button>
               <button
                 disabled={true}
@@ -121,31 +124,12 @@ const SubjectCard = ({ subject, onAddToCart }) => {
               </button>
             </div>
             
-            {/* Quality Descriptions */}
-            <div className="text-[10px] leading-relaxed p-2 bg-[rgba(0,0,0,0.2)] rounded border border-[rgba(255,255,255,0.05)]">
-              {quality === 'basic' && (
-                <ul className="list-disc pl-4 space-y-0.5">
-                  <li className="text-[#4ade80] font-bold">Affordable prices</li>
-                  <li>Classic binding with pins</li>
-                  <li>Smooth quality cover page</li>
-                  <li className="text-red-400 font-bold">* Please contact admin to view the different styles of books</li>
-                </ul>
-              )}
-              {quality === 'standard' && (
-                <ul className="list-disc pl-4 space-y-0.5">
-                  <li className="text-[#4ade80] font-bold">Regularly used and ordered books</li>
-                  <li>Smooth and quality cover page</li>
-                  <li>Standard binding with glue</li>
-                </ul>
-              )}
-              {quality === 'premium' && (
-                <ul className="list-disc pl-4 space-y-0.5">
-                  <li>High quality cover page</li>
-                  <li>Premium binding with glue</li>
-                  <li>Free transparent cover to protect the cover page of book</li>
-                </ul>
-              )}
-            </div>
+            <button 
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPreview(true); }}
+              className="w-full mt-2 py-1.5 bg-[rgba(0,0,0,0.2)] rounded border border-[rgba(255,255,255,0.05)] text-[10px] font-bold hover:bg-[rgba(255,255,255,0.1)] transition-colors flex items-center justify-center gap-1"
+            >
+              <span className="text-sm">👀</span> Preview of Book
+            </button>
           </div>
           
           <label className="block text-[10px] font-serif font-bold mb-1.5 opacity-90 uppercase tracking-widest">Printing Type</label>
@@ -212,6 +196,25 @@ const SubjectCard = ({ subject, onAddToCart }) => {
           {available && displayPrice !== null && displayPrice !== undefined ? 'Add to Cart' : 'Unavailable for this selection'}
         </button>
       </div>
+
+      {/* Preview Modal */}
+      {showPreview && quality !== 'premium' && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPreview(false); }}>
+          <div className="relative max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <button 
+              className="absolute -top-10 right-0 text-white hover:text-red-400 text-3xl font-bold"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPreview(false); }}
+            >
+              &times;
+            </button>
+            <img 
+              src={quality === 'basic' ? basicBookImg : standardBookImg} 
+              alt={`${quality} book preview`} 
+              className="w-full h-auto rounded-lg shadow-2xl border-2 border-white/20"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
