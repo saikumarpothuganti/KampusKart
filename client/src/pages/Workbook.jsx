@@ -304,10 +304,13 @@ const Workbook = () => {
           ) : (
             <div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                
                 {/* The Custom Upload Card is always the first item in the grid on desktop! */}
-                <div className="hidden sm:block sm:col-span-1 md:col-span-2 h-full">
-                  {currentPage === 1 && <CustomBookCard onAddToCart={handleAddToCartClick} />}
-                </div>
+                {currentPage === 1 && (
+                  <div className="hidden sm:block sm:col-span-1 md:col-span-2 h-full">
+                    <CustomBookCard onAddToCart={handleAddToCartClick} />
+                  </div>
+                )}
                 
                 {/* The subject cards fill the rest of the grid seamlessly! */}
                 {paginatedSubjects.length > 0 ? (

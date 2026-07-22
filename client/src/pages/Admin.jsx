@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import API from '../lib/api';
 import LoadingScreen from '../components/LoadingScreen';
 import GlowAlert from '../components/GlowAlert';
+import AdminChats from '../components/AdminChats';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -745,7 +746,24 @@ const Admin = () => {
         >
           Settings
         </button>
+        <button
+          onClick={() => setTab('chats')}
+          className={`px-4 py-2 font-semibold ${
+            tab === 'chats'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600'
+          }`}
+        >
+          Chats
+        </button>
       </div>
+
+      {/* Chats Tab */}
+      {tab === 'chats' && (
+        <div className="mt-4">
+          <AdminChats />
+        </div>
+      )}
 
       {/* Orders Tab */}
       {tab === 'orders' && (

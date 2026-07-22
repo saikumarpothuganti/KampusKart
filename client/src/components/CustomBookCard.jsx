@@ -125,7 +125,10 @@ const CustomBookCard = ({ onAddToCart }) => {
   };
 
   return (
-    <div id="custom-upload-card" className="realistic-paper-card p-3 sm:p-4 flex flex-col h-full text-paper relative md:col-span-2 border-2 border-dashed border-[#B8860B] shadow-[0_0_15px_rgba(184,134,11,0.2)]">
+    <div id="custom-upload-card" className="realistic-paper-card-blue p-3 sm:p-4 flex flex-col h-full text-paper relative md:col-span-2 border-2 border-dashed border-[#4da8da] shadow-[0_0_20px_rgba(77,168,218,0.3)] overflow-hidden">
+      {/* Shiny Effect Overlay */}
+      <div className="shine-overlay"></div>
+      
       {/* Decorative Pin */}
       <div className="absolute -top-3 left-4 text-2xl drop-shadow-md z-10" style={{ transform: 'rotate(-10deg)' }}>📌</div>
 

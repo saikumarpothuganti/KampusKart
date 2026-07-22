@@ -8,6 +8,7 @@ import Background from './components/Background';
 import LoadingScreen from './components/LoadingScreen';
 import InstallPrompt from './components/InstallPrompt';
 import NotificationPrompt from './components/NotificationPrompt';
+import FloatingChat from './components/FloatingChat';
 
 import Home from './pages/Home';
 import Workbook from './pages/Workbook';
@@ -78,6 +79,7 @@ function AppContent() {
         <Route path="/delivery/update-location/:orderId" element={<DeliveryLocation />} />
         <Route path="/feedback" element={<Feedback />} />
       </Routes>
+      <FloatingChat />
     </div>
   );
 }
