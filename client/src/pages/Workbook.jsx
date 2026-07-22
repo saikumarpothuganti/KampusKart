@@ -40,6 +40,12 @@ const Workbook = () => {
       setShowSubjects(true);
       setQuery('');
       setCurrentPage(1);
+      setTimeout(() => {
+        if (availableRef.current) {
+          const y = availableRef.current.getBoundingClientRect().top + window.scrollY - 20;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 300);
     } catch (err) {
       console.error(err);
       setAlertMessage('Failed to fetch subjects.');
@@ -112,15 +118,31 @@ const Workbook = () => {
   };
 
   const filteredSubjects = useMemo(() => {
-    if (!query.trim()) return subjects;
-    return subjects.filter((s) => {
-      const q = query.trim().toLowerCase();
-      const title = s.title?.toLowerCase() || '';
-      const code = s.code?.toLowerCase() || '';
-      if (q.length <= 3) {
-        return title.startsWith(q) || code.startsWith(q);
-      }
-      return title.includes(q) || code.includes(q);
+    let result = subjects;
+    if (query.trim()) {
+      result = subjects.filter((s) => {
+        const q = query.trim().toLowerCase();
+        const title = s.title?.toLowerCase() || '';
+        const code = s.code?.toLowerCase() || '';
+        if (q.length <= 3) {
+          return title.startsWith(q) || code.startsWith(q);
+        }
+        return title.includes(q) || code.includes(q);
+      });
+    }
+    
+    // Sort by lowest available double-sided price
+    return [...result].sort((a, b) => {
+      const getPrice = (subj) => {
+        if (subj.basic_doubleSidePrice !== undefined && subj.basic_doubleSidePrice !== null) {
+          return subj.basic_doubleSidePrice;
+        }
+        if (subj.doubleSidePrice !== undefined && subj.doubleSidePrice !== null) {
+          return subj.doubleSidePrice;
+        }
+        return Infinity;
+      };
+      return getPrice(a) - getPrice(b);
     });
   }, [subjects, query]);
 
@@ -128,6 +150,18 @@ const Workbook = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [query, subjects]);
+
+  useEffect(() => {
+    if (window.location.hash === '#custom-upload') {
+      setTimeout(() => {
+        const el = document.getElementById('custom-upload-card');
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 500);
+    }
+  }, []);
 
   const totalPages = Math.ceil(filteredSubjects.length / ITEMS_PER_PAGE);
   const paginatedSubjects = filteredSubjects.slice(
@@ -219,6 +253,11 @@ const Workbook = () => {
 
         {/* Unified Print Materials Section */}
         <div className="mb-12">
+          {/* Custom PDF Upload Mobile Only (Above Heading) */}
+          <div className="block sm:hidden mb-6">
+            {currentPage === 1 && <CustomBookCard onAddToCart={handleAddToCartClick} />}
+          </div>
+
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-4 border-b-2 border-ink/10 gap-4">
             <div className="flex items-center gap-3">
               <h2 ref={availableRef} className="text-3xl font-serif font-bold text-ink drop-shadow-sm bg-paper/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm border border-ink/10">Print Materials</h2>
@@ -235,22 +274,26 @@ const Workbook = () => {
               onChange={(e) => setQuery(e.target.value)}
               disabled={!showSubjects}
               placeholder={showSubjects ? 'Search subjects...' : 'Search enabled after Find'}
-              className={`w-full md:w-72 bg-paper/95 backdrop-blur-sm border-2 border-ink/30 text-ink font-serif font-bold rounded-sm px-4 py-2 shadow-[2px_2px_0px_#112e1c] focus:outline-none focus:ring-2 focus:ring-[#B8860B] focus:border-[#B8860B] focus:shadow-[1px_1px_0px_#B8860B] placeholder:text-ink/40 transition-all ${
+              className={`w-full md:w-[26rem] lg:w-[32rem] bg-paper/95 backdrop-blur-sm border-2 border-ink/30 text-ink font-serif font-bold rounded-sm px-4 py-2 shadow-[2px_2px_0px_#112e1c] focus:outline-none focus:ring-2 focus:ring-[#B8860B] focus:border-[#B8860B] focus:shadow-[1px_1px_0px_#B8860B] placeholder:text-ink/40 transition-all ${
                 showSubjects ? 'opacity-100 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#112e1c]' : 'opacity-60 cursor-not-allowed'
               }`}
             />
           </div>
 
           {!showSubjects ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              <CustomBookCard onAddToCart={handleAddToCartClick} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              <div className="hidden sm:block sm:col-span-1 md:col-span-2 h-full">
+                <CustomBookCard onAddToCart={handleAddToCartClick} />
+              </div>
               <div className="bg-paper/70 backdrop-blur-md rounded-md p-12 flex flex-col items-center justify-center col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2 border-2 border-dashed border-ink/30 shadow-inner">
                  <p className="text-ink font-serif font-bold text-xl italic text-center drop-shadow-sm">Select your year and semester above to find subjects!</p>
               </div>
             </div>
           ) : subjects.length === 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              <CustomBookCard onAddToCart={handleAddToCartClick} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              <div className="hidden sm:block sm:col-span-1 md:col-span-2 h-full">
+                <CustomBookCard onAddToCart={handleAddToCartClick} />
+              </div>
               <div className="realistic-paper-card p-6 text-paper flex flex-col justify-center gap-2 col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-3">
                 <p className="font-bold text-xl drop-shadow-md">No subjects found for this selection</p>
                 <p className="text-base opacity-90">However, you can use the <strong>Custom PDF</strong> form to upload exactly what you need!</p>
@@ -258,9 +301,11 @@ const Workbook = () => {
             </div>
           ) : (
             <div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                {/* The Custom Upload Card is always the first item in the grid! */}
-                {currentPage === 1 && <CustomBookCard onAddToCart={handleAddToCartClick} />}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {/* The Custom Upload Card is always the first item in the grid on desktop! */}
+                <div className="hidden sm:block sm:col-span-1 md:col-span-2 h-full">
+                  {currentPage === 1 && <CustomBookCard onAddToCart={handleAddToCartClick} />}
+                </div>
                 
                 {/* The subject cards fill the rest of the grid seamlessly! */}
                 {paginatedSubjects.length > 0 ? (

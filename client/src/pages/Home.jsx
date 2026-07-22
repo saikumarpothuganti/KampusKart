@@ -111,7 +111,7 @@ const Home = () => {
                 <span className="text-2xl drop-shadow-md">📖</span> <span className="tracking-widest text-sm md:text-base">BROWSE WORKBOOKS</span>
               </Link>
               <Link
-                to="/custom-pdf"
+                to="/workbook#custom-upload"
                 className="relative bg-gradient-to-br from-[#8FAD8C] to-[#599A69] text-[#1a3625] font-black py-4 px-6 md:px-8 rounded-tr-[24px] rounded-bl-[24px] rounded-tl-md rounded-br-md shadow-[4px_6px_15px_rgba(24,56,42,0.2)] hover:-translate-y-1 hover:shadow-[6px_8px_20px_rgba(24,56,42,0.3)] transition-all duration-300 flex items-center justify-center gap-3 border border-[#FDFCF9]/50 w-full sm:w-auto"
               >
                 <span className="text-2xl drop-shadow-md">📄</span> <span className="tracking-widest text-sm md:text-base">UPLOAD PDF</span>

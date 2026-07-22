@@ -240,7 +240,7 @@ const Checkout = () => {
           <div className="space-y-3 mb-6 pb-6 border-b-2 border-dashed border-ink/20">
             {cart.items && cart.items.map((item, idx) => (
               <div key={idx} className="flex justify-between text-sm font-bold text-ink/90">
-                <span>{item.title} x {item.qty}</span>
+                <span className="uppercase">{item.title} x {item.qty}, sides-{item.sides || 1}, {item.quality || 'standard'}</span>
                 {item.userPrice ?? item.price ? (
                   <span className="text-ink">₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</span>
                 ) : (

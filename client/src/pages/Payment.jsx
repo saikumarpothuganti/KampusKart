@@ -397,7 +397,10 @@ const Payment = () => {
             {grouped.singles.map((item, idx) => (
               <div key={`s-${idx}`} className="flex flex-col border rounded p-2">
                 <div className="flex justify-between text-sm text-black">
-                  <span className="font-semibold">{item.title} {item.code ? `(${item.code})` : ''}</span>
+                  <span className="font-semibold uppercase">{item.title} {item.code ? `(${item.code})` : ''}</span>
+                  <div className="text-sm text-gray-600 mt-0.5">
+                    Qty: {item.qty}, sides-{item.sides || 1}, {item.quality || 'standard'}
+                  </div>
                   {item.userPrice ?? item.price ? (
                     <span>₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</span>
                   ) : (
@@ -415,7 +418,10 @@ const Payment = () => {
             {grouped.doubles.map((item, idx) => (
               <div key={`d-${idx}`} className="flex flex-col border rounded p-2">
                 <div className="flex justify-between text-sm text-black">
-                  <span className="font-semibold">{item.title} {item.code ? `(${item.code})` : ''}</span>
+                  <span className="font-semibold uppercase">{item.title} {item.code ? `(${item.code})` : ''}</span>
+                  <div className="text-sm text-gray-600 mt-0.5">
+                    Qty: {item.qty}, sides-{item.sides || 1}, {item.quality || 'standard'}
+                  </div>
                   {item.userPrice ?? item.price ? (
                     <span>₹{((item.userPrice ?? item.price) * item.qty).toFixed(2)}</span>
                   ) : (

@@ -122,7 +122,7 @@ const CustomBookCard = ({ onAddToCart }) => {
   };
 
   return (
-    <div className="realistic-paper-card p-4 sm:p-5 flex flex-col h-full text-paper relative md:col-span-2 border-2 border-dashed border-[#B8860B] shadow-[0_0_15px_rgba(184,134,11,0.2)]">
+    <div id="custom-upload-card" className="realistic-paper-card p-3 sm:p-4 flex flex-col h-full text-paper relative md:col-span-2 border-2 border-dashed border-[#B8860B] shadow-[0_0_15px_rgba(184,134,11,0.2)]">
       {/* Decorative Pin */}
       <div className="absolute -top-3 left-4 text-2xl drop-shadow-md z-10" style={{ transform: 'rotate(-10deg)' }}>📌</div>
 
@@ -214,25 +214,24 @@ const CustomBookCard = ({ onAddToCart }) => {
           <div className="text-[10px] leading-relaxed p-2 bg-[rgba(0,0,0,0.2)] rounded border border-[rgba(255,255,255,0.05)]">
             {quality === 'basic' && (
               <ul className="list-disc pl-4 space-y-0.5">
-                <li className="text-[#4ade80] font-bold">Low price and affordable</li>
-                <li>Classic KL Cover Page common to all subjects</li>
-                <li>Subject name is <strong>not printed</strong> on cover page</li>
-                <li>Stapled moderate binding</li>
+                <li className="text-[#4ade80] font-bold">Affordable prices</li>
+                <li>Classic binding with pins</li>
+                <li>Smooth quality cover page</li>
                 <li className="text-red-400 font-bold">* Please contact admin to view the different styles of books</li>
               </ul>
             )}
             {quality === 'standard' && (
               <ul className="list-disc pl-4 space-y-0.5">
                 <li className="text-[#4ade80] font-bold">Regularly used and ordered books</li>
-                <li>Standard KL Cover page (subject name is shown)</li>
-                <li>Standard binding</li>
+                <li>Smooth and quality cover page</li>
+                <li>Standard binding with glue</li>
               </ul>
             )}
             {quality === 'premium' && (
               <ul className="list-disc pl-4 space-y-0.5">
-                <li>Highly smooth premium cover page</li>
-                <li>A transparent cover is covered on the book</li>
-                <li>Subject name is shown</li>
+                <li>High quality cover page</li>
+                <li>Premium binding with glue</li>
+                <li>Free transparent cover to protect the cover page of book</li>
               </ul>
             )}
           </div>

@@ -4,7 +4,7 @@ import '../styles/CardAnimations.css';
 
 const SubjectCard = ({ subject, onAddToCart }) => {
   const [quantity, setQuantity] = React.useState(1);
-  const [sideType, setSideType] = React.useState('single');
+  const [sideType, setSideType] = React.useState('double');
   const [quality, setQuality] = React.useState(
     (subject.basic_singleSidePrice !== undefined && subject.basic_singleSidePrice !== null) || 
     (subject.basic_doubleSidePrice !== undefined && subject.basic_doubleSidePrice !== null) 
@@ -39,7 +39,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       price: displayPrice,
     });
     setQuantity(1);
-    setSideType('single');
+    setSideType('double');
     setQuality(
       (subject.basic_singleSidePrice !== undefined && subject.basic_singleSidePrice !== null) || 
       (subject.basic_doubleSidePrice !== undefined && subject.basic_doubleSidePrice !== null) 
@@ -51,7 +51,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
   const available = subject.availability !== false;
 
   return (
-    <div className="realistic-paper-card p-4 sm:p-5 min-h-[460px] h-full flex flex-col text-paper transform transition-all hover:scale-[1.01] hover:shadow-[8px_8px_0px_#18382A]">
+    <div className="realistic-paper-card p-3 sm:p-4 min-h-[380px] h-full flex flex-col text-paper transform transition-all hover:scale-[1.01] hover:shadow-[8px_8px_0px_#18382A]">
       
       {/* Decorative Pin */}
       <div className="absolute -top-3 right-4 text-2xl drop-shadow-md z-10" style={{ transform: 'rotate(15deg)' }}>📌</div>
@@ -59,24 +59,37 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       <img
         src={KLlogo}
         alt="KL University"
-        className="h-[90px] w-[95%] mx-auto mb-3 rounded-md logo-grow object-cover object-[center_35%] border border-[rgba(255,255,255,0.1)] shadow-inner"
+        className="h-[75px] w-[95%] mx-auto mb-2 rounded-md logo-grow object-cover object-[center_35%] border border-[rgba(255,255,255,0.1)] shadow-inner"
       />
 
-      <div className="flex-1 space-y-3">
-        <h3 className="text-base sm:text-lg font-serif font-bold mb-0.5 leading-tight">{subject.title}</h3>
-        <p className="text-[10px] sm:text-xs mb-2 opacity-80 font-mono tracking-wider">CODE: {subject.code}</p>
-        <div className="flex items-center justify-between mb-3 border-b border-[rgba(255,255,255,0.1)] pb-2">
-          <p className="text-lg sm:text-xl font-bold text-[#EDE0C8] drop-shadow-sm">
-            {displayPrice !== null && displayPrice !== undefined ? `₹${displayPrice}` : 'N/A'}
-          </p>
+      <div className="flex-1 space-y-2">
+        <h3 className="text-sm sm:text-base font-serif font-bold mb-0.5 leading-tight">{subject.title}</h3>
+        <p className="text-[9px] sm:text-[10px] mb-1.5 opacity-80 font-mono tracking-wider">CODE: {subject.code}</p>
+        <div className="flex items-center justify-between mb-2 border-b border-[rgba(255,255,255,0.1)] pb-1.5">
+          <div className="flex flex-col">
+            {displayPrice !== null && displayPrice !== undefined ? (
+              <div className="flex flex-col">
+                <span className="text-xl sm:text-2xl text-paper/80 font-extrabold line-through decoration-red-500 decoration-4 drop-shadow-md mb-0.5">
+                  ₹{displayPrice + (quality === 'basic' ? 10 : 15)}
+                </span>
+                <p className="text-sm sm:text-base font-sans font-black text-[#B8860B] drop-shadow-md leading-none flex items-baseline gap-1.5 mt-1 uppercase tracking-tighter transform -rotate-2">
+                  <span className="opacity-90">Now only:</span> <span className="text-xl sm:text-2xl tracking-normal">₹{displayPrice}</span>
+                </p>
+              </div>
+            ) : (
+              <p className="text-lg sm:text-xl font-bold text-[#EDE0C8] drop-shadow-sm">
+                N/A
+              </p>
+            )}
+          </div>
           <span className={`text-xs px-2 py-1 border rounded font-semibold tracking-wide ${available ? 'border-green-400/50 text-green-300 bg-green-900/20' : 'border-red-400/50 text-red-300 bg-red-900/20'}`}>
             {available ? 'AVAILABLE' : 'UNAVAILABLE'}
           </span>
         </div>
 
         <div>
-          <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Book Quality</label>
-          <div className="flex flex-col gap-2 mb-3">
+          <label className="block text-[10px] font-serif font-bold mb-1.5 opacity-90 uppercase tracking-widest">Book Quality</label>
+          <div className="flex flex-col gap-1.5 mb-2">
             <div className="flex gap-2">
               <button
                 onClick={() => setQuality('basic')}
@@ -115,32 +128,31 @@ const SubjectCard = ({ subject, onAddToCart }) => {
             <div className="text-[10px] leading-relaxed p-2 bg-[rgba(0,0,0,0.2)] rounded border border-[rgba(255,255,255,0.05)]">
               {quality === 'basic' && (
                 <ul className="list-disc pl-4 space-y-0.5">
-                  <li className="text-[#4ade80] font-bold">Low price and affordable</li>
-                  <li>Classic KL Cover Page common to all subjects</li>
-                  <li>Subject name is <strong>not printed</strong> on cover page</li>
-                  <li>Stapled moderate binding</li>
+                  <li className="text-[#4ade80] font-bold">Affordable prices</li>
+                  <li>Classic binding with pins</li>
+                  <li>Smooth quality cover page</li>
                   <li className="text-red-400 font-bold">* Please contact admin to view the different styles of books</li>
                 </ul>
               )}
               {quality === 'standard' && (
                 <ul className="list-disc pl-4 space-y-0.5">
                   <li className="text-[#4ade80] font-bold">Regularly used and ordered books</li>
-                  <li>Standard KL Cover page (subject name is shown)</li>
-                  <li>Standard binding</li>
+                  <li>Smooth and quality cover page</li>
+                  <li>Standard binding with glue</li>
                 </ul>
               )}
               {quality === 'premium' && (
                 <ul className="list-disc pl-4 space-y-0.5">
-                  <li>Highly smooth premium cover page</li>
-                  <li>A transparent cover is covered on the book</li>
-                  <li>Subject name is shown</li>
+                  <li>High quality cover page</li>
+                  <li>Premium binding with glue</li>
+                  <li>Free transparent cover to protect the cover page of book</li>
                 </ul>
               )}
             </div>
           </div>
           
-          <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Printing Type</label>
-          <div className="flex gap-2">
+          <label className="block text-[10px] font-serif font-bold mb-1.5 opacity-90 uppercase tracking-widest">Printing Type</label>
+          <div className="flex gap-1.5">
             <button
               onClick={() => setSideType('single')}
               className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
@@ -165,8 +177,8 @@ const SubjectCard = ({ subject, onAddToCart }) => {
         </div>
 
         <div>
-          <label className="block text-xs font-serif font-bold mb-2 opacity-90 uppercase tracking-widest">Quantity</label>
-          <div className="flex items-center gap-1.5 mb-2">
+          <label className="block text-[10px] font-serif font-bold mb-1.5 opacity-90 uppercase tracking-widest">Quantity</label>
+          <div className="flex items-center gap-1.5 mb-1">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               className="bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] px-3 py-1 rounded-sm text-paper font-bold transition"
@@ -184,7 +196,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
         </div>
       </div>
 
-      <div className="mt-auto flex flex-col gap-2 mt-4">
+      <div className="mt-auto flex flex-col gap-1.5 mt-2">
         {subject.pdfUrl && (
           <a
             href={subject.pdfUrl}

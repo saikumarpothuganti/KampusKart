@@ -193,7 +193,7 @@ const Navbar = () => {
           })}
         </div>
 
-        <div className="flex items-center gap-3 md:gap-5">
+        <div className="flex items-center gap-2 md:gap-5 shrink-0">
           <div className="relative">
             <Link
               to="/cart"
@@ -314,13 +314,13 @@ const Navbar = () => {
 
           {/* Hamburger Menu Toggle (Mobile) */}
           <button 
-            className="md:hidden text-paper ml-2 focus:outline-none flex flex-col items-center justify-center gap-1.5 w-8 h-8"
+            className="md:hidden text-paper ml-1 focus:outline-none flex flex-col items-center justify-center gap-[5px] w-10 h-10 shrink-0 relative z-[60]"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle Menu"
           >
-            <span className={`block w-6 h-0.5 bg-paper transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-            <span className={`block w-6 h-0.5 bg-paper transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
-            <span className={`block w-6 h-0.5 bg-paper transition-transform duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+            <span className={`block w-7 h-[3px] bg-[#EDE0C8] rounded-full transition-transform duration-300 origin-center ${isMobileMenuOpen ? 'rotate-45 translate-y-[8px]' : ''}`}></span>
+            <span className={`block w-7 h-[3px] bg-[#EDE0C8] rounded-full transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+            <span className={`block w-7 h-[3px] bg-[#EDE0C8] rounded-full transition-transform duration-300 origin-center ${isMobileMenuOpen ? '-rotate-45 -translate-y-[8px]' : ''}`}></span>
           </button>
         </div>
       </div>
