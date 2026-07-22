@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -8,6 +9,7 @@ import GlowAlert from '../components/GlowAlert';
 import workbookBg from '../assets/Workbook.png';
 
 const Workbook = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { addToCart, carts, createCart } = useCart();
   const [showCartModal, setShowCartModal] = useState(false);
@@ -369,7 +371,14 @@ const Workbook = () => {
       {alertMessage && (
         <GlowAlert 
           message={alertMessage} 
-          onClose={() => setAlertMessage('')} 
+          okText={alertMessage === 'Please sign in to add items to your cart!' ? 'Continue to Sign In' : 'OK'}
+          onClose={() => {
+            if (alertMessage === 'Please sign in to add items to your cart!') {
+              navigate('/signin');
+            }
+            setAlertMessage('');
+          }}
+          onCancel={alertMessage === 'Please sign in to add items to your cart!' ? () => setAlertMessage('') : undefined}
         />
       )}
 

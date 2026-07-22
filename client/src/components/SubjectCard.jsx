@@ -51,7 +51,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
   const available = subject.availability !== false;
 
   return (
-    <div className="realistic-paper-card p-3 sm:p-4 min-h-[380px] h-full flex flex-col text-paper transform transition-all hover:scale-[1.01] hover:shadow-[8px_8px_0px_#18382A]">
+    <div className="realistic-paper-card p-3 min-h-[320px] h-full flex flex-col text-paper transform transition-all hover:scale-[1.01] hover:shadow-[8px_8px_0px_#18382A]">
       
       {/* Decorative Pin */}
       <div className="absolute -top-3 right-4 text-2xl drop-shadow-md z-10" style={{ transform: 'rotate(15deg)' }}>📌</div>
@@ -59,7 +59,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       <img
         src={KLlogo}
         alt="KL University"
-        className="h-[75px] w-[95%] mx-auto mb-2 rounded-md logo-grow object-cover object-[center_35%] border border-[rgba(255,255,255,0.1)] shadow-inner"
+        className="h-[48px] w-[85%] mx-auto mb-2 rounded-md logo-grow object-cover object-[center_35%] border border-[rgba(255,255,255,0.1)] shadow-inner"
       />
 
       <div className="flex-1 space-y-2">

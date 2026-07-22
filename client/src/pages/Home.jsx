@@ -279,7 +279,7 @@ const Home = () => {
                 <h4 className="text-[11px] font-black text-paper/50 uppercase tracking-[0.18em] mb-5">Contact Us</h4>
                 <ul className="space-y-5">
                   <li>
-                    <a href="https://www.instagram.com/kampuskart_?igsh=bG9oNTdvdW5ua2ky" target="_blank" rel="noopener noreferrer" 
+                    <a href="https://www.instagram.com/kampuskart__?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" 
                        className="flex items-center gap-3 group hover:opacity-100 opacity-80 transition">
                       <span className="text-lg">📸</span>
                       <div>

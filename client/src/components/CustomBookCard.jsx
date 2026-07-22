@@ -158,6 +158,8 @@ const CustomBookCard = ({ onAddToCart }) => {
         )}
       </div>
 
+
+
       <div className="mb-3 p-3 rounded-sm bg-[rgba(0,0,0,0.15)] border border-[rgba(255,255,255,0.1)] text-xs font-semibold shadow-inner">
         Submit your PDF request. Admin will set the price, then you can add it to cart from Orders and PDF Status.
       </div>
