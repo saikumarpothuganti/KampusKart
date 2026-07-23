@@ -44,12 +44,12 @@ export const createCart = async (req, res) => {
 export const addToCart = async (req, res) => {
   try {
     const { cartId } = req.params;
-    const { type, subjectId, title, code, pdfUrl, qty, sides, sideType, pricePerPage, price, userPrice } = req.body;
+    const { type, subjectId, title, code, pdfUrl, qty, sides, sideType, quality, pricePerPage, price, userPrice } = req.body;
 
     const cart = await Cart.findOne({ _id: cartId, userId: req.user.id });
     if (!cart) return res.status(404).json({ error: 'Cart not found' });
 
-    cart.items.push({ type, subjectId, title, code, pdfUrl, qty, sides, sideType, pricePerPage, price, userPrice });
+    cart.items.push({ type, subjectId, title, code, pdfUrl, qty, sides, sideType, quality, pricePerPage, price, userPrice });
     await cart.save();
 
     const carts = await Cart.find({ userId: req.user.id });
@@ -64,7 +64,7 @@ export const addToCart = async (req, res) => {
 export const updateCartItem = async (req, res) => {
   try {
     const { cartId, itemIndex } = req.params;
-    const { qty, sides, sideType, pricePerPage } = req.body;
+    const { qty, sides, sideType, quality, pricePerPage } = req.body;
 
     const cart = await Cart.findOne({ _id: cartId, userId: req.user.id });
     if (!cart || !cart.items[itemIndex]) return res.status(404).json({ error: 'Item not found' });
@@ -72,6 +72,7 @@ export const updateCartItem = async (req, res) => {
     if (qty !== undefined) cart.items[itemIndex].qty = qty;
     if (sides !== undefined) cart.items[itemIndex].sides = sides;
     if (sideType !== undefined) cart.items[itemIndex].sideType = sideType;
+    if (quality !== undefined) cart.items[itemIndex].quality = quality;
     if (pricePerPage !== undefined) cart.items[itemIndex].pricePerPage = pricePerPage;
 
     await cart.save();
