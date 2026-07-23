@@ -24,7 +24,7 @@ export const createPDFRequest = async (req, res) => {
       });
     }
 
-    const { title, pdfUrl, qty, sides } = req.body;
+    const { title, pdfUrl, qty, sides, quality } = req.body;
 
     console.log('PDF Request received:', { title, pdfUrl, qty, sides, userId: req.user?.id });
 
@@ -42,6 +42,7 @@ export const createPDFRequest = async (req, res) => {
       pdfUrl,
       qty: parseInt(qty),
       sides: parseInt(sides),
+      quality: quality || 'standard',
       status: 'pending',
     });
 

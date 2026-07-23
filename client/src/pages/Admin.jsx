@@ -297,6 +297,16 @@ const Admin = () => {
     }
   };
 
+  const handleOrderColorUpdate = async (orderId, color) => {
+    try {
+      await API.put(`/orders/${orderId}/color`, { color });
+      fetchData();
+    } catch (error) {
+      console.error('Error updating order color:', error);
+      alert('Failed to update order color');
+    }
+  };
+
   const handleMarkCodPaid = async (orderId) => {
     if (!window.confirm('Mark this COD balance as paid?')) return;
     try {
@@ -793,7 +803,12 @@ const Admin = () => {
           ) : (
             <div className="space-y-4">
               {filteredOrders.map((order) => (
-                <div key={order._id} className="bg-white rounded-lg shadow-md p-6">
+                <div key={order._id} className={`rounded-lg shadow-md p-6 relative ${order.adminColor === 'gold' ? 'bg-yellow-100 border-2 border-yellow-400' : order.adminColor === 'silver' ? 'bg-gray-200 border-2 border-gray-400' : 'bg-white'}`}>
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <button onClick={() => handleOrderColorUpdate(order.orderId, 'gold')} className="w-5 h-5 rounded-full bg-[#FFD700] border border-yellow-600 hover:scale-110 transition-transform shadow-sm" title="Gold"></button>
+                    <button onClick={() => handleOrderColorUpdate(order.orderId, 'silver')} className="w-5 h-5 rounded-full bg-[#C0C0C0] border border-gray-600 hover:scale-110 transition-transform shadow-sm" title="Silver"></button>
+                    <button onClick={() => handleOrderColorUpdate(order.orderId, '')} className="w-5 h-5 rounded-full bg-white border border-gray-300 hover:scale-110 transition-transform flex items-center justify-center text-[10px] font-bold text-gray-500 shadow-sm" title="Clear">✕</button>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
                       <p className="text-sm text-gray-600">Order ID</p>
@@ -1278,7 +1293,12 @@ const Admin = () => {
                 const safeItems = Array.isArray(order.items) ? order.items : [];
                 
                 return (
-                  <div key={order._id} className="bg-white rounded-lg shadow-md p-6">
+                  <div key={order._id} className={`rounded-lg shadow-md p-6 relative ${order.adminColor === 'gold' ? 'bg-yellow-100 border-2 border-yellow-400' : order.adminColor === 'silver' ? 'bg-gray-200 border-2 border-gray-400' : 'bg-white'}`}>
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      <button onClick={() => handleOrderColorUpdate(order.orderId, 'gold')} className="w-5 h-5 rounded-full bg-[#FFD700] border border-yellow-600 hover:scale-110 transition-transform shadow-sm" title="Gold"></button>
+                      <button onClick={() => handleOrderColorUpdate(order.orderId, 'silver')} className="w-5 h-5 rounded-full bg-[#C0C0C0] border border-gray-600 hover:scale-110 transition-transform shadow-sm" title="Silver"></button>
+                      <button onClick={() => handleOrderColorUpdate(order.orderId, '')} className="w-5 h-5 rounded-full bg-white border border-gray-300 hover:scale-110 transition-transform flex items-center justify-center text-[10px] font-bold text-gray-500 shadow-sm" title="Clear">✕</button>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                       <div>
                         <p className="text-sm text-gray-600">Order ID</p>

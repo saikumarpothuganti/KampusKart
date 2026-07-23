@@ -12,6 +12,7 @@ import {
   acceptRequest,
   updateDeliveryDays,
   markCodPaid,
+  updateOrderColor,
 } from '../controllers/orderController.js';
 import authMiddleware from '../middleware/auth.js';
 
@@ -32,5 +33,6 @@ router.put('/:orderId/live-location', authMiddleware, toggleLiveLocation);
 router.put('/:orderId/set-price', authMiddleware, setCustomPDFPrice);
 router.put('/:orderId/delivery-days', authMiddleware, updateDeliveryDays);
 router.put('/:orderId/mark-cod-paid', authMiddleware, markCodPaid);
+router.put('/:orderId/color', authMiddleware, updateOrderColor);
 
 export default router;

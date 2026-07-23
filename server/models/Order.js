@@ -40,6 +40,10 @@ const orderSchema = new mongoose.Schema(
         pricePerPage: Number,
         price: Number,
         userPrice: Number,
+        adminColor: {
+          type: String,
+          default: '',
+        },
       },
     ],
     amount: {
@@ -113,6 +117,10 @@ const orderSchema = new mongoose.Schema(
     },
     referralCode: {
       type: String,
+    },
+    adminColor: {
+      type: String,
+      default: '',
     },
   },
   { timestamps: true }

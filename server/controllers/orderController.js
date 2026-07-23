@@ -393,3 +393,17 @@ export const markCodPaid = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const updateOrderColor = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { color } = req.body;
+    const order = await Order.findOne({ orderId: orderId });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    order.adminColor = color;
+    await order.save();
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
