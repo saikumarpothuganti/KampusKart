@@ -163,6 +163,15 @@ const Admin = () => {
     }
   };
 
+  const handleToggleCod = async (userId) => {
+    try {
+      await API.put(`/auth/admin/cod/${userId}`);
+      fetchData();
+    } catch (error) {
+      alert('Failed to toggle COD access');
+    }
+  };
+
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setPasswordError('');
@@ -2134,6 +2143,7 @@ const Admin = () => {
                 <th className="p-3">Email</th>
                 <th className="p-3">Joined Date</th>
                 <th className="p-3">Marketing Man</th>
+                <th className="p-3">COD Access</th>
                 <th className="p-3">Total Orders</th>
                 <th className="p-3">Total Spent</th>
               </tr>
@@ -2171,6 +2181,20 @@ const Admin = () => {
                           />
                           <div className={`block w-10 h-6 rounded-full transition-colors ${u.isMarketing ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                           <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${u.isMarketing ? 'transform translate-x-4' : ''}`}></div>
+                        </div>
+                      </label>
+                    </td>
+                    <td className="p-3">
+                      <label className="flex items-center cursor-pointer">
+                        <div className="relative">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only" 
+                            checked={u.codEnabled || false} 
+                            onChange={() => handleToggleCod(u._id)} 
+                          />
+                          <div className={`block w-10 h-6 rounded-full transition-colors ${u.codEnabled ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
+                          <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${u.codEnabled ? 'transform translate-x-4' : ''}`}></div>
                         </div>
                       </label>
                     </td>

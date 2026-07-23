@@ -106,6 +106,16 @@ const Profile = () => {
     }
   };
 
+  const handleGenderChange = async (e) => {
+    const newGender = e.target.value;
+    try {
+      const res = await API.put('/auth/profile', { gender: newGender });
+      setProfile(res.data);
+    } catch (error) {
+      alert('Failed to update gender');
+    }
+  };
+
   if (loading) return <LoadingScreen duration={0} onFinished={() => {}} />;
   if (!profile) return <div className="min-h-screen flex items-center justify-center bg-[#F9F8F4] text-red-500">Failed to load profile</div>;
 
@@ -222,9 +232,19 @@ const Profile = () => {
                     <div className="w-10 h-10 bg-[#E8F0E5] rounded-full flex items-center justify-center text-[#2E7D32] shadow-inner">
                       <OrigamiUser className="w-5 h-5" />
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Gender</p>
-                      <p className="font-bold text-[#1a3625] capitalize">{profile.gender || 'Not Specified'}</p>
+                    <div className="flex-1 flex items-center justify-between pr-4">
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Gender</p>
+                        <select 
+                          value={profile.gender || 'Male'} 
+                          onChange={handleGenderChange}
+                          className="font-bold text-[#1a3625] bg-transparent border-none outline-none cursor-pointer focus:ring-0 p-0 -ml-1"
+                        >
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 

@@ -35,13 +35,17 @@ const userSchema = new mongoose.Schema(
     gender: {
       type: String,
       enum: ['Male', 'Female', 'Other'],
-      default: 'Other',
+      default: 'Male',
     },
     isAdmin: {
       type: Boolean,
       default: false,
     },
     isMarketing: {
+      type: Boolean,
+      default: false,
+    },
+    codEnabled: {
       type: Boolean,
       default: false,
     },

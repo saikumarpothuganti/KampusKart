@@ -256,7 +256,27 @@ export const getProfile = async (req, res) => {
     const user = await User.findById(req.user.id).select('-passwordHash');
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { gender } = req.body;
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (gender && ['Male', 'Female', 'Other'].includes(gender)) {
+      user.gender = gender;
+    }
+
+    await user.save();
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
@@ -317,6 +337,29 @@ export const getAllUsers = async (req, res) => {
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
+  }
+};
+
+export const toggleCodStatus = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.codEnabled = !user.codEnabled;
+    await user.save();
+    
+    res.json(user);
+  } catch (error) {
+    console.error('Error toggling COD status:', error);
+    res.status(500).json({ error: 'Failed to toggle COD status' });
   }
 };
 

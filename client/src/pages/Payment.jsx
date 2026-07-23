@@ -238,7 +238,7 @@ const Payment = () => {
                   />
                   <span className="text-sm text-black">Full Payment</span>
                 </label>
-                {isBulkOrder() && (
+                {user?.codEnabled ? (
                   <label className="inline-flex items-center gap-2">
                     <input
                       type="radio"
@@ -249,6 +249,15 @@ const Payment = () => {
                     />
                     <span className="text-sm text-black">Split Payment (50% Advance, Rest COD)</span>
                   </label>
+                ) : (
+                  <div className="mt-2 text-sm text-gray-700 bg-blue-50 p-3 rounded border border-blue-200 shadow-inner">
+                    <p className="font-semibold mb-1">Looking for 50% Cash on Delivery?</p>
+                    <p>We understand your issue! Contact admin to request COD for your account:</p>
+                    <div className="flex gap-4 mt-2">
+                      <a href="https://t.me/KampusKart_Klu" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-bold hover:text-blue-800">Telegram Group</a>
+                      <a href="https://instagram.com/kampuskart_klu" target="_blank" rel="noopener noreferrer" className="text-pink-600 underline font-bold hover:text-pink-800">Instagram</a>
+                    </div>
+                  </div>
                 )}
               </div>
               {paymentType === 'PARTIAL' && (
