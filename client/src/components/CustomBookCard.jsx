@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/CardAnimations.css';
-import basicBookImg from '../assets/basic books (1).jpeg';
+import basicBookImg from '../assets/basic books-2.jpeg';
 import standardBookImg from '../assets/standard books.jpeg';
 import API from '../lib/api';
 import { useAuth } from '../context/AuthContext';

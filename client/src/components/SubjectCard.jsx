@@ -1,6 +1,6 @@
 import React from 'react';
 import KLlogo from '../assets/KLlogo.png';
-import basicBookImg from '../assets/basic books (1).jpeg';
+import basicBookImg from '../assets/basic books-2.jpeg';
 import standardBookImg from '../assets/standard books.jpeg';
 import '../styles/CardAnimations.css';
 
