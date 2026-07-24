@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, signin, getProfile, updateProfile, changePassword, updateAvatar, googleAuth, getAllUsers, sendOtp, resetPassword, toggleMarketingStatus, toggleCodStatus, getReferralUsers } from '../controllers/authController.js';
+import { signup, signin, getProfile, updateProfile, changePassword, updateAvatar, googleAuth, getAllUsers, sendOtp, resetPassword, toggleMarketingStatus, toggleCodStatus, getReferralUsers, addReferralCode } from '../controllers/authController.js';
 import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
@@ -17,5 +17,6 @@ router.get('/admin/all', authMiddleware, getAllUsers);
 router.put('/admin/marketing/:id', authMiddleware, toggleMarketingStatus);
 router.put('/admin/cod/:id', authMiddleware, toggleCodStatus);
 router.get('/admin/referrals', authMiddleware, getReferralUsers);
+router.post('/admin/referrals/:userId/code', authMiddleware, addReferralCode);
 
 export default router;

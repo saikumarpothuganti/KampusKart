@@ -154,6 +154,24 @@ const Admin = () => {
     }
   };
 
+  const handleAddReferralCode = async (userId) => {
+    const newCode = window.prompt('Enter an additional referral code:');
+    if (newCode === null) return; // cancelled
+    if (!newCode.trim()) {
+      alert('Referral code cannot be empty.');
+      return;
+    }
+    
+    try {
+      await API.post(`/auth/admin/referrals/${userId}/code`, { newCode: newCode.trim() });
+      alert('Referral code added successfully!');
+      fetchData(); // Refresh all admin data including referral users
+    } catch (error) {
+      console.error('Failed to add referral code:', error);
+      alert(error?.response?.data?.error || 'Failed to add referral code.');
+    }
+  };
+
   const handleToggleMarketing = async (userId) => {
     try {
       await API.put(`/auth/admin/marketing/${userId}`);
@@ -2240,9 +2258,26 @@ const Admin = () => {
                 <div>
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-lg text-[#18382A]">{refData.user.name}</h4>
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold border border-green-200">
-                      {refData.user.referralCode}
-                    </span>
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      {refData.user.referralCodes && refData.user.referralCodes.length > 0 ? (
+                        refData.user.referralCodes.map(code => (
+                          <span key={code} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold border border-green-200">
+                            {code}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold border border-green-200">
+                          {refData.user.referralCode}
+                        </span>
+                      )}
+                      <button 
+                        onClick={() => handleAddReferralCode(refData.user._id)}
+                        className="text-white bg-primary hover:bg-primary/90 w-6 h-6 rounded-full flex items-center justify-center transition-colors text-sm font-bold ml-1 shadow"
+                        title="Add Referral Code"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-4">{refData.user.email}</p>
                 </div>

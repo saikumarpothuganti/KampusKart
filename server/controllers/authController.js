@@ -379,9 +379,14 @@ export const toggleMarketingStatus = async (req, res) => {
     user.isMarketing = !user.isMarketing;
     
     // If enabling marketing and they don't have a code, generate one
-    if (user.isMarketing && !user.referralCode) {
-      const randomDigits = Math.floor(1000 + Math.random() * 9000);
-      user.referralCode = `${user.userId}${randomDigits}`;
+    if (user.isMarketing) {
+      if (!user.referralCode) {
+        const randomDigits = Math.floor(100 + Math.random() * 900);
+        user.referralCode = `${user.userId}${randomDigits}`;
+      }
+      if (!user.referralCodes || user.referralCodes.length === 0) {
+        user.referralCodes = [user.referralCode];
+      }
     }
 
     await user.save();
@@ -406,16 +411,17 @@ export const getReferralUsers = async (req, res) => {
       let totalOrders = 0;
       let totalBooksSold = 0;
       let orders = [];
-
-      if (code) {
-        orders = await Order.find({ referralCode: code }).sort({ createdAt: -1 });
-        totalOrders = orders.length;
-        for (const order of orders) {
-          if (order.status !== 'cancelled') {
-             for (const item of order.items) {
-               totalBooksSold += (item.qty || 1);
-             }
-          }
+      if (user.referralCodes && user.referralCodes.length > 0) {
+        orders = await Order.find({ referralCode: { $in: user.referralCodes } }).sort({ createdAt: -1 });
+      } else if (user.referralCode) {
+        orders = await Order.find({ referralCode: user.referralCode }).sort({ createdAt: -1 });
+      }
+      totalOrders = orders.length;
+      for (const order of orders) {
+        if (order.status !== 'cancelled') {
+           for (const item of order.items) {
+             totalBooksSold += (item.qty || 1);
+           }
         }
       }
 
@@ -433,6 +439,59 @@ export const getReferralUsers = async (req, res) => {
   } catch (error) {
     console.error('Error fetching referral users:', error);
     res.status(500).json({ error: 'Failed to fetch referral users' });
+  }
+};
+
+export const addReferralCode = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    const { userId } = req.params;
+    const { newCode } = req.body;
+
+    if (!newCode || newCode.trim() === '') {
+      return res.status(400).json({ error: 'Referral code cannot be empty' });
+    }
+
+    const finalNewCode = newCode.trim();
+
+    // Check if any user already has this exact code in their referralCodes array or as referralCode
+    const existingUserWithCode = await User.findOne({ 
+      $or: [
+        { referralCode: finalNewCode },
+        { referralCodes: finalNewCode }
+      ]
+    });
+    if (existingUserWithCode && existingUserWithCode._id.toString() !== userId) {
+      return res.status(400).json({ error: 'This referral code is already taken by another user' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Initialize array if empty
+    if (!user.referralCodes) {
+      user.referralCodes = [];
+    }
+    
+    // Add old code if array is empty but string exists
+    if (user.referralCode && user.referralCodes.length === 0) {
+      user.referralCodes.push(user.referralCode);
+    }
+
+    if (!user.referralCodes.includes(finalNewCode)) {
+      user.referralCodes.push(finalNewCode);
+    }
+
+    await user.save();
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error adding referral code:', error);
+    res.status(500).json({ error: 'Failed to add referral code' });
   }
 };
 

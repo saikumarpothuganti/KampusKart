@@ -260,25 +260,29 @@ const Profile = () => {
                   </div>
                   <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent"></div>
                   
-                  {profile.isMarketing && profile.referralCode && (
+                  {(profile.isMarketing && (profile.referralCodes?.length > 0 || profile.referralCode)) && (
                     <>
-                      <div className="flex items-center gap-4 bg-green-50 p-4 rounded-xl border border-green-100">
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-[#2E7D32] shadow-inner">
+                      <div className="flex items-start gap-4 bg-green-50 p-4 rounded-xl border border-green-100">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-[#2E7D32] shadow-inner shrink-0 mt-1">
                           <OrigamiTag className="w-5 h-5" />
                         </div>
-                        <div>
-                          <p className="text-xs text-green-800 font-medium mb-1">Your Referral Code</p>
-                          <div className="flex items-center gap-3">
-                            <code className="bg-white px-3 py-1 rounded text-[#1a3625] font-bold border border-green-200 text-lg tracking-widest">{profile.referralCode}</code>
-                            <button 
-                              onClick={() => {
-                                navigator.clipboard.writeText(profile.referralCode);
-                                alert('Referral code copied to clipboard!');
-                              }}
-                              className="text-xs bg-[#488A58] text-white px-3 py-1.5 rounded hover:bg-[#3A764A] transition-colors font-bold shadow-sm"
-                            >
-                              Copy
-                            </button>
+                        <div className="flex-1">
+                          <p className="text-xs text-green-800 font-medium mb-3">Your Referral Codes</p>
+                          <div className="flex flex-col gap-3">
+                            {(profile.referralCodes?.length > 0 ? profile.referralCodes : [profile.referralCode]).map(code => (
+                              <div key={code} className="flex items-center gap-3">
+                                <code className="bg-white px-3 py-1 rounded text-[#1a3625] font-bold border border-green-200 text-lg tracking-widest">{code}</code>
+                                <button 
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(code);
+                                    alert('Referral code copied to clipboard!');
+                                  }}
+                                  className="text-xs bg-[#488A58] text-white px-3 py-1.5 rounded hover:bg-[#3A764A] transition-colors font-bold shadow-sm"
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
