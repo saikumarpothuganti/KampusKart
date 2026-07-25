@@ -219,7 +219,7 @@ export const deleteOrder = async (req, res) => {
     const { orderId } = req.params;
     
     const orderToBackup = await Order.findOne({ orderId });
-    if (orderToBackup) {
+    if (orderToBackup && orderToBackup.referralCode) {
       const DeletedOrder = (await import('../models/DeletedOrder.js')).default;
       const backupData = orderToBackup.toObject();
       delete backupData._id;
