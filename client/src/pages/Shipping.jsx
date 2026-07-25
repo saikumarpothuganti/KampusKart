@@ -49,7 +49,7 @@ const Shipping = () => {
                 <span className="bg-emerald-100 text-emerald-800 text-sm py-1 px-3 rounded-full">04</span>
                 Delivery Address
               </h2>
-              <p>Delivery of all orders will be to the address provided by the buyer. Delivery of our services will be confirmed on your mail ID as specified during registration. For any issues in utilizing our services you may contact our helpdesk on +91 90000 00000 or support.kampuskart.klu@gmail.com.</p>
+              <p>Delivery of all orders will be to the address provided by the buyer. Delivery of our services will be confirmed on your mail ID as specified during registration. For any issues in utilizing our services you may contact our helpdesk on +91 90144 09091 or support.kampuskart.klu@gmail.com.</p>
             </section>
 
           </div>

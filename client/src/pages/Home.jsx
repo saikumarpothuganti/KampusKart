@@ -326,7 +326,7 @@ const Home = () => {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-paper/50 uppercase tracking-wider mb-1">Phone</span>
-                    <a href="tel:+919000000000" className="text-sm text-paper/80 hover:text-paper transition">+91 90000 00000</a>
+                    <a href="tel:+919014409091" className="text-sm text-paper/80 hover:text-paper transition">+91 90144 09091</a>
                   </div>
                 </div>
               </div>
