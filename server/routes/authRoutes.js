@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, signin, getProfile, updateProfile, changePassword, updateAvatar, googleAuth, getAllUsers, sendOtp, resetPassword, toggleMarketingStatus, toggleCodStatus, getReferralUsers, addReferralCode } from '../controllers/authController.js';
+import { signup, signin, getProfile, updateProfile, changePassword, updateAvatar, googleAuth, getAllUsers, sendOtp, resetPassword, toggleMarketingStatus, toggleCodStatus, toggleSupplierStatus, getSuppliers, getReferralUsers, addReferralCode } from '../controllers/authController.js';
 import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
@@ -16,6 +16,8 @@ router.post('/google', googleAuth);
 router.get('/admin/all', authMiddleware, getAllUsers);
 router.put('/admin/marketing/:id', authMiddleware, toggleMarketingStatus);
 router.put('/admin/cod/:id', authMiddleware, toggleCodStatus);
+router.put('/admin/supplier/:id', authMiddleware, toggleSupplierStatus);
+router.get('/admin/suppliers', authMiddleware, getSuppliers);
 router.get('/admin/referrals', authMiddleware, getReferralUsers);
 router.post('/admin/referrals/:userId/code', authMiddleware, addReferralCode);
 

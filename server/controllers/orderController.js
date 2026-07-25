@@ -1,5 +1,6 @@
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
+import User from '../models/User.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendNotificationToUser } from './pushController.js';
 import { getFlag } from './toggleController.js';
@@ -179,7 +180,7 @@ export const updateOrderStatus = async (req, res) => {
       { orderId },
       updates,
       { new: true }
-    );
+    ).populate('supplier', 'name');
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
@@ -402,6 +403,158 @@ export const updateOrderColor = async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Order not found' });
     order.adminColor = color;
     await order.save();
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getSupplierOrders = async (req, res) => {
+  try {
+    let filter = { supplier: { $exists: true, $ne: null }, isDeleted: { $ne: true } };
+    if (!req.user.isAdmin) {
+      if (!req.user.isSupplier) return res.status(403).json({ error: 'Supplier access required' });
+      filter.supplier = req.user.id;
+    }
+    
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).populate('supplier', 'name email').lean();
+    
+    if (!req.user.isAdmin) {
+      orders.forEach(order => {
+        delete order.amount;
+        delete order.payment;
+        order.items.forEach(item => {
+          delete item.price;
+          delete item.userPrice;
+        });
+      });
+    }
+
+    const userObj = await User.findById(filter.supplier || req.user.id);
+    const supplierStats = userObj?.supplierStats || { totalOrders: 0, singleSidedBooks: 0, doubleSidedBooks: 0, basicBooks: 0, standardBooks: 0, totalEarnings: 0 };
+
+    res.json({ orders, supplierStats });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch supplier orders' });
+  }
+};
+
+const resolveSideType = (item) => {
+  if (item.type === 'custom') return item.printSides === 'double' ? 'double' : 'single';
+  if (item?.sideType && (item.sideType === 'single' || item.sideType === 'double')) return item.sideType;
+  return Number(item?.sides) === 2 ? 'double' : 'single';
+};
+
+const getOrderStats = (order) => {
+  let singleBooks = 0, doubleBooks = 0, basicBooks = 0, standardBooks = 0, earnings = 0;
+  const items = Array.isArray(order.items) ? order.items : [];
+  items.forEach(item => {
+    const type = resolveSideType(item);
+    const qty = item.qty || 0;
+    const cost = item.supplierCost || 0;
+    if (type === 'double') doubleBooks += qty; else singleBooks += qty;
+    if (item.quality === 'Basic' || item.quality === 'basic') basicBooks += qty;
+    else if (item.quality === 'Standard' || item.quality === 'standard') standardBooks += qty;
+    earnings += cost * qty;
+  });
+  return { singleBooks, doubleBooks, basicBooks, standardBooks, earnings };
+};
+
+export const fixSupplierPrices = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { itemCosts } = req.body; 
+
+    const order = await Order.findOne({ orderId });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (!req.user.isAdmin && order.supplier?.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized for this order' });
+    }
+
+    const isAlreadyPriced = order.supplierStatus === 'priced';
+    let oldStats = { singleBooks: 0, doubleBooks: 0, basicBooks: 0, standardBooks: 0, earnings: 0 };
+    if (isAlreadyPriced) {
+      oldStats = getOrderStats(order);
+    }
+
+    order.items.forEach(item => {
+      const costObj = itemCosts.find(c => c.itemId === item._id.toString());
+      if (costObj !== undefined) {
+        item.supplierCost = Number(costObj.cost) || 0;
+      }
+    });
+    order.supplierStatus = 'priced';
+    order.allowSupplierEdit = false;
+    await order.save();
+
+    const newStats = getOrderStats(order);
+    
+    const diff = {
+      totalOrders: isAlreadyPriced ? 0 : 1,
+      singleSidedBooks: newStats.singleBooks - oldStats.singleBooks,
+      doubleSidedBooks: newStats.doubleBooks - oldStats.doubleBooks,
+      basicBooks: newStats.basicBooks - oldStats.basicBooks,
+      standardBooks: newStats.standardBooks - oldStats.standardBooks,
+      totalEarnings: newStats.earnings - oldStats.earnings
+    };
+
+    if (order.supplier) {
+      await User.findByIdAndUpdate(order.supplier, {
+        $inc: {
+          'supplierStats.totalOrders': diff.totalOrders,
+          'supplierStats.singleSidedBooks': diff.singleSidedBooks,
+          'supplierStats.doubleSidedBooks': diff.doubleSidedBooks,
+          'supplierStats.basicBooks': diff.basicBooks,
+          'supplierStats.standardBooks': diff.standardBooks,
+          'supplierStats.totalEarnings': diff.totalEarnings,
+        }
+      });
+    }
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fix prices' });
+  }
+};
+
+export const allowEditSupplierPrices = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+    
+    const { orderId } = req.params;
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      { allowSupplierEdit: true },
+      { new: true }
+    );
+
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to allow edit' });
+  }
+};
+
+export const updateOrderItems = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { orderId } = req.params;
+    const { items, amount } = req.body;
+
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      { items, amount },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
     res.json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });

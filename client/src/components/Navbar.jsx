@@ -130,6 +130,7 @@ const Navbar = () => {
 
   const navLinks = [
     { label: 'Home', to: '/' },
+    ...(user?.isSupplier ? [{ label: 'Supplier Dashboard', to: '/supplier' }] : []),
     { label: 'Workbook', to: '/workbook' },
     { label: 'About', to: '/about' },
     { label: 'Services', to: '/about#services' },
@@ -253,13 +254,22 @@ const Navbar = () => {
                         </div>
                       )}
                     </div>
+                    {(user.isAdmin || user.isSupplier) && (
+                      <Link
+                        to="/supplier"
+                        className="block px-4 py-3 text-sm hover:bg-paper border-b border-ink/10 font-medium"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        🏭 Supplier Dashboard
+                      </Link>
+                    )}
                     {user.isAdmin && (
                       <Link
                         to="/admin"
                         className="block px-4 py-3 text-sm hover:bg-paper border-b border-ink/10 font-medium"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        🛡️ Admin Dashboard
+                        ⚙️ Admin Dashboard
                       </Link>
                     )}
                     <Link

@@ -61,14 +61,26 @@ const Admin = () => {
   const [pushMessage, setPushMessage] = useState('');
   const [isSendingPush, setIsSendingPush] = useState(false);
   const [isUploadingQr, setIsUploadingQr] = useState(false);
+  const [suppliers, setSuppliers] = useState([]);
+  const [supplierSelectModal, setSupplierSelectModal] = useState({ isOpen: false, orderId: null });
+  const [editingAdminOrders, setEditingAdminOrders] = useState({});
+  const [adminOrderForm, setAdminOrderForm] = useState({});
+  const [adminOrderTotalOverrides, setAdminOrderTotalOverrides] = useState({});
 
   // Resolver function: Unified logic for determining item.sideType
   const resolveSideType = (item) => {
+    if (item.type === 'custom') {
+      return item.printSides === 'double' ? 'double' : 'single';
+    }
     if (item?.sideType && (item.sideType === 'single' || item.sideType === 'double')) {
       return item.sideType;
     }
-    // Fallback: infer from sides
+    // Fallback: mostly for subjects/workbooks
     return Number(item?.sides) === 2 ? 'double' : 'single';
+  };
+
+  const getQualityBg = (quality) => {
+    return quality === 'basic' ? 'bg-gray-200 border-gray-400' : 'bg-[#fff5e1] border-[#f2d59f]';
   };
 
   const normalizeStatus = (status) => (status || '').toLowerCase().trim();
@@ -114,19 +126,21 @@ const Admin = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [ordersRes, subjectsRes, pdfRequestsRes, pickupPointsRes, usersRes, qrRes] = await Promise.all([
+      const [ordersRes, subjectsRes, pdfRequestsRes, pickupPointsRes, usersRes, qrRes, suppliersRes] = await Promise.all([
         API.get('/orders/admin/all'),
         API.get('/subjects/all'),
         API.get('/pdf-requests/admin/all'),
         API.get('/pickup-points/admin/all'),
         API.get('/auth/admin/all'),
         API.get('/settings/paymentQrUrl'),
+        API.get('/auth/admin/suppliers')
       ]);
       setOrders(ordersRes.data);
       setSubjects(subjectsRes.data);
       setPdfRequests(pdfRequestsRes.data);
       setPickupPoints(pickupPointsRes.data);
       setUsers(usersRes.data);
+      setSuppliers(suppliersRes.data);
       if (qrRes.data?.value) setPaymentQrUrl(qrRes.data.value);
       
       // Fetch feedbacks separately to avoid breaking admin panel if it fails
@@ -186,7 +200,18 @@ const Admin = () => {
       await API.put(`/auth/admin/cod/${userId}`);
       fetchData();
     } catch (error) {
+      console.error('Failed to toggle COD access:', error);
       alert('Failed to toggle COD access');
+    }
+  };
+
+  const handleToggleSupplier = async (userId) => {
+    try {
+      await API.put(`/auth/admin/supplier/${userId}`);
+      fetchData();
+    } catch (error) {
+      console.error('Failed to toggle Supplier status:', error);
+      alert('Failed to toggle Supplier status');
     }
   };
 
@@ -293,6 +318,11 @@ const Admin = () => {
     const nextStatus = getNextStatus(currentStatus);
     if (!nextStatus) return;
 
+    if (nextStatus === 'printing') {
+      setSupplierSelectModal({ isOpen: true, orderId });
+      return;
+    }
+
     const confirmMsg = `Move order ${orderId} from "${currentStatus}" to "${nextStatus}"?`;
     if (!window.confirm(confirmMsg)) return;
 
@@ -305,6 +335,31 @@ const Admin = () => {
     }
   };
 
+  const handleAssignSupplier = async (supplierId) => {
+    if (!supplierSelectModal.orderId || !supplierId) return;
+    try {
+      const res = await API.put(`/orders/${supplierSelectModal.orderId}/status`, { 
+        status: 'printing', 
+        supplierId 
+      });
+      setOrders(orders.map((o) => (o.orderId === supplierSelectModal.orderId ? res.data : o)));
+      setSupplierSelectModal({ isOpen: false, orderId: null });
+      alert('Order sent to printing and assigned to supplier');
+    } catch (error) {
+      alert('Failed to assign supplier');
+    }
+  };
+
+  const handleAllowEditPrices = async (orderId) => {
+    try {
+      const res = await API.put(`/orders/${orderId}/allow-edit-prices`);
+      setOrders(orders.map((o) => (o.orderId === orderId ? res.data : o)));
+      alert('Supplier is now allowed to edit prices again.');
+    } catch (error) {
+      alert('Failed to allow price edits');
+    }
+  };
+
   const handleCancelOrder = async (orderId) => {
     try {
       const res = await API.put(`/orders/${orderId}/status`, { status: 'cancelled' });
@@ -312,6 +367,53 @@ const Admin = () => {
       alert('Order cancelled');
     } catch (error) {
       alert('Failed to cancel order');
+    }
+  };
+
+  const handleUpdateColor = async (orderId, color) => {
+    try {
+      await API.put(`/orders/${orderId}/color`, { color });
+      setOrders(orders.map(o => o.orderId === orderId ? { ...o, adminColor: color } : o));
+    } catch (error) {
+      console.error('Failed to update color', error);
+    }
+  };
+
+  const handleAdminPriceChange = (orderId, itemIndex, newPrice) => {
+    setAdminOrderForm(prev => {
+      const form = prev[orderId] || [];
+      const updatedForm = [...form];
+      updatedForm[itemIndex] = { ...updatedForm[itemIndex], userPrice: newPrice };
+      return { ...prev, [orderId]: updatedForm };
+    });
+  };
+
+  const handleAdminRemoveItem = (orderId, itemIndex) => {
+    setAdminOrderForm(prev => {
+      const form = prev[orderId] || [];
+      const updatedForm = form.filter((_, idx) => idx !== itemIndex);
+      return { ...prev, [orderId]: updatedForm };
+    });
+  };
+
+  const handleSaveAdminOrder = async (orderId) => {
+    try {
+      const updatedItems = adminOrderForm[orderId];
+      const manualAmount = adminOrderTotalOverrides[orderId];
+      if (!updatedItems) return;
+      
+      const payload = { items: updatedItems };
+      if (manualAmount !== undefined && manualAmount !== null && manualAmount !== '') {
+        payload.manualAmount = Number(manualAmount);
+      }
+
+      const res = await API.put(`/orders/${orderId}/items`, payload);
+      setOrders(orders.map(o => o.orderId === orderId ? res.data : o));
+      setEditingAdminOrders(prev => ({ ...prev, [orderId]: false }));
+      alert('Order updated successfully');
+    } catch (error) {
+      console.error('Failed to update order', error);
+      alert('Failed to update order');
     }
   };
 
@@ -889,7 +991,88 @@ const Admin = () => {
 
                   {/* Item details grouped by print type */}
                   <div className="mb-4">
-                    <p className="text-sm text-gray-600 mb-2">Items</p>
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm text-gray-600">Items</p>
+                      {!editingAdminOrders[order.orderId] && (
+                        <button
+                          onClick={() => {
+                            setAdminOrderForm(prev => ({ ...prev, [order.orderId]: safeItems }));
+                            setAdminOrderTotalOverrides(prev => ({ ...prev, [order.orderId]: order.amount }));
+                            setEditingAdminOrders(prev => ({ ...prev, [order.orderId]: true }));
+                          }}
+                          className="text-xs flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded border border-gray-300"
+                        >
+                          ✏️ Edit Items
+                        </button>
+                      )}
+                    </div>
+                    
+                    {editingAdminOrders[order.orderId] ? (
+                      <div className="space-y-2">
+                        {(adminOrderForm[order.orderId] || []).map((item, idx) => (
+                          <div key={idx} className="flex flex-col md:flex-row justify-between items-center bg-gray-50 border rounded px-3 py-2">
+                            <div className="flex-1 mb-2 md:mb-0 w-full">
+                              <p className="font-semibold text-gray-900 text-sm">
+                                {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
+                              </p>
+                              <p className="text-xs text-gray-600">Qty: {item.qty}</p>
+                            </div>
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                              <div className="flex flex-col">
+                                <label className="text-xs text-gray-500 font-bold">Price (Single Item)</label>
+                                <input 
+                                  type="number"
+                                  min="0"
+                                  step="0.1"
+                                  className="w-24 p-1 text-sm border rounded"
+                                  value={item.userPrice ?? item.price ?? 0}
+                                  onChange={(e) => handleAdminPriceChange(order.orderId, idx, Number(e.target.value))}
+                                />
+                              </div>
+                              <button 
+                                onClick={() => handleAdminRemoveItem(order.orderId, idx)}
+                                className="text-red-500 hover:bg-red-100 p-1 rounded"
+                                title="Remove Item"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        {(!adminOrderForm[order.orderId] || adminOrderForm[order.orderId].length === 0) && (
+                          <p className="text-red-500 text-sm italic">All items removed.</p>
+                        )}
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <label className="text-sm font-bold text-gray-800 flex items-center justify-between">
+                            Manual Grand Total Override (₹)
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              className="w-32 p-1 text-sm border rounded font-normal"
+                              value={adminOrderTotalOverrides[order.orderId] ?? ''}
+                              onChange={(e) => setAdminOrderTotalOverrides(prev => ({ ...prev, [order.orderId]: e.target.value }))}
+                              placeholder="e.g. 50"
+                            />
+                          </label>
+                        </div>
+                        <div className="flex justify-end gap-2 mt-4">
+                          <button
+                            onClick={() => setEditingAdminOrders(prev => ({ ...prev, [order.orderId]: false }))}
+                            className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded text-gray-800"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveAdminOrder(order.orderId)}
+                            className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 rounded text-white font-bold"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
                     {(() => {
                       const singles = [];
                       const doubles = [];
@@ -904,13 +1087,19 @@ const Admin = () => {
                             <p className="text-xs font-semibold text-gray-700">Single-side</p>
                           )}
                           {singles.map((item, idx) => (
-                            <div key={`s-${idx}`} className="flex flex-col rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                            <div key={`s-${idx}`} className={`flex flex-col rounded border px-3 py-2 ${getQualityBg(item.quality)}`}>
                               <div className="flex justify-between">
                                 <div className="flex-1">
                                   <p className="font-semibold text-gray-900">
                                     {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
                                   </p>
-                                  <p className="text-xs text-gray-600">Print: Single · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span></p>
+                                  <p className="text-xs text-gray-800">Print: Single · Qty: {item.qty} · Quality: <span className="capitalize font-bold">{item.quality || 'standard'}</span></p>
+                                  {item.type === 'custom' && item.pdfUrl && (
+                                    <div className="flex gap-2 mt-2">
+                                      <a href={item.pdfUrl} target="_blank" rel="noreferrer" className="text-[10px] bg-blue-500 text-white px-2 py-1 rounded shadow hover:bg-blue-600 transition-colors">View PDF</a>
+                                      <a href={item.pdfUrl} download className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded shadow hover:bg-blue-700 transition-colors">Download</a>
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="text-sm text-gray-800">
                                   {item.pricePerPage !== undefined && item.pricePerPage !== null && (
@@ -934,13 +1123,19 @@ const Admin = () => {
                             <p className="mt-2 text-xs font-semibold text-gray-700">Double-side</p>
                           )}
                           {doubles.map((item, idx) => (
-                            <div key={`d-${idx}`} className="flex flex-col rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                            <div key={`d-${idx}`} className={`flex flex-col rounded border px-3 py-2 ${getQualityBg(item.quality)}`}>
                               <div className="flex justify-between">
                                 <div className="flex-1">
                                   <p className="font-semibold text-gray-900">
                                     {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
                                   </p>
-                                  <p className="text-xs text-gray-600">Print: Double · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span></p>
+                                  <p className="text-xs text-gray-800">Print: Double · Qty: {item.qty} · Quality: <span className="capitalize font-bold">{item.quality || 'standard'}</span></p>
+                                  {item.type === 'custom' && item.pdfUrl && (
+                                    <div className="flex gap-2 mt-2">
+                                      <a href={item.pdfUrl} target="_blank" rel="noreferrer" className="text-[10px] bg-blue-500 text-white px-2 py-1 rounded shadow hover:bg-blue-600 transition-colors">View PDF</a>
+                                      <a href={item.pdfUrl} download className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded shadow hover:bg-blue-700 transition-colors">Download</a>
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="text-sm text-gray-800">
                                   {item.pricePerPage !== undefined && item.pricePerPage !== null && (
@@ -963,6 +1158,8 @@ const Admin = () => {
                         </div>
                       );
                     })()}
+                      </>
+                    )}
                     {/* Total price below items */}
                     <div className="mt-3 border-t border-gray-300 pt-3">
                       <p className="text-right font-bold text-lg text-gray-900">
@@ -1083,6 +1280,15 @@ const Admin = () => {
                         </button>
                       )}
 
+                      {order.status === 'printing' && order.supplierStatus === 'priced' && (
+                        <button
+                          onClick={() => handleAllowEditPrices(order.orderId)}
+                          className="bg-purple-500 text-white px-6 py-2 rounded font-semibold hover:bg-purple-600"
+                        >
+                          Unlock Supplier Prices
+                        </button>
+                      )}
+
                       {(order.status === 'sent' || order.status === 'placed' || order.status === 'printing') && (
                         <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-2 rounded font-semibold">
                           ⚠️ Cannot cancel after placed
@@ -1168,7 +1374,7 @@ const Admin = () => {
                   const safeItems = Array.isArray(order.items) ? order.items : [];
                   safeItems.forEach((item) => {
                     const type = resolveSideType(item);
-                    const pages = item.pages || 0;
+                    const pages = item.sides || item.pages || 0;
                     const qty = item.qty || 0;
                     
                     // Calculate item total correctly based on available price fields
@@ -1192,7 +1398,7 @@ const Admin = () => {
 
                     if (type === 'double') {
                       globalDoubleBooks += qty;
-                      globalDoublePages += pages * qty;
+                      globalDoublePages += Math.ceil(pages / 2) * qty;
                       doubleBooksList.push({ title: item.title || item.code || 'Untitled', qty, pages, pricePerPage: displayPrice, total: itemTotal });
                     } else {
                       globalSingleBooks += qty;
@@ -1284,12 +1490,12 @@ const Admin = () => {
                     <div className="mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg p-4 text-white shadow-lg">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                         <div>
-                          <p className="text-sm opacity-90">Total Single Pages</p>
-                          <p className="text-2xl font-bold">{globalSinglePages}</p>
+                          <p className="text-sm opacity-90">Total Single Books</p>
+                          <p className="text-2xl font-bold">{globalSingleBooks}</p>
                         </div>
                         <div>
-                          <p className="text-sm opacity-90">Total Double Pages</p>
-                          <p className="text-2xl font-bold">{globalDoublePages}</p>
+                          <p className="text-sm opacity-90">Total Double Books</p>
+                          <p className="text-2xl font-bold">{globalDoubleBooks}</p>
                         </div>
                         <div>
                           <p className="text-sm opacity-90">Total Books</p>
@@ -1336,7 +1542,7 @@ const Admin = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                       <div>
                         <p className="text-sm text-gray-600">Student ID</p>
                         <p className="font-semibold">{order.student?.collegeId || 'N/A'}</p>
@@ -1349,11 +1555,96 @@ const Admin = () => {
                         <p className="text-sm text-gray-600">Pickup Point</p>
                         <p className="font-semibold">{order.pickupPoint || 'Main Gate'}</p>
                       </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Supplier</p>
+                        <p className="font-semibold">{order.supplier?.name || 'N/A'}</p>
+                      </div>
                     </div>
 
                     {/* Item details grouped by print type */}
                     <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-2">Items</p>
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-sm text-gray-600">Items</p>
+                        {!editingAdminOrders[order.orderId] && (
+                          <button
+                            onClick={() => {
+                              setAdminOrderForm(prev => ({ ...prev, [order.orderId]: safeItems }));
+                              setAdminOrderTotalOverrides(prev => ({ ...prev, [order.orderId]: order.amount }));
+                              setEditingAdminOrders(prev => ({ ...prev, [order.orderId]: true }));
+                            }}
+                            className="text-xs flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded border border-gray-300"
+                          >
+                            ✏️ Edit Items
+                          </button>
+                        )}
+                      </div>
+                      
+                      {editingAdminOrders[order.orderId] ? (
+                        <div className="space-y-2">
+                          {(adminOrderForm[order.orderId] || []).map((item, idx) => (
+                            <div key={idx} className="flex flex-col md:flex-row justify-between items-center bg-gray-50 border rounded px-3 py-2">
+                              <div className="flex-1 mb-2 md:mb-0 w-full">
+                                <p className="font-semibold text-gray-900 text-sm">
+                                  {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
+                                </p>
+                                <p className="text-xs text-gray-600">Qty: {item.qty}</p>
+                              </div>
+                              <div className="flex items-center gap-4 w-full md:w-auto">
+                                <div className="flex flex-col">
+                                  <label className="text-xs text-gray-500 font-bold">Price (Single Item)</label>
+                                  <input 
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    className="w-24 p-1 text-sm border rounded"
+                                    value={item.userPrice ?? item.price ?? 0}
+                                    onChange={(e) => handleAdminPriceChange(order.orderId, idx, Number(e.target.value))}
+                                  />
+                                </div>
+                                <button 
+                                  onClick={() => handleAdminRemoveItem(order.orderId, idx)}
+                                  className="text-red-500 hover:bg-red-100 p-1 rounded"
+                                  title="Remove Item"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          {(!adminOrderForm[order.orderId] || adminOrderForm[order.orderId].length === 0) && (
+                            <p className="text-red-500 text-sm italic">All items removed.</p>
+                          )}
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <label className="text-sm font-bold text-gray-800 flex items-center justify-between">
+                              Manual Grand Total Override (₹)
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                className="w-32 p-1 text-sm border rounded font-normal"
+                                value={adminOrderTotalOverrides[order.orderId] ?? ''}
+                                onChange={(e) => setAdminOrderTotalOverrides(prev => ({ ...prev, [order.orderId]: e.target.value }))}
+                                placeholder="e.g. 50"
+                              />
+                            </label>
+                          </div>
+                          <div className="flex justify-end gap-2 mt-4">
+                            <button
+                              onClick={() => setEditingAdminOrders(prev => ({ ...prev, [order.orderId]: false }))}
+                              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded text-gray-800"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveAdminOrder(order.orderId)}
+                              className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 rounded text-white font-bold"
+                            >
+                              Save Changes
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
                       {safeItems.length === 0 ? (
                         <p className="text-gray-500 italic">No printable items</p>
                       ) : (
@@ -1372,13 +1663,19 @@ const Admin = () => {
                                   <p className="text-xs font-semibold text-gray-700">Single-side</p>
                                 )}
                                 {singles.map((item, idx) => (
-                                  <div key={`s-${idx}`} className="flex flex-col rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                                  <div key={`s-${idx}`} className={`flex flex-col rounded border px-3 py-2 ${getQualityBg(item.quality)}`}>
                                     <div className="flex justify-between">
                                       <div className="flex-1">
                                         <p className="font-semibold text-gray-900">
                                           {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
                                         </p>
-                                        <p className="text-xs text-gray-600">Print: Single · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span></p>
+                                        <p className="text-xs text-gray-800">Print: Single · Qty: {item.qty} · Quality: <span className="capitalize font-bold">{item.quality || 'standard'}</span></p>
+                                        {item.type === 'custom' && item.pdfUrl && (
+                                          <div className="flex gap-2 mt-2">
+                                            <a href={item.pdfUrl} target="_blank" rel="noreferrer" className="text-[10px] bg-blue-500 text-white px-2 py-1 rounded shadow hover:bg-blue-600 transition-colors">View PDF</a>
+                                            <a href={item.pdfUrl} download className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded shadow hover:bg-blue-700 transition-colors">Download</a>
+                                          </div>
+                                        )}
                                       </div>
                                       <div className="text-sm text-gray-800">
                                         {item.pricePerPage !== undefined && item.pricePerPage !== null && (
@@ -1402,13 +1699,19 @@ const Admin = () => {
                                   <p className="mt-2 text-xs font-semibold text-gray-700">Double-side</p>
                                 )}
                                 {doubles.map((item, idx) => (
-                                  <div key={`d-${idx}`} className="flex flex-col rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                                  <div key={`d-${idx}`} className={`flex flex-col rounded border px-3 py-2 ${getQualityBg(item.quality)}`}>
                                     <div className="flex justify-between">
                                       <div className="flex-1">
                                         <p className="font-semibold text-gray-900">
                                           {item.title || 'Untitled'} {item.code ? `(${item.code})` : ''}
                                         </p>
-                                        <p className="text-xs text-gray-600">Print: Double · Qty: {item.qty} · Quality: <span className="capitalize">{item.quality || 'standard'}</span></p>
+                                        <p className="text-xs text-gray-800">Print: Double · Qty: {item.qty} · Quality: <span className="capitalize font-bold">{item.quality || 'standard'}</span></p>
+                                        {item.type === 'custom' && item.pdfUrl && (
+                                          <div className="flex gap-2 mt-2">
+                                            <a href={item.pdfUrl} target="_blank" rel="noreferrer" className="text-[10px] bg-blue-500 text-white px-2 py-1 rounded shadow hover:bg-blue-600 transition-colors">View PDF</a>
+                                            <a href={item.pdfUrl} download className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded shadow hover:bg-blue-700 transition-colors">Download</a>
+                                          </div>
+                                        )}
                                       </div>
                                       <div className="text-sm text-gray-800">
                                         {item.pricePerPage !== undefined && item.pricePerPage !== null && (
@@ -1438,6 +1741,8 @@ const Admin = () => {
                             </p>
                           </div>
                         </>
+                      )}
+                      </>
                       )}
                     </div>
 
@@ -1491,6 +1796,15 @@ const Admin = () => {
                             className="bg-green-500 text-white px-6 py-2 rounded font-semibold hover:bg-green-600 flex items-center gap-2"
                           >
                             ✓ Accept → {getNextStatus(order.status)}
+                          </button>
+                        )}
+
+                        {order.status === 'printing' && order.supplierStatus === 'priced' && (
+                          <button
+                            onClick={() => handleAllowEditPrices(order.orderId)}
+                            className="bg-purple-500 text-white px-6 py-2 rounded font-semibold hover:bg-purple-600"
+                          >
+                            Unlock Supplier Prices
                           </button>
                         )}
 
@@ -2182,6 +2496,7 @@ const Admin = () => {
                 <th className="p-3">Joined Date</th>
                 <th className="p-3">Marketing Man</th>
                 <th className="p-3">COD Access</th>
+                <th className="p-3">Supplier</th>
                 <th className="p-3">Total Orders</th>
                 <th className="p-3">Total Spent</th>
               </tr>
@@ -2233,6 +2548,20 @@ const Admin = () => {
                           />
                           <div className={`block w-10 h-6 rounded-full transition-colors ${u.codEnabled ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
                           <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${u.codEnabled ? 'transform translate-x-4' : ''}`}></div>
+                        </div>
+                      </label>
+                    </td>
+                    <td className="p-3">
+                      <label className="flex items-center cursor-pointer">
+                        <div className="relative">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only" 
+                            checked={u.isSupplier || false} 
+                            onChange={() => handleToggleSupplier(u._id)} 
+                          />
+                          <div className={`block w-10 h-6 rounded-full transition-colors ${u.isSupplier ? 'bg-purple-500' : 'bg-gray-400'}`}></div>
+                          <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${u.isSupplier ? 'transform translate-x-4' : ''}`}></div>
                         </div>
                       </label>
                     </td>
@@ -2365,6 +2694,44 @@ const Admin = () => {
       okText={alertState.onConfirm ? 'OK' : 'Close'}
       cancelText="Cancel"
     />
+
+    {supplierSelectModal.isOpen && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+        <div className="bg-white p-6 rounded-xl max-w-md w-full shadow-2xl">
+          <h2 className="text-2xl font-bold mb-4">Assign Supplier</h2>
+          <p className="text-gray-600 mb-6">Select a supplier to send Order #{supplierSelectModal.orderId} for printing.</p>
+          <div className="flex flex-col gap-4">
+            <select id="supplierSelect" className="w-full p-3 border border-gray-300 rounded focus:border-primary focus:ring-0">
+              <option value="">-- Choose Supplier --</option>
+              {suppliers.map(s => (
+                <option key={s._id} value={s._id}>{s.name} ({s.email})</option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-3 mt-4">
+              <button 
+                onClick={() => setSupplierSelectModal({ isOpen: false, orderId: null })}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded font-semibold hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  const sId = document.getElementById('supplierSelect').value;
+                  if (!sId) {
+                    alert('Please select a supplier');
+                    return;
+                  }
+                  handleAssignSupplier(sId);
+                }}
+                className="px-4 py-2 bg-primary text-white rounded font-semibold hover:bg-primary/90"
+              >
+                Assign & Print
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   </>
   );
 };

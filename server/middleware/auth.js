@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -13,6 +13,14 @@ const authMiddleware = (req, res, next) => {
     // Normalize the ID field to prevent 500 Internal Server Errors from Mongoose
     // in case the user has an old JWT token structure
     decoded.id = decoded.id || decoded._id;
+    
+    // Always fetch the latest user roles from DB to prevent stale JWT issues
+    const User = (await import('../models/User.js')).default;
+    const dbUser = await User.findById(decoded.id).lean();
+    if (dbUser) {
+      decoded.isAdmin = dbUser.isAdmin;
+      decoded.isSupplier = dbUser.isSupplier;
+    }
     
     req.user = decoded;
     next();

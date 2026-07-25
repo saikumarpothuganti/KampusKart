@@ -44,6 +44,10 @@ const orderSchema = new mongoose.Schema(
           type: String,
           default: '',
         },
+        supplierCost: {
+          type: Number,
+          default: 0,
+        }
       },
     ],
     amount: {
@@ -120,7 +124,24 @@ const orderSchema = new mongoose.Schema(
     },
     adminColor: {
       type: String,
-      default: '',
+      default: 'transparent',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    supplier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    supplierStatus: {
+      type: String,
+      enum: ['pending', 'priced'],
+      default: 'pending',
+    },
+    allowSupplierEdit: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

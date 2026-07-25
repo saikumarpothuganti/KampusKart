@@ -45,6 +45,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isSupplier: {
+      type: Boolean,
+      default: false,
+    },
     codEnabled: {
       type: Boolean,
       default: false,
@@ -57,6 +61,14 @@ const userSchema = new mongoose.Schema(
     referralCodes: [{
       type: String,
     }],
+    supplierStats: {
+      totalOrders: { type: Number, default: 0 },
+      singleSidedBooks: { type: Number, default: 0 },
+      doubleSidedBooks: { type: Number, default: 0 },
+      basicBooks: { type: Number, default: 0 },
+      standardBooks: { type: Number, default: 0 },
+      totalEarnings: { type: Number, default: 0 }
+    },
   },
   { timestamps: true }
 );

@@ -23,6 +23,7 @@ import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
 import Admin from './pages/Admin';
 import DeliveryLocation from './pages/DeliveryLocation';
+import SupplierDashboard from './pages/SupplierDashboard';
 import Feedback from './pages/Feedback';
 import About from './pages/About';
 
@@ -76,7 +77,8 @@ function AppContent() {
         <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/" />} />
         <Route path="/about" element={<About />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="/delivery/update-location/:orderId" element={<DeliveryLocation />} />
+        <Route path="/supplier" element={<SupplierDashboard />} />
+        <Route path="/delivery-location/:orderId" element={<DeliveryLocation />} />
         <Route path="/feedback" element={<Feedback />} />
       </Routes>
       <FloatingChat />

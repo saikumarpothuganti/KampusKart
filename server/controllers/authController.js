@@ -363,6 +363,33 @@ export const toggleCodStatus = async (req, res) => {
   }
 };
 
+export const toggleSupplierStatus = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+    
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    user.isSupplier = !user.isSupplier;
+    await user.save();
+    
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+export const getSuppliers = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+    
+    const suppliers = await User.find({ isSupplier: true }, 'name email userId');
+    res.json(suppliers);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const toggleMarketingStatus = async (req, res) => {
   try {
     if (!req.user.isAdmin) {

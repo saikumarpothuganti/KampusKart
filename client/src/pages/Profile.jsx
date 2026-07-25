@@ -27,7 +27,7 @@ import profile4 from '../assets/profile4.png';
 const avatars = [profile1, profile2, profile3, profile4];
 
 const Profile = () => {
-  const { user, logout, updateAvatar } = useAuth();
+  const { user, setUser, logout, updateAvatar } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
@@ -55,6 +55,7 @@ const Profile = () => {
         
         if (mounted) {
           setProfile(profileRes.data);
+          setUser(profileRes.data);
           setPasswordForm(prev => ({ ...prev, userId: profileRes.data.userId }));
           
           const orders = ordersRes.data || [];
@@ -289,6 +290,30 @@ const Profile = () => {
                       <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent"></div>
                     </>
                   )}
+                  
+                  {profile.isSupplier && (
+                    <>
+                      <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl border border-purple-100">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 shadow-inner shrink-0">
+                            <OrigamiBag className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-purple-900">Supplier Access</p>
+                            <p className="text-xs text-purple-700">Manage your printing orders and pricing</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => navigate('/supplier')}
+                          className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-purple-700 transition-colors"
+                        >
+                          Go to Dashboard
+                        </button>
+                      </div>
+                      <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent"></div>
+                    </>
+                  )}
+
                 </div>
               </div>
             </div>
