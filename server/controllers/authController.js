@@ -438,15 +438,22 @@ export const getReferralUsers = async (req, res) => {
       let totalOrders = 0;
       let totalBooksSold = 0;
       let orders = [];
+      let deletedOrders = [];
+      const DeletedOrder = (await import('../models/DeletedOrder.js')).default;
+      
       if (user.referralCodes && user.referralCodes.length > 0) {
         orders = await Order.find({ referralCode: { $in: user.referralCodes } }).sort({ createdAt: -1 });
+        deletedOrders = await DeletedOrder.find({ referralCode: { $in: user.referralCodes } });
       } else if (user.referralCode) {
         orders = await Order.find({ referralCode: user.referralCode }).sort({ createdAt: -1 });
+        deletedOrders = await DeletedOrder.find({ referralCode: user.referralCode });
       }
-      totalOrders = orders.length;
-      for (const order of orders) {
+      
+      const allOrders = [...orders, ...deletedOrders];
+      totalOrders = allOrders.length;
+      for (const order of allOrders) {
         if (order.status !== 'cancelled') {
-           for (const item of order.items) {
+           for (const item of order.items || []) {
              totalBooksSold += (item.qty || 1);
            }
         }

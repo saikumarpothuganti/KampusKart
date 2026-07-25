@@ -217,6 +217,15 @@ export const deleteOrder = async (req, res) => {
     }
 
     const { orderId } = req.params;
+    
+    const orderToBackup = await Order.findOne({ orderId });
+    if (orderToBackup) {
+      const DeletedOrder = (await import('../models/DeletedOrder.js')).default;
+      const backupData = orderToBackup.toObject();
+      delete backupData._id;
+      await DeletedOrder.create(backupData);
+    }
+
     await Order.findOneAndDelete({ orderId });
 
     res.json({ message: 'Order deleted' });
