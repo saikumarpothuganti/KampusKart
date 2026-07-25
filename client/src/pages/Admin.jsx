@@ -996,7 +996,7 @@ const Admin = () => {
                       {!editingAdminOrders[order.orderId] && (
                         <button
                           onClick={() => {
-                            setAdminOrderForm(prev => ({ ...prev, [order.orderId]: safeItems }));
+                            setAdminOrderForm(prev => ({ ...prev, [order.orderId]: Array.isArray(order.items) ? order.items : [] }));
                             setAdminOrderTotalOverrides(prev => ({ ...prev, [order.orderId]: order.amount }));
                             setEditingAdminOrders(prev => ({ ...prev, [order.orderId]: true }));
                           }}
@@ -1568,7 +1568,7 @@ const Admin = () => {
                         {!editingAdminOrders[order.orderId] && (
                           <button
                             onClick={() => {
-                              setAdminOrderForm(prev => ({ ...prev, [order.orderId]: safeItems }));
+                              setAdminOrderForm(prev => ({ ...prev, [order.orderId]: Array.isArray(order.items) ? order.items : [] }));
                               setAdminOrderTotalOverrides(prev => ({ ...prev, [order.orderId]: order.amount }));
                               setEditingAdminOrders(prev => ({ ...prev, [order.orderId]: true }));
                             }}
