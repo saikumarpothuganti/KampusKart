@@ -26,6 +26,10 @@ import DeliveryLocation from './pages/DeliveryLocation';
 import SupplierDashboard from './pages/SupplierDashboard';
 import Feedback from './pages/Feedback';
 import About from './pages/About';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import Refund from './pages/Refund';
+import Shipping from './pages/Shipping';
 
 import './index.css';
 
@@ -80,6 +84,10 @@ function AppContent() {
         <Route path="/supplier" element={<SupplierDashboard />} />
         <Route path="/delivery-location/:orderId" element={<DeliveryLocation />} />
         <Route path="/feedback" element={<Feedback />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/refund" element={<Refund />} />
+        <Route path="/shipping" element={<Shipping />} />
       </Routes>
       <FloatingChat />
     </div>

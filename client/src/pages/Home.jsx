@@ -234,7 +234,7 @@ const Home = () => {
           style={{ backgroundImage: `url(${footerImg})` }}
         >
           <div className="relative z-10 max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
               
               {/* Brand */}
               <div>
@@ -274,6 +274,26 @@ const Home = () => {
                 </ul>
               </div>
 
+              {/* Legal */}
+              <div>
+                <h4 className="text-[11px] font-black text-paper/50 uppercase tracking-[0.18em] mb-5">Legal</h4>
+                <ul className="space-y-3">
+                  {[
+                    { to: '/terms', label: 'Terms & Conditions' },
+                    { to: '/privacy', label: 'Privacy Policy' },
+                    { to: '/refund', label: 'Refund Policy' },
+                    { to: '/shipping', label: 'Shipping & Delivery' },
+                  ].map(({ to, label }) => (
+                    <li key={to}>
+                      <Link to={to} className="text-sm text-paper/65 hover:text-paper transition flex items-center gap-2.5 group">
+                        <span className="text-paper/25 text-xs group-hover:text-paper/60 transition">→</span>
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
               {/* Contact */}
               <div>
                 <h4 className="text-[11px] font-black text-paper/50 uppercase tracking-[0.18em] mb-5">Contact Us</h4>
@@ -299,13 +319,24 @@ const Home = () => {
                     </a>
                   </li>
                 </ul>
+                <div className="mt-6 space-y-2">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-paper/50 uppercase tracking-wider mb-1">Email</span>
+                    <a href="mailto:support@kampuskart.online" className="text-sm text-paper/80 hover:text-paper transition">support@kampuskart.online</a>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-paper/50 uppercase tracking-wider mb-1">Phone</span>
+                    <a href="tel:+919000000000" className="text-sm text-paper/80 hover:text-paper transition">+91 90000 00000</a>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Copyright */}
-            <div className="mt-10 pt-6 border-t border-paper/10 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <p className="text-xs text-paper/35 font-medium">© {new Date().getFullYear()} KampusKart. All rights reserved.</p>
-              <p className="text-xs text-paper/35 font-medium">Made with 💚 for students across campuses.</p>
+            <div className="mt-10 pt-6 border-t border-paper/10 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+              <p className="text-xs text-paper/40 font-medium">© {new Date().getFullYear()} KampusKart. All rights reserved.</p>
+              <p className="text-xs text-paper/40 font-medium">Payments powered by licensed PCI-DSS partners.</p>
+              <p className="text-xs text-paper/40 font-medium">Made with 💚 for students across campuses.</p>
             </div>
           </div>
         </footer>
