@@ -334,7 +334,7 @@ const Home = () => {
 
             {/* Copyright */}
             <div className="mt-10 pt-6 border-t border-paper/10 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-              <p className="text-xs text-paper/40 font-medium">© {new Date().getFullYear()} Pothuganti Saikumar. All rights reserved.</p>
+              <p className="text-xs text-paper/40 font-medium">© {new Date().getFullYear()} Kampukart-Ganesh, Pothuganti Saikumar. All rights reserved.</p>
               <p className="text-xs text-paper/40 font-medium">Payments powered by licensed PCI-DSS partners.</p>
               <p className="text-xs text-paper/40 font-medium">Made with 💚 for students across campuses.</p>
             </div>
