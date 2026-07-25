@@ -58,7 +58,7 @@ const Privacy = () => {
               </h2>
               <p>If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us.</p>
               <div className="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <p><strong>Email:</strong> support@kampuskart.online</p>
+                <p><strong>Email:</strong> support.kampuskart.klu@gmail.com</p>
                 <p><strong>Phone:</strong> +91 90000 00000</p>
                 <p><strong>Address:</strong> KampusKart Headquarters, KL University Area, India</p>
               </div>

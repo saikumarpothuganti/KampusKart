@@ -322,7 +322,7 @@ const Home = () => {
                 <div className="mt-6 space-y-2">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-paper/50 uppercase tracking-wider mb-1">Email</span>
-                    <a href="mailto:support@kampuskart.online" className="text-sm text-paper/80 hover:text-paper transition">support@kampuskart.online</a>
+                    <a href="mailto:support.kampuskart.klu@gmail.com" className="text-sm text-paper/80 hover:text-paper transition">support.kampuskart.klu@gmail.com</a>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-paper/50 uppercase tracking-wider mb-1">Phone</span>
@@ -334,7 +334,7 @@ const Home = () => {
 
             {/* Copyright */}
             <div className="mt-10 pt-6 border-t border-paper/10 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-              <p className="text-xs text-paper/40 font-medium">© {new Date().getFullYear()} KampusKart. All rights reserved.</p>
+              <p className="text-xs text-paper/40 font-medium">© {new Date().getFullYear()} Pothuganti Saikumar. All rights reserved.</p>
               <p className="text-xs text-paper/40 font-medium">Payments powered by licensed PCI-DSS partners.</p>
               <p className="text-xs text-paper/40 font-medium">Made with 💚 for students across campuses.</p>
             </div>
