@@ -30,6 +30,7 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Refund from './pages/Refund';
 import Shipping from './pages/Shipping';
+import FeedTheCart from './pages/FeedTheCart';
 
 import './index.css';
 
@@ -88,6 +89,7 @@ function AppContent() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/refund" element={<Refund />} />
         <Route path="/shipping" element={<Shipping />} />
+        <Route path="/feed-the-cart" element={<FeedTheCart />} />
       </Routes>
       <FloatingChat />
     </div>

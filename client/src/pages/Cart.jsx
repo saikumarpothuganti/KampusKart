@@ -112,7 +112,7 @@ const Cart = () => {
       <div className="max-w-5xl mx-auto relative z-10">
         
         {/* Header Actions */}
-        <div className="flex items-center justify-between mb-6 mt-4">
+          <div className="flex items-center justify-between mb-6 mt-4">
           <div className="flex items-center gap-6">
             <button
               onClick={() => navigate(-1)}
@@ -127,6 +127,15 @@ const Cart = () => {
               Carts
             </h1>
           </div>
+          
+          {/* Feed The Cart CTA */}
+          <Link to="/feed-the-cart" className="flex flex-col items-end group">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-[#1B5E20]/60 mb-1">Get Reduced Prices</span>
+            <div className="px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#F1C40F] text-[#1B5E20] font-black rounded-lg shadow-lg group-hover:scale-105 transition-transform flex items-center gap-2 relative overflow-hidden">
+              <span className="relative z-10">⚡ Feed The Cart →</span>
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 ease-in-out"></div>
+            </div>
+          </Link>
         </div>
 
         {/* Cart Tabs */}

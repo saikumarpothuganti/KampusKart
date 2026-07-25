@@ -136,6 +136,7 @@ const Navbar = () => {
     { label: 'Services', to: '/about#services' },
     { label: 'PDFs/Orders', to: '/order-history' },
     { label: 'Feedback', to: '/feedback' },
+    { label: 'Feed The Cart ⚡', to: '/feed-the-cart' },
   ];
 
   return (
@@ -180,14 +181,20 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 className={(() => {
+                  const isFeedTheCart = link.label === 'Feed The Cart ⚡';
                   const active = isHomePage && link.label === 'Home' ? isCurrent : location.pathname === link.to;
+                  if (isFeedTheCart) {
+                    return `transition py-1 relative group text-[#D4AF37] font-black animate-pulse drop-shadow-[0_0_8px_rgba(212,175,55,0.8)] hover:scale-110`;
+                  }
                   return `transition py-1 relative group ${active ? 'text-paper font-bold' : 'text-paper opacity-70 hover:opacity-100'}`;
                 })()}
                 style={{ textShadow: (isHomePage && link.label === 'Home' ? isCurrent : location.pathname === link.to) ? '1px 2px 0px rgba(0,0,0,0.4)' : '1px 1px 0px rgba(0,0,0,0.2)' }}
               >
                 <>
                   {link.label}
-                  <span className={`absolute bottom-0 left-0 h-0.5 bg-paper transition-all ${(isHomePage && link.label === 'Home' ? isCurrent : location.pathname === link.to) ? 'w-full shadow-[0_2px_0_rgba(0,0,0,0.4)]' : 'w-0 group-hover:w-full group-hover:shadow-[0_2px_0_rgba(0,0,0,0.4)]'}`}></span>
+                  {link.label !== 'Feed The Cart ⚡' && (
+                    <span className={`absolute bottom-0 left-0 h-0.5 bg-paper transition-all ${(isHomePage && link.label === 'Home' ? isCurrent : location.pathname === link.to) ? 'w-full shadow-[0_2px_0_rgba(0,0,0,0.4)]' : 'w-0 group-hover:w-full group-hover:shadow-[0_2px_0_rgba(0,0,0,0.4)]'}`}></span>
+                  )}
                 </>
               </NavLink>
             );
@@ -324,13 +331,13 @@ const Navbar = () => {
 
           {/* Hamburger Menu Toggle (Mobile) */}
           <button 
-            className="md:hidden text-paper ml-1 focus:outline-none flex flex-col items-center justify-center gap-[5px] w-10 h-10 shrink-0 relative z-[60]"
+            className="md:hidden text-paper ml-2 focus:outline-none flex flex-col items-center justify-center gap-[4px] w-11 h-11 shrink-0 relative z-[60] bg-[#183623] rounded-md border border-[#D4AF37]/30 shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:bg-[#132C1B] transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle Menu"
           >
-            <span className={`block w-7 h-[3px] bg-[#EDE0C8] rounded-full transition-transform duration-300 origin-center ${isMobileMenuOpen ? 'rotate-45 translate-y-[8px]' : ''}`}></span>
-            <span className={`block w-7 h-[3px] bg-[#EDE0C8] rounded-full transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
-            <span className={`block w-7 h-[3px] bg-[#EDE0C8] rounded-full transition-transform duration-300 origin-center ${isMobileMenuOpen ? '-rotate-45 -translate-y-[8px]' : ''}`}></span>
+            <span className={`block w-6 h-[4px] bg-[#D4AF37] rounded-full transition-transform duration-300 origin-center ${isMobileMenuOpen ? 'rotate-45 translate-y-[8px]' : ''}`}></span>
+            <span className={`block w-6 h-[4px] bg-[#D4AF37] rounded-full transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+            <span className={`block w-6 h-[4px] bg-[#D4AF37] rounded-full transition-transform duration-300 origin-center ${isMobileMenuOpen ? '-rotate-45 -translate-y-[8px]' : ''}`}></span>
           </button>
         </div>
       </div>

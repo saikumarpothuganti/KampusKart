@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import ContactLinks from '../components/ContactLinks';
 import PaperLeavesDivider from '../components/PaperLeavesDivider';
 import BorderDecorations from '../components/BorderDecorations';
@@ -61,9 +61,49 @@ const testimonials = [
 ];
 
 const Home = () => {
+  const [showEventPopup, setShowEventPopup] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Show popup after a short delay on home page every time
+    const timer = setTimeout(() => {
+      setShowEventPopup(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const closePopup = () => {
+    setShowEventPopup(false);
+  };
+
   return (
     <div className="bg-paper text-ink min-h-screen relative font-sans">
       
+      {showEventPopup && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-500 cursor-pointer" onClick={closePopup}>
+          <div className="bg-[#183623] border-2 border-[#D4AF37] shadow-[0_20px_50px_rgba(0,0,0,0.8)] max-w-md w-full relative overflow-hidden rounded-sm cursor-default" onClick={(e) => e.stopPropagation()}>
+            {/* Origami decorations */}
+            <div className="absolute top-0 right-0 w-8 h-8 bg-[#D4AF37] shadow-[inset_1px_-1px_2px_rgba(0,0,0,0.3)] pointer-events-none" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }}></div>
+            <div className="absolute bottom-0 left-0 w-8 h-8 bg-[#D4AF37] shadow-[inset_-1px_1px_2px_rgba(0,0,0,0.3)] pointer-events-none" style={{ clipPath: 'polygon(0 100%, 0 0, 100% 100%)' }}></div>
+            
+            <button onClick={closePopup} className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-[#A3B8A8] hover:text-white hover:bg-white/10 rounded-full font-bold text-xl z-[100] transition-colors" title="Close">✕</button>
+            
+            <div className="p-8 text-center relative z-10">
+              <span className="text-5xl inline-block mb-4 animate-bounce pointer-events-none">⚡</span>
+              <h2 className="text-3xl font-black text-[#E8D9B4] tracking-tighter mb-2 uppercase" style={{ textShadow: '0 2px 10px rgba(212,175,55,0.3)' }}>Limited Time Event!</h2>
+              <p className="text-[#A3B8A8] font-bold text-lg mb-2">Feed The Cart</p>
+              <p className="text-[#8D7F67] text-sm mb-8 leading-relaxed">
+                Our cart is hungry! Feed him workbooks and generate Energy to unlock <span className="text-[#81C784] font-bold">exclusive auto-applied discounts!</span>
+              </p>
+              
+              <button onClick={() => { closePopup(); navigate('/feed-the-cart'); }} className="inline-block w-full py-4 bg-[#D4AF37] text-[#3A3327] font-black tracking-widest uppercase hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(212,175,55,0.4)] transition-all rounded-sm border border-[#B8972E] relative z-[100]">
+                Go Feed The Cart →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Paper airplane scroll effect */}
       <ScrollRocket />
       
