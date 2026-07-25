@@ -179,10 +179,17 @@ const SignUp = () => {
                     required 
                   />
                 </div>
-                <div className="text-center mt-2">
+                <div className="text-center mt-2 flex flex-col gap-4">
                   <button type="button" onClick={() => setStep(1)} className="text-xs text-[#18382A]/50 hover:text-[#18382A] font-bold uppercase tracking-widest transition">
                     ← Change Email
                   </button>
+                  
+                  <div className="bg-[#18382A]/5 p-3 rounded-xl border border-[#18382A]/10 text-xs text-[#18382A]/70 font-medium">
+                    Not receiving the OTP? <br />
+                    <button type="button" onClick={() => setStep(1)} className="text-[#18382A] font-bold hover:underline mt-1">
+                      Go back
+                    </button> and use <strong className="text-[#18382A]">Continue with Google</strong> instead.
+                  </div>
                 </div>
               </div>
             )}
