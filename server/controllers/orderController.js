@@ -164,7 +164,7 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     const { orderId } = req.params;
-    const { status } = req.body;
+    const { status, supplierId } = req.body;
 
     const validStatuses = ['pending_price', 'sent', 'placed', 'printing', 'out_for_delivery', 'delivered', 'cancelled'];
     if (!validStatuses.includes(status)) {
@@ -172,6 +172,10 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     const updates = { status, canCancel: status === 'sent' };
+    if (supplierId) {
+      updates.supplier = supplierId;
+    }
+    
     if (status === 'delivered' || status === 'cancelled') {
       updates.liveLocationEnabled = false;
     }
