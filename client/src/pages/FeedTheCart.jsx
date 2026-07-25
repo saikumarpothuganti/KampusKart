@@ -279,7 +279,9 @@ const FeedTheCart = () => {
                           <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-2 mt-2">
                             <p className="text-sm font-black text-[#3A3327]">₹{item.price} <span className="text-xs font-normal text-[#6F6450]">per copy</span></p>
                             <span className="text-[10px] font-bold text-[#1B5E20] bg-[#81C784]/30 px-2 py-0.5 rounded-full border border-[#81C784]/50">
-                              + {item.energy || Math.floor((item.price || 50) * 0.5)} ⚡ Energy
+                              {item.quality === 'basic' ? '⚡ Generates Least Energy' : 
+                               item.quality === 'premium' ? '⚡ Generates Max Energy' : 
+                               '⚡ Generates Energy'}
                             </span>
                           </div>
                         </div>
