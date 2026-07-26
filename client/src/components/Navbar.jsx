@@ -128,16 +128,17 @@ const Navbar = () => {
     }, 100);
   };
 
-  const navLinks = [
-    { label: 'Home', to: '/' },
-    ...(user?.isSupplier ? [{ label: 'Supplier Dashboard', to: '/supplier' }] : []),
-    { label: 'Workbook', to: '/workbook' },
-    { label: 'About', to: '/about' },
-    { label: 'Services', to: '/about#services' },
-    { label: 'PDFs/Orders', to: '/order-history' },
-    { label: 'Feedback', to: '/feedback' },
-    { label: 'Feed The Cart ⚡', to: '/feed-the-cart' },
-  ];
+  const navLinks = user?.isSupplier 
+    ? [{ label: 'Supplier Dashboard', to: '/supplier' }] 
+    : [
+      { label: 'Home', to: '/' },
+      { label: 'Workbook', to: '/workbook' },
+      { label: 'About', to: '/about' },
+      { label: 'Services', to: '/about#services' },
+      { label: 'PDFs/Orders', to: '/order-history' },
+      { label: 'Feedback', to: '/feedback' },
+      { label: 'Feed The Cart ⚡', to: '/feed-the-cart' },
+    ];
 
   return (
     <nav className="sticky top-0 z-50 green-paper-nav transition-all duration-300">
@@ -202,20 +203,22 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2 md:gap-5 shrink-0">
-          <div className="relative">
-            <Link
-              to="/cart"
-              className="text-2xl hover:scale-110 transition flex items-center"
-              title="Cart"
-            >
-              <OrigamiCart className="w-8 h-8" />
-            </Link>
-            {getCartCount() > 0 && (
-              <span className="absolute -top-2 -right-2 inline-flex items-center justify-center bg-paper text-ink text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] shadow-sm">
-                {getCartCount()}
-              </span>
-            )}
-          </div>
+          {!user?.isSupplier && (
+            <div className="relative">
+              <Link
+                to="/cart"
+                className="text-2xl hover:scale-110 transition flex items-center"
+                title="Cart"
+              >
+                <OrigamiCart className="w-8 h-8" />
+              </Link>
+              {getCartCount() > 0 && (
+                <span className="absolute -top-2 -right-2 inline-flex items-center justify-center bg-paper text-ink text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] shadow-sm">
+                  {getCartCount()}
+                </span>
+              )}
+            </div>
+          )}
 
           {user && (
             <div className="relative mr-2">
