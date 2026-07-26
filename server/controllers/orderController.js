@@ -152,7 +152,7 @@ export const getAllOrders = async (req, res) => {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
-    const orders = await Order.find().populate('supplier', 'name email').sort({ createdAt: -1 });
+    const orders = await Order.find({ isDeleted: { $ne: true } }).populate('supplier', 'name email').sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -219,18 +219,50 @@ export const deleteOrder = async (req, res) => {
     }
 
     const { orderId } = req.params;
+    await Order.findOneAndUpdate({ orderId }, { isDeleted: true });
+
+    res.json({ message: 'Order soft deleted' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const hardDeleteOrder = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { orderId } = req.params;
     
     const orderToBackup = await Order.findOne({ orderId });
-    if (orderToBackup && orderToBackup.referralCode) {
-      const DeletedOrder = (await import('../models/DeletedOrder.js')).default;
-      const backupData = orderToBackup.toObject();
-      delete backupData._id;
-      await DeletedOrder.create(backupData);
+    if (orderToBackup) {
+      if (orderToBackup.referralCode) {
+        const DeletedOrder = (await import('../models/DeletedOrder.js')).default;
+        const backupData = orderToBackup.toObject();
+        delete backupData._id;
+        await DeletedOrder.create(backupData);
+      }
+      
+      // Reverse supplier stats if it was priced and had a supplier
+      if (orderToBackup.supplierStatus === 'priced' && orderToBackup.supplier) {
+        const stats = getOrderStats(orderToBackup);
+        await User.findByIdAndUpdate(orderToBackup.supplier, {
+          $inc: {
+            'supplierStats.totalOrders': -1,
+            'supplierStats.singleSidedBooks': -stats.singleBooks,
+            'supplierStats.doubleSidedBooks': -stats.doubleBooks,
+            'supplierStats.basicBooks': -stats.basicBooks,
+            'supplierStats.standardBooks': -stats.standardBooks,
+            'supplierStats.totalEarnings': -stats.earnings,
+          }
+        });
+      }
     }
 
     await Order.findOneAndDelete({ orderId });
 
-    res.json({ message: 'Order deleted' });
+    res.json({ message: 'Order hard deleted' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -426,7 +458,7 @@ export const updateOrderColor = async (req, res) => {
 
 export const getSupplierOrders = async (req, res) => {
   try {
-    let filter = { supplier: { $exists: true, $ne: null }, isDeleted: { $ne: true } };
+    let filter = { supplier: { $exists: true, $ne: null } };
     if (!req.user.isAdmin) {
       if (!req.user.isSupplier) return res.status(403).json({ error: 'Supplier access required' });
       filter.supplier = req.user.id;

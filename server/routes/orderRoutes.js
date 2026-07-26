@@ -7,6 +7,7 @@ import {
   getAllOrders,
   updateOrderStatus,
   deleteOrder,
+  hardDeleteOrder,
   toggleLiveLocation,
   setCustomPDFPrice,
   acceptRequest,
@@ -37,6 +38,7 @@ router.post('/:orderId/accept', authMiddleware, acceptRequest);
 router.put('/:orderId/items', authMiddleware, updateOrderItems);
 router.put('/:orderId/status', authMiddleware, updateOrderStatus);
 router.delete('/:orderId', authMiddleware, deleteOrder);
+router.delete('/:orderId/hard', authMiddleware, hardDeleteOrder);
 router.put('/:orderId/live-location', authMiddleware, toggleLiveLocation);
 router.put('/:orderId/set-price', authMiddleware, setCustomPDFPrice);
 router.put('/:orderId/delivery-days', authMiddleware, updateDeliveryDays);

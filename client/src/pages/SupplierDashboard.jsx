@@ -12,7 +12,7 @@ const SupplierDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [pricingForm, setPricingForm] = useState({}); // { orderId: { itemId: cost } }
   const [editingOrders, setEditingOrders] = useState({}); // { orderId: true }
-  const [activeTab, setActiveTab] = useState('orders'); // 'orders' or 'billing'
+  const [activeTab, setActiveTab] = useState('pending'); // 'orders' or 'billing'
   const [supplierStats, setSupplierStats] = useState({ totalOrders: 0, singleSidedBooks: 0, doubleSidedBooks: 0, basicBooks: 0, standardBooks: 0, totalEarnings: 0 });
 
   // Resolver function: Unified logic for determining item.sideType
@@ -242,7 +242,7 @@ const SupplierDashboard = () => {
                         onClick={async () => {
                           if (window.confirm('Are you sure you want to delete this order?')) {
                             try {
-                              await API.delete(`/orders/${order.orderId}`);
+                              await API.delete(`/orders/${order.orderId}/hard`);
                               setOrders(prev => prev.filter(o => o.orderId !== order.orderId));
                             } catch (error) {
                               console.error('Failed to delete order:', error);
@@ -372,10 +372,16 @@ const SupplierDashboard = () => {
 
         <div className="flex gap-4 mb-8 border-b border-gray-300 pb-2 overflow-x-auto">
           <button
-            onClick={() => setActiveTab('orders')}
-            className={`px-6 py-2 font-bold text-lg rounded-t-lg transition-colors whitespace-nowrap ${activeTab === 'orders' ? 'bg-primary text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            onClick={() => setActiveTab('pending')}
+            className={`px-6 py-2 font-bold text-lg rounded-t-lg transition-colors whitespace-nowrap ${activeTab === 'pending' ? 'bg-primary text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
           >
-            📋 Active Orders
+            📋 Pending Pricing ({pendingOrders.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('priced')}
+            className={`px-6 py-2 font-bold text-lg rounded-t-lg transition-colors whitespace-nowrap ${activeTab === 'priced' ? 'bg-primary text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+          >
+            ✅ Priced Orders ({pricedOrders.length})
           </button>
           <button
             onClick={() => setActiveTab('billing')}
@@ -385,7 +391,7 @@ const SupplierDashboard = () => {
           </button>
         </div>
 
-        {activeTab === 'orders' && (
+        {(activeTab === 'pending' || activeTab === 'priced') && (
           <div className="space-y-12">
           {/* Supplier Pricing Summary - Always at the top */}
           <section>
@@ -526,25 +532,29 @@ const SupplierDashboard = () => {
             })()}
           </section>
 
-          <section>
-            <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-2xl font-bold text-[#18382A]">Pending Pricing</h2>
-              <span className="bg-orange-100 text-orange-800 text-xs font-bold px-3 py-1 rounded-full">
-                {pendingOrders.length} Orders
-              </span>
-            </div>
-            {renderOrderList(pendingOrders, true)}
-          </section>
+          {activeTab === 'pending' && (
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-bold text-[#18382A]">Pending Pricing</h2>
+                <span className="bg-orange-100 text-orange-800 text-xs font-bold px-3 py-1 rounded-full">
+                  {pendingOrders.length} Orders
+                </span>
+              </div>
+              {renderOrderList(pendingOrders, true)}
+            </section>
+          )}
 
-          <section>
-            <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-2xl font-bold text-[#18382A]">Priced Orders</h2>
-              <span className="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">
-                {pricedOrders.length} Orders
-              </span>
-            </div>
-            {renderOrderList(pricedOrders, false)}
-          </section>
+          {activeTab === 'priced' && (
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-bold text-[#18382A]">Priced Orders</h2>
+                <span className="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">
+                  {pricedOrders.length} Orders
+                </span>
+              </div>
+              {renderOrderList(pricedOrders, false)}
+            </section>
+          )}
         </div>
         )}
 
