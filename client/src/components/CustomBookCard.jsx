@@ -17,19 +17,7 @@ const CustomBookCard = ({ onAddToCart }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [pauseMessage, setPauseMessage] = useState('');
   const [pages, setPages] = useState(0);
-  const [calculatedPrice, setCalculatedPrice] = useState(0);
   const abortControllerRef = React.useRef(null);
-
-  useEffect(() => {
-    if (pages > 0) {
-      const sheets = sides === 2 ? Math.ceil(pages / 2) : pages;
-      const basePrice = sheets * 1;
-      const bindingCost = quality === 'basic' ? 55 : 70;
-      setCalculatedPrice(basePrice + bindingCost);
-    } else {
-      setCalculatedPrice(0);
-    }
-  }, [pages, sides, quality]);
 
   const handleFileChange = async (e) => {
     const selected = e.target.files[0];
@@ -122,7 +110,6 @@ const CustomBookCard = ({ onAddToCart }) => {
 
       setFile(null);
       setPages(0);
-      setCalculatedPrice(0);
       setSides(1);
       setQuality('standard');
       setQuantity(1);
@@ -265,17 +252,6 @@ const CustomBookCard = ({ onAddToCart }) => {
           </button>
         </div>
       </div>
-
-      {pages > 0 && (
-        <div className="mb-4 p-3 bg-[rgba(0,0,0,0.15)] rounded border border-[rgba(255,255,255,0.1)] flex flex-col items-center justify-center">
-          <span className="text-xs text-paper/70 font-bold tracking-widest uppercase mb-1">Instant Quote</span>
-          <div className="flex items-end gap-1 text-[#EDE0C8]">
-            <span className="text-sm font-bold">₹</span>
-            <span className="text-3xl font-black leading-none">{calculatedPrice}</span>
-          </div>
-          <span className="text-[10px] text-paper/50 mt-1">{pages} Pages</span>
-        </div>
-      )}
 
       <button
         onClick={handleSubmitRequest}
