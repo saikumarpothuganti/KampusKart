@@ -23,18 +23,18 @@ const CodeforaAd = ({ variant }) => {
   if (variant === 'top-banner') {
     if (!showTopBanner) return null;
     return (
-      <div className="bg-[#07111F] text-white py-3 px-4 flex justify-between items-center relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#3B82F6]/20 to-[#FF8A00]/20 opacity-50"></div>
+      <div className="bg-[#050505] text-white py-3 px-4 flex justify-between items-center relative overflow-hidden group border-b border-[#FF6600]/20">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#00E5FF]/10 to-[#FF6600]/10 opacity-50"></div>
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 relative z-10 w-full">
-          <span className="text-xl hidden sm:inline">🚀</span>
-          <p className="text-sm md:text-base font-medium text-center">
-            Take your coding skills to the next level. Join <span className="font-black text-[#FF8A00] tracking-wide">CODEFORA</span>, the real-time collaborative coding platform!
+          <span className="text-xl hidden sm:inline text-[#FF6600] font-black">{`{/}`}</span>
+          <p className="text-sm md:text-base font-medium text-center tracking-wide">
+            COMMUNICATE. COLLABORATE. CODE TOGETHER. Join <span className="font-black text-[#FF6600] tracking-widest uppercase">Codefora</span>
           </p>
-          <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="bg-[#3B82F6] hover:bg-[#FF8A00] text-white px-4 py-1.5 rounded-full text-sm font-bold transition-all shadow-[0_0_10px_rgba(59,130,246,0.5)] hover:shadow-[0_0_15px_rgba(255,138,0,0.8)] ml-2 whitespace-nowrap">
+          <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="bg-[#FF6600] hover:bg-[#00E5FF] hover:text-[#050505] text-[#050505] px-5 py-1.5 rounded-sm text-sm font-black transition-all shadow-[0_0_10px_rgba(255,102,0,0.5)] hover:shadow-[0_0_15px_rgba(0,229,255,0.8)] ml-2 whitespace-nowrap uppercase tracking-wider">
             Play Now
           </a>
         </div>
-        <button onClick={handleDismiss} className="absolute right-4 text-gray-400 hover:text-white z-10 p-2">
+        <button onClick={handleDismiss} className="absolute right-4 text-gray-500 hover:text-[#FF6600] z-10 p-2 transition-colors">
           ✕
         </button>
       </div>
@@ -44,18 +44,25 @@ const CodeforaAd = ({ variant }) => {
   if (variant === 'billboard') {
     return (
       <div className="w-full max-w-6xl mx-auto my-16 px-4">
-        <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="block relative rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(59,130,246,0.2)] group hover:shadow-[0_0_50px_rgba(255,138,0,0.3)] transition-all duration-500 transform hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#07111F] via-[#07111F]/60 to-transparent z-10"></div>
-          <img src="/codefora_ad.jpg" alt="Codefora Real-Time Coding Platform" className="w-full h-[300px] md:h-[400px] object-cover group-hover:scale-105 transition-transform duration-700" />
+        <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="block relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(255,102,0,0.15)] group hover:shadow-[0_0_50px_rgba(255,102,0,0.3)] transition-all duration-500 border border-[#222]">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent z-10"></div>
+          {/* Note: You can replace codefora_ad.jpg with any of the actual images you uploaded by naming it codefora_ad.jpg in the client/public folder */}
+          <img src="/codefora_ad.jpg" alt="Codefora Real-Time Coding Platform" className="w-full h-[350px] md:h-[450px] object-cover group-hover:scale-105 transition-transform duration-700 opacity-70" />
           
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-20 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 z-20 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="text-white max-w-2xl">
-              <span className="bg-[#FF8A00] text-[#07111F] font-black text-xs uppercase tracking-widest px-3 py-1 rounded-sm mb-4 inline-block shadow-[0_0_15px_rgba(255,138,0,0.5)]">Sponsored</span>
-              <h3 className="text-3xl md:text-5xl font-black mb-3 drop-shadow-lg leading-tight">Code Together.<br/><span className="text-[#3B82F6]">Compete Together.</span></h3>
-              <p className="text-gray-300 text-base md:text-lg">Practice coding the way real software teams work with <span className="text-[#FF8A00] font-bold">Codefora</span>.</p>
+              <span className="text-[#00E5FF] font-black text-sm uppercase tracking-[0.3em] mb-4 inline-block flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse"></span> Live Room
+              </span>
+              <h3 className="text-4xl md:text-6xl font-black mb-4 drop-shadow-lg leading-none tracking-tight uppercase">
+                Build Smarter.<br/><span className="text-[#FF6600]">Together.</span>
+              </h3>
+              <p className="text-gray-400 text-base md:text-xl max-w-lg font-light tracking-wide">
+                Practice coding the way real software teams work with <span className="text-white font-bold tracking-widest">{`{ }`} CODEFORA</span>.
+              </p>
             </div>
-            <button className="bg-[#FF8A00] hover:bg-white hover:text-[#07111F] text-[#07111F] px-8 py-3 rounded-full font-black text-lg transition-colors shadow-[0_0_20px_rgba(255,138,0,0.6)] whitespace-nowrap">
-              Explore Codefora
+            <button className="bg-[#FF6600] hover:bg-[#00E5FF] text-[#050505] px-10 py-4 rounded-sm font-black text-lg transition-all shadow-[0_0_20px_rgba(255,102,0,0.4)] hover:shadow-[0_0_30px_rgba(0,229,255,0.6)] whitespace-nowrap uppercase tracking-widest">
+              Start Building
             </button>
           </div>
         </a>
@@ -65,17 +72,17 @@ const CodeforaAd = ({ variant }) => {
 
   if (variant === 'success-upsell') {
     return (
-      <div className="mt-12 bg-[#0D1117] border border-[#3B82F6]/30 rounded-xl p-8 shadow-2xl relative overflow-hidden group max-w-4xl mx-auto">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF8A00]/10 rounded-full blur-3xl group-hover:bg-[#FF8A00]/20 transition-all duration-700"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#3B82F6]/10 rounded-full blur-3xl group-hover:bg-[#3B82F6]/20 transition-all duration-700"></div>
+      <div className="mt-12 bg-[#050505] border border-[#333] rounded-xl p-8 md:p-12 shadow-2xl relative overflow-hidden group max-w-4xl mx-auto hover:border-[#FF6600]/50 transition-colors duration-500">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-[#FF6600]/10 rounded-full blur-[80px] group-hover:bg-[#FF6600]/20 transition-all duration-700"></div>
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#00E5FF]/10 rounded-full blur-[80px] group-hover:bg-[#00E5FF]/20 transition-all duration-700"></div>
         
         <div className="relative z-10 flex flex-col items-center text-center">
-          <span className="bg-[#3B82F6]/20 text-[#3B82F6] font-bold text-xs uppercase tracking-widest px-3 py-1 rounded-full mb-4 border border-[#3B82F6]/30">Level Up</span>
-          <h4 className="text-3xl font-black text-white mb-3">Master DSA & Frontend</h4>
-          <p className="text-gray-400 mb-8 max-w-lg text-lg">
-            Ready for your next challenge? Join <span className="text-[#FF8A00] font-bold">Codefora</span>, the ultimate real-time collaborative coding platform.
+          <span className="text-[#FF6600] font-black text-4xl mb-4 drop-shadow-[0_0_15px_rgba(255,102,0,0.8)]">{`{/}`}</span>
+          <h4 className="text-3xl md:text-5xl font-black text-white mb-4 uppercase tracking-tight">Express Your <span className="text-[#00E5FF]">Coding Mood.</span></h4>
+          <p className="text-gray-400 mb-8 max-w-xl text-lg font-light tracking-wide">
+            Ready for your next challenge? Join <span className="text-white font-bold tracking-widest">CODEFORA</span>, the ultimate real-time collaborative coding platform.
           </p>
-          <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="bg-[#3B82F6] hover:bg-[#FF8A00] text-white px-10 py-4 rounded-lg font-black text-lg transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:shadow-[0_0_25px_rgba(255,138,0,0.6)] transform hover:-translate-y-1">
+          <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="bg-transparent border-2 border-[#FF6600] hover:bg-[#FF6600] text-[#FF6600] hover:text-[#050505] px-12 py-4 rounded-sm font-black text-lg transition-all shadow-[0_0_15px_rgba(255,102,0,0.2)] hover:shadow-[0_0_25px_rgba(255,102,0,0.5)] uppercase tracking-widest">
             Join Codefora Free
           </a>
         </div>
