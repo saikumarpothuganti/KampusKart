@@ -152,7 +152,7 @@ export const getAllOrders = async (req, res) => {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find().populate('supplier', 'name email').sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ error: error.message });
