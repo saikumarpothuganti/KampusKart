@@ -5,6 +5,7 @@ import API from '../lib/api';
 import { useLoading } from '../context/LoadingContext';
 import origamiStudent from '../assets/origami_student.png';
 import origamiDeliveryMan from '../assets/origami_delivery_man.png';
+import CodeforaAd from '../components/CodeforaAd';
 
 const StarRating = ({ rating, setRating }) => (
   <div className="flex items-center gap-2">
@@ -201,6 +202,7 @@ const Feedback = () => {
           </div>
         </div>
       </div>
+      <CodeforaAd variant="feedback-popup" />
     </div>
   );
 };

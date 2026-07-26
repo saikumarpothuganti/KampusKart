@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import billboardImg from '../assets/billboard_codefora.jpeg';
+import logoImg from '../assets/logointo_codefora.jpeg';
 
 const CodeforaAd = ({ variant }) => {
   const { user } = useAuth();
@@ -46,8 +48,7 @@ const CodeforaAd = ({ variant }) => {
       <div className="w-full max-w-6xl mx-auto my-16 px-4">
         <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="block relative rounded-xl overflow-hidden shadow-[0_0_30px_rgba(255,102,0,0.15)] group hover:shadow-[0_0_50px_rgba(255,102,0,0.3)] transition-all duration-500 border border-[#222]">
           <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent z-10"></div>
-          {/* Note: You can replace codefora_ad.jpg with any of the actual images you uploaded by naming it codefora_ad.jpg in the client/public folder */}
-          <img src="/codefora_ad.jpg" alt="Codefora Real-Time Coding Platform" className="w-full h-[350px] md:h-[450px] object-cover group-hover:scale-105 transition-transform duration-700 opacity-70" />
+          <img src={billboardImg} alt="Codefora Real-Time Coding Platform" className="w-full h-[350px] md:h-[450px] object-cover group-hover:scale-105 transition-transform duration-700 opacity-70" />
           
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 z-20 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="text-white max-w-2xl">
@@ -85,6 +86,40 @@ const CodeforaAd = ({ variant }) => {
           <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="bg-transparent border-2 border-[#FF6600] hover:bg-[#FF6600] text-[#FF6600] hover:text-[#050505] px-12 py-4 rounded-sm font-black text-lg transition-all shadow-[0_0_15px_rgba(255,102,0,0.2)] hover:shadow-[0_0_25px_rgba(255,102,0,0.5)] uppercase tracking-widest">
             Join Codefora Free
           </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'feedback-popup') {
+    const [showPopup, setShowPopup] = useState(true);
+    if (!showPopup) return null;
+
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-500">
+        <div className="bg-[#050505] border border-[#333] rounded-xl p-8 max-w-lg w-full shadow-[0_0_50px_rgba(255,102,0,0.2)] relative overflow-hidden group">
+          <button 
+            onClick={() => setShowPopup(false)}
+            className="absolute top-4 right-4 text-gray-500 hover:text-white z-20 transition-colors bg-black/50 rounded-full w-8 h-8 flex items-center justify-center"
+          >
+            ✕
+          </button>
+          
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[#FF6600]/10 rounded-full blur-[60px] group-hover:bg-[#FF6600]/20 transition-all duration-700"></div>
+          
+          <img src={logoImg} alt="Codefora Logo" className="w-32 h-32 object-contain mx-auto mb-6 rounded-lg shadow-lg relative z-10 border border-[#333]" />
+          
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <h4 className="text-2xl md:text-3xl font-black text-white mb-3 uppercase tracking-tight leading-tight">
+              Time to code while you receive your order!
+            </h4>
+            <p className="text-gray-400 mb-6 text-sm md:text-base font-light tracking-wide">
+              Jump into <span className="text-[#FF6600] font-bold tracking-widest uppercase">Codefora</span> and start collaborating instantly.
+            </p>
+            <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" onClick={() => setShowPopup(false)} className="w-full bg-[#FF6600] hover:bg-[#00E5FF] text-[#050505] px-8 py-3 rounded-sm font-black text-lg transition-all shadow-[0_0_15px_rgba(255,102,0,0.4)] hover:shadow-[0_0_25px_rgba(0,229,255,0.6)] uppercase tracking-widest text-center">
+              Enter Codefora
+            </a>
+          </div>
         </div>
       </div>
     );
