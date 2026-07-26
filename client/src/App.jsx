@@ -9,6 +9,7 @@ import LoadingScreen from './components/LoadingScreen';
 import InstallPrompt from './components/InstallPrompt';
 import NotificationPrompt from './components/NotificationPrompt';
 import FloatingChat from './components/FloatingChat';
+import FloatingCodefora from './components/FloatingCodefora';
 import CodeforaAd from './components/CodeforaAd';
 
 const Home = React.lazy(() => import('./pages/Home'));
@@ -96,6 +97,7 @@ function AppContent() {
         </Routes>
       </Suspense>
       <FloatingChat />
+      <FloatingCodefora />
     </div>
   );
 }
