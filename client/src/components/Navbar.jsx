@@ -142,8 +142,9 @@ const Navbar = () => {
     ];
 
   return (
-    <nav className="sticky top-0 z-[60] green-paper-nav transition-all duration-300">
+    <div className="sticky top-0 z-[60] flex flex-col w-full">
       <CodeforaAd variant="top-banner" />
+      <nav className="relative green-paper-nav transition-all duration-300">
       <NavbarDecorations />
       <div className="relative z-40 max-w-7xl mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 hover:scale-105 transition-transform">
@@ -386,8 +387,9 @@ const Navbar = () => {
             );
           })}
         </div>
-      </div>
-    </nav>
+        </div>
+      </nav>
+    </div>
   );
 };
 
