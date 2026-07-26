@@ -268,6 +268,7 @@ const Home = () => {
         <TreeBranchDivider />
       </div> {/* End of BorderDecorations wrapper */}
 
+      <CodeforaAd variant="billboard" />
       {/* Footer */}
         <footer 
           id="footer" 
