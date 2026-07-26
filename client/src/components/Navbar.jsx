@@ -13,6 +13,7 @@ import profile1 from '../assets/profile1.png';
 import profile2 from '../assets/profile2.png';
 import profile3 from '../assets/profile3.png';
 import profile4 from '../assets/profile4.png';
+import CodeforaAd from './CodeforaAd';
 
 const avatars = [profile1, profile2, profile3, profile4];
 
@@ -141,7 +142,8 @@ const Navbar = () => {
     ];
 
   return (
-    <nav className="sticky top-0 z-50 green-paper-nav transition-all duration-300">
+    <nav className="sticky top-0 z-[60] green-paper-nav transition-all duration-300">
+      <CodeforaAd variant="top-banner" />
       <NavbarDecorations />
       <div className="relative z-40 max-w-7xl mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 hover:scale-105 transition-transform">

@@ -69,7 +69,6 @@ function AppContent() {
       {/* PWA Notification Prompt */}
       <NotificationPrompt />
       <Background />
-      <CodeforaAd variant="top-banner" />
       <Navbar />
       <Suspense fallback={<LoadingScreen />}>
         <Routes>

@@ -25,7 +25,7 @@ const CodeforaAd = ({ variant }) => {
   if (variant === 'top-banner') {
     if (!showTopBanner) return null;
     return (
-      <div className="bg-[#050505] text-white py-3 px-4 flex justify-between items-center relative overflow-hidden group border-b border-[#FF6600]/20">
+      <div className="bg-black text-white py-3 px-4 flex justify-between items-center relative overflow-hidden group border-b border-[#FF6600]/20">
         <div className="absolute inset-0 bg-gradient-to-r from-[#00E5FF]/10 to-[#FF6600]/10 opacity-50"></div>
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 relative z-10 w-full">
           <span className="text-xl hidden sm:inline text-[#FF6600] font-black">{`{/}`}</span>
