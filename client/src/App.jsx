@@ -71,7 +71,7 @@ function AppContent() {
       <Navbar />
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={user?.isSupplier ? <Navigate to="/supplier" replace /> : <Home />} />
           <Route path="/workbook" element={<Workbook />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />

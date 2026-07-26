@@ -289,20 +289,24 @@ const Navbar = () => {
                     >
                       Profile
                     </Link>
-                    <Link
-                      to="/order-history"
-                      className="block px-4 py-3 text-sm hover:bg-paper"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      Orders and PDF Status
-                    </Link>
-                    <Link
-                      to="/feedback"
-                      className="block px-4 py-3 text-sm hover:bg-paper"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      Feedback
-                    </Link>
+                    {!user.isSupplier && (
+                      <>
+                        <Link
+                          to="/order-history"
+                          className="block px-4 py-3 text-sm hover:bg-paper"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          Orders and PDF Status
+                        </Link>
+                        <Link
+                          to="/feedback"
+                          className="block px-4 py-3 text-sm hover:bg-paper"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          Feedback
+                        </Link>
+                      </>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-medium border-t border-ink/10"
