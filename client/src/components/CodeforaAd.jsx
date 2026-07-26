@@ -33,7 +33,7 @@ const CodeforaAd = ({ variant }) => {
             COMMUNICATE. COLLABORATE. CODE TOGETHER. Join <span className="font-black text-[#FF6600] tracking-widest uppercase">Codefora</span>
           </p>
           <a href={codeforaUrl} target="_blank" rel="noopener noreferrer" className="bg-[#FF6600] hover:bg-[#00E5FF] hover:text-[#050505] text-[#050505] px-5 py-1.5 rounded-sm text-sm font-black transition-all shadow-[0_0_10px_rgba(255,102,0,0.5)] hover:shadow-[0_0_15px_rgba(0,229,255,0.8)] ml-2 whitespace-nowrap uppercase tracking-wider">
-            Play Now
+            Collaborate Now
           </a>
         </div>
         <button onClick={handleDismiss} className="absolute right-4 text-gray-500 hover:text-[#FF6600] z-10 p-2 transition-colors">
