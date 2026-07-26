@@ -37,6 +37,10 @@ const Payment = () => {
   const isBulkOrder = () => true;
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     if (!user) {
       navigate('/signin');
       return;
@@ -150,12 +154,12 @@ const Payment = () => {
       // Create order
       const payload = {
         items: cart.items,
-        amount: getActiveCartTotalPrice(),
+        amount: total,
         paymentScreenshotUrl: screenshotUrl,
         paymentType: paymentType === 'PARTIAL' ? 'COD' : 'FULL',
-        paidAmount: paymentType === 'PARTIAL' ? Number(paidNow) : getActiveCartTotalPrice(),
+        paidAmount: paymentType === 'PARTIAL' ? Number(paidNow) : total,
         remainingAmount:
-          paymentType === 'PARTIAL' ? Math.max(getActiveCartTotalPrice() - Number(paidNow), 0) : 0,
+          paymentType === 'PARTIAL' ? Math.max(total - Number(paidNow), 0) : 0,
         student: {
           name: checkoutData.name,
           collegeId: checkoutData.collegeId,
@@ -164,6 +168,8 @@ const Payment = () => {
         pickupPoint: checkoutData.pickupPoint || 'Main Gate',
         notes: checkoutData.notes,
         referralCode: referralCode.trim() || undefined,
+        fromEvent: checkoutData.fromEvent || false,
+        eventDiscountTotal: checkoutData.fromEvent ? (cart.eventDiscountTotal || 0) : 0,
       };
 
       const orderRes = await API.post('/orders', payload);
@@ -188,7 +194,10 @@ const Payment = () => {
     }
   };
 
-  const total = getActiveCartTotalPrice();
+  const baseTotal = getActiveCartTotalPrice();
+  const fromEvent = checkoutData?.fromEvent || false;
+  const eventDiscount = fromEvent ? (cart.eventDiscountTotal || 0) : 0;
+  const total = Math.max(0, baseTotal - eventDiscount);
   const hasPendingPrice = cart.items?.some((item) => item.userPrice == null && item.price == null);
   const needsPayment = total > 0 && !hasPendingPrice;
   const grouped = groupBySideType(cart.items || []);
@@ -308,6 +317,12 @@ const Payment = () => {
           </div>
 
           <div className="mb-6 border-b pb-6">
+            {fromEvent && eventDiscount > 0 && (
+              <div className="flex justify-between items-center text-sm font-bold text-green-600 mb-2">
+                <span>Event Discount Applied:</span>
+                <span>-₹{eventDiscount.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center text-lg font-bold text-black">
               <span>Total Amount:</span>
               <span className="text-primary text-2xl">₹{total.toFixed(2)}</span>

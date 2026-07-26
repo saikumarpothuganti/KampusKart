@@ -16,40 +16,49 @@ const recalculateCart = (cart) => {
   cart.items.forEach(item => {
     if (item.type === 'subject') {
       const isBasic = item.quality === 'basic';
-      const energyPerItem = isBasic ? 10 : 28;
+      const isPremium = item.quality === 'premium';
+      const energyPerItem = isBasic ? 6 : (isPremium ? 18 : 12);
       actualEnergy += (energyPerItem * (item.qty || 1));
     }
   });
 
   cart.actualEnergy = actualEnergy;
-  cart.displayEnergy = actualEnergy > 0 ? actualEnergy + cart.sessionOffset : 0;
+  cart.displayEnergy = actualEnergy > 0 ? actualEnergy : 0; // Removed sessionOffset
 
   const level = Math.floor(cart.displayEnergy / 100);
-  const currentRewardLevel = Math.min(level, 6);
+  const currentRewardLevel = level; // Allow levels beyond 6 so frontend can check for 700+
 
   cart.currentRewardLevel = currentRewardLevel;
+  let eventDiscountTotal = 0;
 
   cart.items.forEach(item => {
     if (item.type === 'subject') {
       const isBasic = item.quality === 'basic';
+      const basePrice = item.price || 0;
+      let discount = 0;
+      
       if (isBasic) {
-        item.price = 55;
-        if (currentRewardLevel >= 3) item.userPrice = 52;
-        else if (currentRewardLevel === 2) item.userPrice = 53;
-        else if (currentRewardLevel === 1) item.userPrice = 54;
-        else item.userPrice = 55;
+        if (level >= 5) discount = 3;       // 500+ Energy (84+ books)
+        else if (level >= 3) discount = 2;  // 300-499 Energy (50-83 books)
+        else if (level >= 1) discount = 1;  // 100-299 Energy (17-49 books)
       } else {
-        item.price = 70;
-        if (currentRewardLevel >= 6) item.userPrice = 60;
-        else if (currentRewardLevel === 5) item.userPrice = 63;
-        else if (currentRewardLevel === 4) item.userPrice = 65;
-        else if (currentRewardLevel === 3) item.userPrice = 67;
-        else if (currentRewardLevel === 2) item.userPrice = 68;
-        else if (currentRewardLevel === 1) item.userPrice = 69;
-        else item.userPrice = 70;
+        if (level >= 6) discount = 10;     // 600+ (50+ standard books)
+        else if (level === 5) discount = 7; // 500-599
+        else if (level === 4) discount = 5; // 400-499
+        else if (level === 3) discount = 3; // 300-399
+        else if (level === 2) discount = 2; // 200-299
+        else if (level === 1) discount = 1; // 100-199
       }
+
+      item.eventDiscount = discount;
+      eventDiscountTotal += (discount * (item.qty || 1));
+      
+      // Ensure we explicitly set userPrice to basePrice if it was previously overwritten by the old logic
+      item.userPrice = basePrice;
     }
   });
+
+  cart.eventDiscountTotal = eventDiscountTotal;
 };
 
 // GET /api/cart

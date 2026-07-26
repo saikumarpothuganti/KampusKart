@@ -152,8 +152,22 @@ const FeedTheCart = () => {
   const progressPercent = Math.min((displayEnergy / maxEnergy) * 100, 100);
 
   const [showScrollArrow, setShowScrollArrow] = useState(true);
+  const [showBulkPopup, setShowBulkPopup] = useState(false);
+  const [hasShownBulkPopup, setHasShownBulkPopup] = useState(false);
 
   useEffect(() => {
+    if (displayEnergy >= 700 && !hasShownBulkPopup) {
+      // Delay slightly so they see the energy bar fill up first
+      const timer = setTimeout(() => {
+        setShowBulkPopup(true);
+        setHasShownBulkPopup(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [displayEnergy, hasShownBulkPopup]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
     const handleScroll = () => {
       if (window.scrollY > 30) {
         setShowScrollArrow(false);
@@ -430,9 +444,9 @@ const FeedTheCart = () => {
 
               {/* Calculate Totals */}
               {(() => {
-                const subtotal = activeCart.items?.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0) || 0;
-                const finalTotal = activeCart.items?.reduce((sum, item) => sum + ((item.userPrice || item.price) * (item.qty || 1)), 0) || 0;
-                const discount = subtotal - finalTotal;
+                const subtotal = activeCart.items?.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || 1)), 0) || 0;
+                const discount = activeCart.eventDiscountTotal || 0;
+                const finalTotal = Math.max(0, subtotal - discount);
 
                 return (
                   <>
@@ -459,7 +473,7 @@ const FeedTheCart = () => {
               })()}
 
               <button 
-                onClick={() => navigate('/checkout')} 
+                onClick={() => navigate('/checkout', { state: { fromEvent: true } })} 
                 disabled={!activeCart.items || activeCart.items.length === 0}
                 className="w-full py-4 bg-[#D4AF37] text-[#3A3327] font-black text-sm tracking-widest shadow-[0_4px_0_#B8972E,0_5px_10px_rgba(0,0,0,0.2)] active:shadow-[0_0px_0_#B8972E,0_0px_0_rgba(0,0,0,0)] active:translate-y-[4px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-[#B8972E]/50 rounded-sm"
               >
@@ -468,6 +482,33 @@ const FeedTheCart = () => {
             </div>
           </div>
         </div>
+
+        {/* Bulk Order Popup (700+ Energy) */}
+        {showBulkPopup && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in zoom-in duration-300" onClick={() => setShowBulkPopup(false)}>
+            <div className="bg-[#183623] border-2 border-[#D4AF37] shadow-[0_20px_50px_rgba(0,0,0,0.8)] max-w-md w-full relative overflow-hidden rounded-md cursor-default p-8 text-center" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setShowBulkPopup(false)} className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-[#A3B8A8] hover:text-white hover:bg-white/10 rounded-full font-bold text-xl transition-colors">✕</button>
+              
+              <div className="text-6xl mb-4 animate-bounce">📦</div>
+              <h2 className="text-2xl font-black text-[#E8D9B4] tracking-tighter mb-3 uppercase" style={{ textShadow: '0 2px 10px rgba(212,175,55,0.3)' }}>
+                Massive Order Detected!
+              </h2>
+              <p className="text-[#A3B8A8] font-bold text-lg mb-2">You're ordering a LOT of books!</p>
+              <p className="text-[#8D7F67] text-sm mb-6 leading-relaxed">
+                Since you're placing such a large order, we can probably get you an even better deal. <strong className="text-[#D4AF37]">Contact us directly</strong> for an exclusive bulk-order discount!
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                <a href="https://t.me/KampusKart_Klu" target="_blank" rel="noopener noreferrer" className="flex-1 py-3 bg-[#0088cc] text-white font-black tracking-widest uppercase hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,136,204,0.4)] transition-all rounded-sm border border-[#006699]">
+                  Telegram
+                </a>
+                <a href="https://www.instagram.com/kampuskart__" target="_blank" rel="noopener noreferrer" className="flex-1 py-3 bg-gradient-to-r from-[#f09433] via-[#e6683c] to-[#bc1888] text-white font-black tracking-widest uppercase hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(188,24,136,0.4)] transition-all rounded-sm">
+                  Instagram
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Scroll Indicator */}
         <div className={`lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce transition-opacity duration-300 pointer-events-none ${showScrollArrow ? 'opacity-100' : 'opacity-0'}`}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { OrigamiPackage, OrigamiClipboard, OrigamiTag, OrigamiStar } from '../components/OrigamiIcons';
@@ -7,8 +7,10 @@ import API from '../lib/api';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromEvent = location.state?.fromEvent || false;
   const { user, ordersEnabled } = useAuth();
-  const { getActiveCart, getActiveCartTotalPrice } = useCart();
+  const { getActiveCart, getActiveCartTotalPrice, activeCartId } = useCart();
   const cart = getActiveCart() || {};
   const [pickupPoints, setPickupPoints] = useState([]);
   const [loadingPoints, setLoadingPoints] = useState(true);
@@ -82,11 +84,17 @@ const Checkout = () => {
     }
 
     // Store checkout data in localStorage for next page
-    localStorage.setItem('checkoutData', JSON.stringify(formData));
+    localStorage.setItem('checkoutData', JSON.stringify({ 
+      ...formData, 
+      cartId: activeCartId,
+      fromEvent 
+    }));
     navigate('/payment');
   };
 
-  const total = getActiveCartTotalPrice();
+  const baseTotal = getActiveCartTotalPrice();
+  const eventDiscount = fromEvent ? (cart.eventDiscountTotal || 0) : 0;
+  const total = Math.max(0, baseTotal - eventDiscount);
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
@@ -254,6 +262,12 @@ const Checkout = () => {
             <span className="font-serif font-black text-xl text-ink">Total:</span>
             <span className="text-3xl font-black text-ink" style={{ textShadow: '2px 2px 0px rgba(184,134,11,0.5)' }}>₹{total.toFixed(2)}</span>
           </div>
+          {fromEvent && eventDiscount > 0 && (
+            <div className="flex justify-between items-center text-sm font-bold text-[#18382A] mt-2 border-t-2 border-dashed border-ink/20 pt-2">
+              <span>Reward Discount Applied:</span>
+              <span>-₹{eventDiscount.toFixed(2)}</span>
+            </div>
+          )}
           {total === 0 && (
             <p className="mt-4 text-xs font-bold text-amber-700 bg-amber-100 p-2 border border-amber-300 rounded-sm italic text-center">
               * Total excludes custom PDFs (Admin will price them)

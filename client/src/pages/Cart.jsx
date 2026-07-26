@@ -27,6 +27,7 @@ const Cart = () => {
   const [newCartName, setNewCartName] = useState('');
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (!user) {
       navigate('/signin');
     } else {
@@ -111,8 +112,22 @@ const Cart = () => {
 
       <div className="max-w-5xl mx-auto relative z-10">
         
+        {/* Event Banner */}
+        <div className="mb-6 bg-gradient-to-r from-[#183623] to-[#2D503C] rounded-xl p-4 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.12)] flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#D4AF37]/30">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl animate-bounce">⚡</span>
+            <div>
+              <h3 className="text-[#E8D9B4] font-black text-lg sm:text-xl uppercase tracking-wide">Chance to get high discounts!</h3>
+              <p className="text-[#A3B8A8] text-sm">Join the 'Feed The Cart' event and unlock instant price drops on your entire cart.</p>
+            </div>
+          </div>
+          <Link to="/feed-the-cart" className="w-full sm:w-auto px-6 py-3 bg-[#D4AF37] text-[#183623] font-black uppercase tracking-widest rounded-md hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(212,175,55,0.3)] transition-all whitespace-nowrap text-center">
+            Join Event →
+          </Link>
+        </div>
+
         {/* Header Actions */}
-          <div className="flex items-center justify-between mb-6 mt-4">
+          <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-6">
             <button
               onClick={() => navigate(-1)}

@@ -12,6 +12,14 @@ const orderSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    fromEvent: {
+      type: Boolean,
+      default: false,
+    },
+    eventDiscountTotal: {
+      type: Number,
+      default: 0,
+    },
     items: [
       {
         type: {

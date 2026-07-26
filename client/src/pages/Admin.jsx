@@ -923,7 +923,12 @@ const Admin = () => {
           ) : (
             <div className="space-y-4">
               {filteredOrders.map((order) => (
-                <div key={order._id} className={`rounded-lg shadow-md p-6 relative ${order.adminColor === 'gold' ? 'bg-yellow-100 border-2 border-yellow-400' : order.adminColor === 'silver' ? 'bg-gray-200 border-2 border-gray-400' : 'bg-white'}`}>
+                <div key={order._id} className={`rounded-lg shadow-md p-6 relative ${order.fromEvent ? 'bg-[#F4EFE6] border-2 border-[#D4AF37]' : order.adminColor === 'gold' ? 'bg-yellow-100 border-2 border-yellow-400' : order.adminColor === 'silver' ? 'bg-gray-200 border-2 border-gray-400' : 'bg-white'}`}>
+                  {order.fromEvent && (
+                    <div className="absolute top-0 left-0 bg-[#D4AF37] text-[#183623] text-[10px] font-black px-2 py-0.5 rounded-br-lg uppercase tracking-widest shadow-sm">
+                      ⚡ Event Order (-₹{order.eventDiscountTotal || 0})
+                    </div>
+                  )}
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button onClick={() => handleOrderColorUpdate(order.orderId, 'gold')} className="w-5 h-5 rounded-full bg-[#FFD700] border border-yellow-600 hover:scale-110 transition-transform shadow-sm" title="Gold"></button>
                     <button onClick={() => handleOrderColorUpdate(order.orderId, 'silver')} className="w-5 h-5 rounded-full bg-[#C0C0C0] border border-gray-600 hover:scale-110 transition-transform shadow-sm" title="Silver"></button>
@@ -1517,7 +1522,12 @@ const Admin = () => {
                 const safeItems = Array.isArray(order.items) ? order.items : [];
                 
                 return (
-                  <div key={order._id} className={`rounded-lg shadow-md p-6 relative ${order.adminColor === 'gold' ? 'bg-yellow-100 border-2 border-yellow-400' : order.adminColor === 'silver' ? 'bg-gray-200 border-2 border-gray-400' : 'bg-white'}`}>
+                  <div key={order._id} className={`rounded-lg shadow-md p-6 relative ${order.fromEvent ? 'bg-[#F4EFE6] border-2 border-[#D4AF37]' : order.adminColor === 'gold' ? 'bg-yellow-100 border-2 border-yellow-400' : order.adminColor === 'silver' ? 'bg-gray-200 border-2 border-gray-400' : 'bg-white'}`}>
+                    {order.fromEvent && (
+                      <div className="absolute top-0 left-0 bg-[#D4AF37] text-[#183623] text-[10px] font-black px-2 py-0.5 rounded-br-lg uppercase tracking-widest shadow-sm">
+                        ⚡ Event Order (-₹{order.eventDiscountTotal || 0})
+                      </div>
+                    )}
                     <div className="absolute top-2 right-2 flex gap-2">
                       <button onClick={() => handleOrderColorUpdate(order.orderId, 'gold')} className="w-5 h-5 rounded-full bg-[#FFD700] border border-yellow-600 hover:scale-110 transition-transform shadow-sm" title="Gold"></button>
                       <button onClick={() => handleOrderColorUpdate(order.orderId, 'silver')} className="w-5 h-5 rounded-full bg-[#C0C0C0] border border-gray-600 hover:scale-110 transition-transform shadow-sm" title="Silver"></button>

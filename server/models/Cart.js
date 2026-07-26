@@ -11,13 +11,10 @@ const cartSchema = new mongoose.Schema(
       type: String,
       default: 'My Cart',
     },
-    sessionOffset: {
-      type: Number,
-      default: () => Math.floor(Math.random() * 31) + 20, // Random number between 20 and 50
-    },
     actualEnergy: { type: Number, default: 0 },
     displayEnergy: { type: Number, default: 0 },
     currentRewardLevel: { type: Number, default: 0 },
+    eventDiscountTotal: { type: Number, default: 0 },
     items: [
       {
         type: {
@@ -46,6 +43,7 @@ const cartSchema = new mongoose.Schema(
         pricePerPage: Number,
         price: Number,
         userPrice: Number,
+        eventDiscount: Number,
       },
     ],
   },
