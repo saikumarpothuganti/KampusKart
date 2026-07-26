@@ -20,7 +20,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kampuskar
           // Find the original PDF Request
           const pdfRequest = await db.collection('pdfrequests').findOne({ 
             userId: cart.userId, 
-            status: 'priced', 
+            status: { $in: ['priced', 'added_to_cart'] }, 
             title: item.title 
           });
           
