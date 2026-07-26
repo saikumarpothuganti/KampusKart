@@ -6,6 +6,7 @@ import BorderDecorations from '../components/BorderDecorations';
 import TreeBranchDivider from '../components/TreeBranchDivider';
 import ScrollRocket from '../components/ScrollRocket';
 import PaperBirds from '../components/PaperBirds';
+import CodeforaAd from '../components/CodeforaAd';
 import { OrigamiText } from '../components/OrigamiFont';
 import { OrigamiBook, OrigamiPlane, OrigamiTag, OrigamiPackage } from '../components/OrigamiIcons';
 import homeBg from '../assets/HOME.png';

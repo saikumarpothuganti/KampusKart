@@ -9,6 +9,7 @@ import LoadingScreen from './components/LoadingScreen';
 import InstallPrompt from './components/InstallPrompt';
 import NotificationPrompt from './components/NotificationPrompt';
 import FloatingChat from './components/FloatingChat';
+import CodeforaAd from './components/CodeforaAd';
 
 const Home = React.lazy(() => import('./pages/Home'));
 const Workbook = React.lazy(() => import('./pages/Workbook'));

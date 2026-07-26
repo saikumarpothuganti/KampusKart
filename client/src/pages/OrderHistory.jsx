@@ -7,6 +7,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import workbookBg from '../assets/Workbook.png';
 import origamiDeliveryMan from '../assets/origami_delivery_man.png';
 import origamiStudent from '../assets/origami_student.png';
+import CodeforaAd from '../components/CodeforaAd';
 
 const truncateText = (text, maxLength) => {
   if (!text) return '';
@@ -529,6 +530,7 @@ const OrderHistory = () => {
           </div>
         </div>
         
+        <CodeforaAd variant="success-upsell" />
       </div>
     </div>
   );
