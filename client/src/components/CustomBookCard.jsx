@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { PDFDocument } from 'pdf-lib';
 import '../styles/CardAnimations.css';
 import basicBookImg from '../assets/basic books-2.jpeg';
 import standardBookImg from '../assets/standard books.jpeg';
@@ -15,9 +16,22 @@ const CustomBookCard = ({ onAddToCart }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [pauseMessage, setPauseMessage] = useState('');
+  const [pages, setPages] = useState(0);
+  const [calculatedPrice, setCalculatedPrice] = useState(0);
   const abortControllerRef = React.useRef(null);
 
-  const handleFileChange = (e) => {
+  useEffect(() => {
+    if (pages > 0) {
+      const sheets = sides === 2 ? Math.ceil(pages / 2) : pages;
+      const basePrice = sheets * 1;
+      const bindingCost = quality === 'basic' ? 55 : 70;
+      setCalculatedPrice(basePrice + bindingCost);
+    } else {
+      setCalculatedPrice(0);
+    }
+  }, [pages, sides, quality]);
+
+  const handleFileChange = async (e) => {
     const selected = e.target.files[0];
     if (selected && selected.size > 25 * 1024 * 1024) {
       alert('File is larger than 25MB. Please upload a smaller PDF.');
@@ -25,6 +39,20 @@ const CustomBookCard = ({ onAddToCart }) => {
       return;
     }
     setFile(selected);
+    
+    if (selected) {
+      try {
+        const arrayBuffer = await selected.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const pageCount = pdfDoc.getPageCount();
+        setPages(pageCount);
+      } catch (err) {
+        console.error("Error reading PDF pages:", err);
+        setPages(0);
+      }
+    } else {
+      setPages(0);
+    }
   };
 
   const handleSubmitRequest = async () => {
@@ -83,6 +111,7 @@ const CustomBookCard = ({ onAddToCart }) => {
         qty: quantity,
         sides,
         quality,
+        pages,
       };
       
       console.log('Creating PDF request:', requestPayload);
@@ -92,12 +121,14 @@ const CustomBookCard = ({ onAddToCart }) => {
       console.log('Request created:', requestRes.data);
 
       setFile(null);
+      setPages(0);
+      setCalculatedPrice(0);
       setSides(1);
       setQuality('standard');
       setQuantity(1);
       setUploadProgress(0);
       abortControllerRef.current = null;
-      alert('PDF request submitted! Admin will set the price, and you can add it to cart from Orders and PDF Status.');
+      alert('PDF uploaded successfully! Price has been automatically calculated.');
     } catch (error) {
       console.error('PDF submission error:', error);
       console.error('Error response:', error.response?.data);
@@ -234,6 +265,17 @@ const CustomBookCard = ({ onAddToCart }) => {
           </button>
         </div>
       </div>
+
+      {pages > 0 && (
+        <div className="mb-4 p-3 bg-[rgba(0,0,0,0.15)] rounded border border-[rgba(255,255,255,0.1)] flex flex-col items-center justify-center">
+          <span className="text-xs text-paper/70 font-bold tracking-widest uppercase mb-1">Instant Quote</span>
+          <div className="flex items-end gap-1 text-[#EDE0C8]">
+            <span className="text-sm font-bold">₹</span>
+            <span className="text-3xl font-black leading-none">{calculatedPrice}</span>
+          </div>
+          <span className="text-[10px] text-paper/50 mt-1">{pages} Pages</span>
+        </div>
+      )}
 
       <button
         onClick={handleSubmitRequest}

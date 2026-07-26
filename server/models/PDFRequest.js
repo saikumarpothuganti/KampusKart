@@ -25,6 +25,10 @@ const pdfRequestSchema = new mongoose.Schema(
       required: true,
       default: 1,
     },
+    pages: {
+      type: Number,
+      default: 0,
+    },
     sides: {
       type: Number,
       required: true,

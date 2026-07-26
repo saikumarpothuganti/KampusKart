@@ -24,9 +24,9 @@ export const createPDFRequest = async (req, res) => {
       });
     }
 
-    const { title, pdfUrl, qty, sides, quality } = req.body;
+    const { title, pdfUrl, qty, sides, quality, pages } = req.body;
 
-    console.log('PDF Request received:', { title, pdfUrl, qty, sides, userId: req.user?.id });
+    console.log('PDF Request received:', { title, pdfUrl, qty, sides, pages, userId: req.user?.id });
 
     if (!title || !pdfUrl || !qty || !sides) {
       console.error('Missing fields:', { title: !!title, pdfUrl: !!pdfUrl, qty: !!qty, sides: !!sides });
@@ -35,6 +35,22 @@ export const createPDFRequest = async (req, res) => {
 
     const requestId = await generateRequestId();
 
+    let autoPrice = null;
+    let initialStatus = 'pending';
+    const numPages = parseInt(pages);
+    
+    if (numPages > 0) {
+      const numSides = parseInt(sides) || 1;
+      const itemQuality = quality || 'standard';
+      
+      const sheets = numSides === 2 ? Math.ceil(numPages / 2) : numPages;
+      const basePrice = sheets * 1;
+      const bindingCost = itemQuality === 'basic' ? 55 : 70;
+      
+      autoPrice = basePrice + bindingCost;
+      initialStatus = 'priced';
+    }
+
     const newRequest = new PDFRequest({
       userId: req.user.id,
       requestId,
@@ -42,8 +58,10 @@ export const createPDFRequest = async (req, res) => {
       pdfUrl,
       qty: parseInt(qty),
       sides: parseInt(sides),
+      pages: numPages || 0,
       quality: quality || 'standard',
-      status: 'pending',
+      price: autoPrice,
+      status: initialStatus,
     });
 
     await newRequest.save();
