@@ -17,7 +17,7 @@ const Workbook = () => {
   const [selectedCarts, setSelectedCarts] = useState([]);
   const [newCartName, setNewCartName] = useState('');
 
-  const [year, setYear] = useState('1');
+  const [year, setYear] = useState('3');
   const [sem, setSem] = useState('1');
   const [loading, setLoading] = useState(false);
   const [subjects, setSubjects] = useState([]);
