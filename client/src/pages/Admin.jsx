@@ -69,9 +69,7 @@ const Admin = () => {
 
   // Resolver function: Unified logic for determining item.sideType
   const resolveSideType = (item) => {
-    if (item.type === 'custom') {
-      return item.printSides === 'double' ? 'double' : 'single';
-    }
+
     if (item?.sideType && (item.sideType === 'single' || item.sideType === 'double')) {
       return item.sideType;
     }
