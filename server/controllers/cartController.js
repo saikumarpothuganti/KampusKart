@@ -31,7 +31,7 @@ const recalculateCart = (cart) => {
 
   cart.items.forEach(item => {
     const isBasic = item.quality === 'basic';
-    const basePrice = item.price || 0;
+    const basePrice = item.price ?? item.userPrice ?? 0;
     let discount = 0;
     
     if (isBasic) {
