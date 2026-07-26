@@ -92,6 +92,8 @@ const OrderHistory = () => {
         sideType: request.sides === 2 ? 'double' : 'single',
         sides: request.sides,
         quality: request.quality || 'standard',
+        pricePerPage: request.price,
+        price: request.price,
         userPrice: request.price,
       });
       await API.post(`/pdf-requests/${request.requestId}/add-to-cart`);

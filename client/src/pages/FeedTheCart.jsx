@@ -275,7 +275,8 @@ const FeedTheCart = () => {
               ) : (
                 <div className="flex flex-col gap-0">
                   {activeCart.items.map((item, index) => {
-                    const originalTotal = (item.price || 0) * (item.qty || 1);
+                    const itemDisplayPrice = item.userPrice ?? item.price ?? 0;
+                    const originalTotal = itemDisplayPrice * (item.qty || 1);
                     return (
                       <div key={index} className="py-6 border-b border-[#D8CBB3] border-dashed flex flex-col xl:flex-row items-center gap-4 group">
                         
@@ -291,7 +292,7 @@ const FeedTheCart = () => {
                           <p className="text-xs text-[#6F6450] mt-1 font-medium">Code: {item.code || '24XXX'}</p>
                           <p className="text-xs text-[#6F6450] mt-1 font-medium">Printing: {item.sideType} side • Quality: {item.quality}</p>
                           <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-2 mt-2">
-                            <p className="text-sm font-black text-[#3A3327]">₹{item.price} <span className="text-xs font-normal text-[#6F6450]">per copy</span></p>
+                            <p className="text-sm font-black text-[#3A3327]">₹{item.userPrice ?? item.price} <span className="text-xs font-normal text-[#6F6450]">per copy</span></p>
                             <span className="text-[10px] font-bold text-[#1B5E20] bg-[#81C784]/30 px-2 py-0.5 rounded-full border border-[#81C784]/50">
                               {item.quality === 'basic' ? '⚡ Generates Least Energy' : 
                                item.quality === 'premium' ? '⚡ Generates Max Energy' : 
@@ -444,7 +445,7 @@ const FeedTheCart = () => {
 
               {/* Calculate Totals */}
               {(() => {
-                const subtotal = activeCart.items?.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || 1)), 0) || 0;
+                const subtotal = activeCart.items?.reduce((sum, item) => sum + ((item.userPrice ?? item.price ?? 0) * (item.qty || 1)), 0) || 0;
                 const discount = activeCart.eventDiscountTotal || 0;
                 const finalTotal = Math.max(0, subtotal - discount);
 
