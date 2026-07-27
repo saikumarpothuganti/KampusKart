@@ -12,7 +12,8 @@ const AdminChats = () => {
   const fetchChats = async () => {
     try {
       const res = await API.get('/chats/admin');
-      setChats(res.data);
+      const sortedChats = res.data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      setChats(sortedChats);
     } catch (err) {
       console.error('Error fetching admin chats:', err);
     }

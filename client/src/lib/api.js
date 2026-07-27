@@ -23,10 +23,11 @@ API.interceptors.response.use(
   (error) => {
     // Normalize generic/network errors to a standard message
     const isNetworkError = !error.response;
+    const hasServerErrorMessage = error.response && error.response.data && error.response.data.error;
     const isServerError = error.response && error.response.status >= 500;
-    const isUnknownError = error.response && !error.response.data?.error;
-
-    if (error.code !== 'ERR_CANCELED' && (isNetworkError || isServerError || isUnknownError)) {
+    
+    // Only use generic message if it's a true network error, OR a server error without a specific message
+    if (error.code !== 'ERR_CANCELED' && (isNetworkError || (isServerError && !hasServerErrorMessage) || (error.response && !hasServerErrorMessage))) {
       const genericMsg = "Network / Internet issue. Please refresh.";
       error.message = genericMsg;
       if (!error.response) {
