@@ -7,9 +7,12 @@ export const uploadPDF = async (req, res) => {
       return res.status(400).json({ error: 'No PDF file provided' });
     }
 
-    // Validate PDF
-    if (req.file.mimetype !== 'application/pdf') {
-      return res.status(400).json({ error: 'Only PDF files are allowed' });
+    // Validate PDF (Browsers sometimes send alternative mimetypes for PDFs)
+    const validMimeTypes = ['application/pdf', 'application/x-pdf', 'application/acrobat', 'application/vnd.pdf'];
+    const isPdfExtension = req.file.originalname.toLowerCase().endsWith('.pdf');
+    
+    if (!validMimeTypes.includes(req.file.mimetype) && !isPdfExtension) {
+      return res.status(400).json({ error: `Only PDF files are allowed. Received: ${req.file.mimetype}` });
     }
 
     // Clean filename (Cloudinary safe)
