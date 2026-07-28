@@ -16,7 +16,9 @@ export const uploadPDF = async (req, res) => {
     let filename = path.parse(req.file.originalname).name;
     filename = filename.replace(/[^a-zA-Z0-9_-]/g, '_');
 
-    const publicId = `kampuskart/pdfs/${filename}`;
+    // Add unique timestamp to prevent overwriting files with the same name
+    const uniqueFilename = `${filename}_${Date.now()}`;
+    const publicId = `kampuskart/pdfs/${uniqueFilename}`;
 
     // Upload as raw resource type for PDFs; cloudinary.js will force raw+pdf
     const url = await uploadToCloudinary(req.file.buffer, publicId, 'raw', true);
