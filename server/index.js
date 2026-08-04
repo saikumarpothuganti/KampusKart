@@ -22,6 +22,7 @@
   import settingsRoutes from './routes/settingsRoutes.js';
   import messageRoutes from './routes/messageRoutes.js';
   import chatRoutes from './routes/chatRoutes.js';
+  import wheelRoutes from './routes/wheelRoutes.js';
 
   const app = express();
   const httpServer = createServer(app);
@@ -87,6 +88,7 @@ if (process.env.CLIENT_URL) {
   app.use('/api/settings', settingsRoutes);
   app.use('/api/messages', messageRoutes);
   app.use('/api/chats', chatRoutes);
+  app.use('/api/wheel', wheelRoutes);
 
   // Health check
   app.get('/api/health', (req, res) => {

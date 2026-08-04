@@ -7,11 +7,15 @@ import '../styles/CardAnimations.css';
 const SubjectCard = ({ subject, onAddToCart }) => {
   const [quantity, setQuantity] = React.useState(1);
   const [sideType, setSideType] = React.useState('double');
+  const hasBasicPricing = (subject.basic_singleSidePrice !== undefined && subject.basic_singleSidePrice !== null) || 
+                          (subject.basic_doubleSidePrice !== undefined && subject.basic_doubleSidePrice !== null);
+  const maxBasic = 5;
+  const currentBasic = subject.basicStock !== undefined ? subject.basicStock : maxBasic;
+  const availableBasic = Math.min(currentBasic, maxBasic);
+  const basicOutOfStock = availableBasic <= 0;
+  
   const [quality, setQuality] = React.useState(
-    (subject.basic_singleSidePrice !== undefined && subject.basic_singleSidePrice !== null) || 
-    (subject.basic_doubleSidePrice !== undefined && subject.basic_doubleSidePrice !== null) 
-      ? 'basic' 
-      : 'standard'
+    hasBasicPricing && !basicOutOfStock ? 'basic' : 'standard'
   );
   const [showPreview, setShowPreview] = React.useState(false);
 
@@ -19,8 +23,9 @@ const SubjectCard = ({ subject, onAddToCart }) => {
     if (quality === 'basic') {
       return sideType === 'single' ? subject.basic_singleSidePrice : subject.basic_doubleSidePrice;
     }
-    if (quality === 'premium') {
-      return sideType === 'single' ? subject.premium_singleSidePrice : subject.premium_doubleSidePrice;
+    if (quality === 'flash') {
+      const basicPrice = sideType === 'single' ? subject.basic_singleSidePrice : subject.basic_doubleSidePrice;
+      return (basicPrice !== null && basicPrice !== undefined) ? basicPrice + 7 : null;
     }
     // Standard
     return sideType === 'single' ? subject.singleSidePrice : subject.doubleSidePrice;
@@ -44,10 +49,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
     setQuantity(1);
     setSideType('double');
     setQuality(
-      (subject.basic_singleSidePrice !== undefined && subject.basic_singleSidePrice !== null) || 
-      (subject.basic_doubleSidePrice !== undefined && subject.basic_doubleSidePrice !== null) 
-        ? 'basic' 
-        : 'standard'
+      hasBasicPricing && !basicOutOfStock ? 'basic' : 'standard'
     );
   };
 
@@ -95,15 +97,18 @@ const SubjectCard = ({ subject, onAddToCart }) => {
           <div className="flex flex-col gap-1.5 mb-2">
             <div className="flex gap-2">
               <button
+                disabled={basicOutOfStock}
                 onClick={() => setQuality('basic')}
                 className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border relative ${
+                  basicOutOfStock ? 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] opacity-50 cursor-not-allowed' :
                   quality === 'basic'
                     ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
                     : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
                 }`}
+                title={basicOutOfStock ? "Basic quality is out of stock" : `${availableBasic} out of 5 left`}
               >
-                Basic
-                <span className="absolute -top-2 -right-1 text-[8px] bg-red-500 text-white px-1 rounded shadow">Best seller</span>
+                {basicOutOfStock ? 'Basic (OOS)' : 'Basic'}
+                {!basicOutOfStock && <span className="absolute -top-2 -right-2 text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded shadow font-bold tracking-wider border border-red-800">{availableBasic}/5 LEFT</span>}
               </button>
               <button
                 onClick={() => setQuality('standard')}
@@ -116,11 +121,17 @@ const SubjectCard = ({ subject, onAddToCart }) => {
                 Standard
               </button>
               <button
-                disabled={true}
-                className="flex-1 py-1.5 rounded-sm text-[10px] sm:text-xs font-bold transition border bg-transparent text-paper border-[rgba(255,255,255,0.2)] opacity-50 cursor-not-allowed"
-                title="Currently Out of Stock"
+                disabled={!hasBasicPricing}
+                onClick={() => setQuality('flash')}
+                className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
+                  !hasBasicPricing ? 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] opacity-50 cursor-not-allowed' :
+                  quality === 'flash'
+                    ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm flash-wiggle'
+                    : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)] flash-wiggle text-yellow-300'
+                }`}
+                title={!hasBasicPricing ? "Unavailable for this book" : "Lightning fast processing"}
               >
-                Premium (OOS)
+                {!hasBasicPricing ? 'Flash (N/A)' : 'Flash'}
               </button>
             </div>
             
@@ -168,7 +179,14 @@ const SubjectCard = ({ subject, onAddToCart }) => {
             </button>
             <span className="px-4 text-paper font-bold bg-[rgba(0,0,0,0.2)] py-1 rounded-sm shadow-inner">{quantity}</span>
             <button
-              onClick={() => setQuantity(quantity + 1)}
+              onClick={() => {
+                // If they have selected basic, prevent going over availableBasic
+                if (quality === 'basic' && quantity >= availableBasic) {
+                  alert(`Only ${availableBasic} basic copies are available.`);
+                  return;
+                }
+                setQuantity(quantity + 1);
+              }}
               className="bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] px-3 py-1 rounded-sm text-paper font-bold transition"
             >
               +
@@ -198,7 +216,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
       </div>
 
       {/* Preview Modal */}
-      {showPreview && quality !== 'premium' && (
+      {showPreview && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPreview(false); }}>
           <div className="relative max-w-sm w-full" onClick={e => e.stopPropagation()}>
             <button 

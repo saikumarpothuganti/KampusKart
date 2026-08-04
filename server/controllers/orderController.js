@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendNotificationToUser } from './pushController.js';
 import { getFlag } from './toggleController.js';
+import Subject from '../models/Subject.js';
 
 const generateOrderId = async () => {
   let orderId = '';
@@ -26,7 +27,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    const { items, amount, paymentScreenshotUrl, student, pickupPoint, paymentType, paidAmount, remainingAmount, referralCode, fromEvent, eventDiscountTotal } = req.body;
+    const { items, amount, paymentScreenshotUrl, student, pickupPoint, paymentType, paidAmount, remainingAmount, referralCode, appliedToken } = req.body;
 
     if (!items || amount === undefined || amount === null || !student) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -36,6 +37,35 @@ export const createOrder = async (req, res) => {
     const hasPendingPrice = items.some(item => 
       item.type === 'custom' && (item.userPrice === null || item.userPrice === undefined)
     );
+
+    // Validate Basic stock and prepare decrement operations
+    // If using a token, validate they have it
+    if (appliedToken) {
+      const userDoc = await User.findById(req.user.id);
+      if (appliedToken === 'rs9' && userDoc.rs9Tokens <= 0) {
+        return res.status(400).json({ error: 'You do not have a ₹9 token available.' });
+      } else if (appliedToken === '20pct' && userDoc.pct20Tokens <= 0) {
+        return res.status(400).json({ error: 'You do not have a 20% token available.' });
+      }
+    }
+
+    let basicStockUpdates = [];
+    for (const item of items) {
+      if (item.type === 'subject' && item.quality === 'basic') {
+        const subject = await Subject.findById(item.subjectId);
+        if (!subject) continue;
+        
+        const currentStock = subject.basicStock !== undefined ? subject.basicStock : 5;
+        if (currentStock < item.qty) {
+          return res.status(400).json({ error: `${subject.title} basic quality is out of stock (only ${currentStock} left). Please remove it or change quality to standard.` });
+        }
+        
+        basicStockUpdates.push({
+          subjectId: item.subjectId,
+          qty: item.qty
+        });
+      }
+    }
 
     const orderId = await generateOrderId();
 
@@ -74,11 +104,28 @@ export const createOrder = async (req, res) => {
       student,
       pickupPoint: pickupPoint || 'Main Gate',
       referralCode,
-      fromEvent: fromEvent || false,
-      eventDiscountTotal: eventDiscountTotal || 0,
+      fromEvent: !!appliedToken,
+      appliedToken,
+      eventDiscountTotal: 0,
     });
 
     await newOrder.save();
+
+    // Decrement basic stock
+    for (const update of basicStockUpdates) {
+      await Subject.findByIdAndUpdate(update.subjectId, {
+        $inc: { basicStock: -update.qty }
+      });
+    }
+    
+    // Decrement token if applied
+    if (appliedToken) {
+      if (appliedToken === 'rs9') {
+        await User.findByIdAndUpdate(req.user.id, { $inc: { rs9Tokens: -1 } });
+      } else if (appliedToken === '20pct') {
+        await User.findByIdAndUpdate(req.user.id, { $inc: { pct20Tokens: -1 } });
+      }
+    }
 
     // Clear cart
     await Cart.findOneAndDelete({ userId: req.user.id });

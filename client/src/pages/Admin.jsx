@@ -55,6 +55,7 @@ const Admin = () => {
   const [referralUsers, setReferralUsers] = useState([]);
   const [pdfRequestsSearchQuery, setPdfRequestsSearchQuery] = useState('');
   const [accountsSearchQuery, setAccountsSearchQuery] = useState('');
+  const [wheelWinners, setWheelWinners] = useState([]);
   
   // Accounts Tab State
   const [selectedUserIds, setSelectedUserIds] = useState([]);
@@ -154,9 +155,10 @@ const Admin = () => {
       try {
         const referralsRes = await API.get('/auth/admin/referrals');
         setReferralUsers(referralsRes.data);
-      } catch (referralError) {
-        console.error('Failed to load referral users:', referralError);
-        setReferralUsers([]);
+        const winnersRes = await API.get('/wheel/winners');
+        setWheelWinners(winnersRes.data);
+      } catch (error) {
+        console.error('Failed to load aux admin data:', error);
       }
     } catch (error) {
       console.error('Failed to load admin data:', error);
@@ -893,12 +895,66 @@ const Admin = () => {
         >
           Chats
         </button>
+        <button
+          onClick={() => setTab('wheel-winners')}
+          className={`px-4 py-2 font-semibold ${
+            tab === 'wheel-winners'
+              ? 'border-b-2 border-primary text-primary'
+              : 'text-gray-600'
+          }`}
+        >
+          Wheel Winners ({wheelWinners.length})
+        </button>
       </div>
 
       {/* Chats Tab */}
       {tab === 'chats' && (
         <div className="mt-4">
           <AdminChats />
+        </div>
+      )}
+
+      {/* Wheel Winners Tab */}
+      {tab === 'wheel-winners' && (
+        <div className="bg-[#0A1A14] border border-[#1A2E20] rounded-xl p-6 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-10 pointer-events-none translate-x-1/2 -translate-y-1/2"></div>
+          
+          <h2 className="text-2xl font-bold mb-6 text-emerald-400 flex items-center gap-2">
+            <span className="text-2xl">🎡</span> Lucky Wheel Winners
+          </h2>
+          
+          {wheelWinners.length === 0 ? (
+            <div className="text-center py-10 bg-[#0F241A] rounded-xl border border-dashed border-[#1A2E20]">
+              <p className="text-gray-400 font-medium">No one has won any prizes yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto bg-[#0F241A] rounded-xl border border-[#1A2E20] shadow-inner">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="bg-[#1A2E20] border-b border-[#2A3E30]">
+                    <th className="p-4 font-bold text-emerald-500 uppercase tracking-wider text-sm">Name</th>
+                    <th className="p-4 font-bold text-emerald-500 uppercase tracking-wider text-sm">College ID</th>
+                    <th className="p-4 font-bold text-emerald-500 uppercase tracking-wider text-sm">Phone</th>
+                    <th className="p-4 font-bold text-emerald-500 uppercase tracking-wider text-sm">Reward</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {wheelWinners.map((winner, idx) => (
+                    <tr key={idx} className="border-b border-[#1A2E20]/50 hover:bg-[#1A2E20]/30 transition-colors">
+                      <td className="p-4 font-bold text-white">{winner.name}</td>
+                      <td className="p-4 text-emerald-300 font-mono text-sm">{winner.collegeId}</td>
+                      <td className="p-4 text-gray-300">{winner.phone}</td>
+                      <td className="p-4">
+                         <span className="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded-full border border-yellow-500/50">
+                           {winner.reward}
+                         </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -937,9 +993,15 @@ const Admin = () => {
                       <p className="text-sm text-gray-600">Order ID</p>
                       <p className="font-bold text-lg">{order.orderId}</p>
                     </div>
-                    <div>
+                    <div className="flex flex-col">
                       <p className="text-sm text-gray-600">Amount</p>
                       <p className="font-bold text-lg">₹{order.amount}</p>
+                      {order.appliedToken === 'rs9' && (
+                        <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 mt-0.5 rounded border border-emerald-200 w-fit tracking-wide shadow-sm">🎁 ₹9 BOOK</span>
+                      )}
+                      {order.appliedToken === '20pct' && (
+                        <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-1.5 py-0.5 mt-0.5 rounded border border-orange-200 w-fit tracking-wide shadow-sm">🎟️ 20% OFF</span>
+                      )}
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Student</p>
@@ -1164,10 +1226,28 @@ const Admin = () => {
                       </>
                     )}
                     {/* Total price below items */}
-                    <div className="mt-3 border-t border-gray-300 pt-3">
-                      <p className="text-right font-bold text-lg text-gray-900">
-                        Total: ₹{order.amount}
-                      </p>
+                    <div className="mt-3 border-t border-gray-300 pt-3 text-right">
+                      {(() => {
+                        const rawTotal = order.items?.reduce((acc, item) => {
+                          const p = item.userPrice !== undefined && item.userPrice !== null ? item.userPrice : (item.price || 0);
+                          return acc + (p * (item.qty || 1));
+                        }, 0) || 0;
+                        const discountAmount = rawTotal - order.amount;
+                        return (
+                          <>
+                            {discountAmount > 0 && (
+                              <div className="text-sm font-semibold text-emerald-600 mb-1 flex items-center justify-end gap-2">
+                                <span>Discount Applied: -₹{discountAmount.toFixed(0)}</span>
+                                {order.appliedToken === 'rs9' && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">🎁 ₹9 BOOK</span>}
+                                {order.appliedToken === '20pct' && <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded border border-orange-200">🎟️ 20% OFF</span>}
+                              </div>
+                            )}
+                            <p className="font-bold text-lg text-gray-900">
+                              Total: ₹{order.amount}
+                            </p>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -1536,9 +1616,15 @@ const Admin = () => {
                         <p className="text-sm text-gray-600">Order ID</p>
                         <p className="font-bold text-lg">{order.orderId}</p>
                       </div>
-                      <div>
+                      <div className="flex flex-col">
                         <p className="text-sm text-gray-600">Amount</p>
                         <p className="font-bold text-lg">₹{order.amount}</p>
+                        {order.appliedToken === 'rs9' && (
+                          <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 mt-0.5 rounded border border-emerald-200 w-fit tracking-wide shadow-sm">🎁 ₹9 BOOK</span>
+                        )}
+                        {order.appliedToken === '20pct' && (
+                          <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-1.5 py-0.5 mt-0.5 rounded border border-orange-200 w-fit tracking-wide shadow-sm">🎟️ 20% OFF</span>
+                        )}
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Student</p>
@@ -1743,10 +1829,28 @@ const Admin = () => {
                             );
                           })()}
                           {/* Total price below items */}
-                          <div className="mt-3 border-t border-gray-300 pt-3">
-                            <p className="text-right font-bold text-lg text-gray-900">
-                              Total: ₹{order.amount}
-                            </p>
+                          <div className="mt-3 border-t border-gray-300 pt-3 text-right">
+                            {(() => {
+                              const rawTotal = order.items?.reduce((acc, item) => {
+                                const p = item.userPrice !== undefined && item.userPrice !== null ? item.userPrice : (item.price || 0);
+                                return acc + (p * (item.qty || 1));
+                              }, 0) || 0;
+                              const discountAmount = rawTotal - order.amount;
+                              return (
+                                <>
+                                  {discountAmount > 0 && (
+                                    <div className="text-sm font-semibold text-emerald-600 mb-1 flex items-center justify-end gap-2">
+                                      <span>Discount Applied: -₹{discountAmount.toFixed(0)}</span>
+                                      {order.appliedToken === 'rs9' && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">🎁 ₹9 BOOK</span>}
+                                      {order.appliedToken === '20pct' && <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded border border-orange-200">🎟️ 20% OFF</span>}
+                                    </div>
+                                  )}
+                                  <p className="font-bold text-lg text-gray-900">
+                                    Total: ₹{order.amount}
+                                  </p>
+                                </>
+                              );
+                            })()}
                           </div>
                         </>
                       )}

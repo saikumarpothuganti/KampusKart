@@ -33,6 +33,21 @@ export const createPDFRequest = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: title, pdfUrl, qty, and sides' });
     }
 
+    if (quality === 'basic') {
+      const Settings = (await import('../models/Settings.js')).default;
+      let customBasicStockDoc = await Settings.findOne({ key: 'custom_basic_stock' });
+      if (!customBasicStockDoc) {
+        customBasicStockDoc = new Settings({ key: 'custom_basic_stock', value: 7 });
+      }
+      
+      if (customBasicStockDoc.value < parseInt(qty)) {
+        return res.status(400).json({ error: `Only ${customBasicStockDoc.value} basic custom PDFs are left globally.` });
+      }
+      
+      customBasicStockDoc.value -= parseInt(qty);
+      await customBasicStockDoc.save();
+    }
+
     const requestId = await generateRequestId();
 
     let autoPrice = null;
@@ -45,7 +60,9 @@ export const createPDFRequest = async (req, res) => {
       
       const sheets = numSides === 2 ? Math.ceil(numPages / 2) : numPages;
       const basePrice = sheets * 1;
-      const bindingCost = itemQuality === 'basic' ? 55 : 70;
+      let bindingCost = 70; // standard
+      if (itemQuality === 'basic') bindingCost = 55;
+      else if (itemQuality === 'flash') bindingCost = 55 + 7;
       
       autoPrice = basePrice + bindingCost;
       initialStatus = 'priced';

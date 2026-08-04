@@ -8,7 +8,8 @@ import API from '../lib/api';
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const fromEvent = location.state?.fromEvent || false;
+  const wheelDiscount = location.state?.wheelDiscount || 0;
+  const appliedToken = location.state?.appliedToken || null;
   const { user, ordersEnabled } = useAuth();
   const { getActiveCart, getActiveCartTotalPrice, activeCartId } = useCart();
   const cart = getActiveCart() || {};
@@ -87,14 +88,14 @@ const Checkout = () => {
     localStorage.setItem('checkoutData', JSON.stringify({ 
       ...formData, 
       cartId: activeCartId,
-      fromEvent 
+      wheelDiscount,
+      appliedToken
     }));
     navigate('/payment');
   };
 
   const baseTotal = getActiveCartTotalPrice();
-  const eventDiscount = fromEvent ? (cart.eventDiscountTotal || 0) : 0;
-  const total = Math.max(0, baseTotal - eventDiscount);
+  const total = Math.max(0, baseTotal - wheelDiscount);
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
@@ -262,10 +263,10 @@ const Checkout = () => {
             <span className="font-serif font-black text-xl text-ink">Total:</span>
             <span className="text-3xl font-black text-ink" style={{ textShadow: '2px 2px 0px rgba(184,134,11,0.5)' }}>₹{total.toFixed(2)}</span>
           </div>
-          {fromEvent && eventDiscount > 0 && (
-            <div className="flex justify-between items-center text-sm font-bold text-[#18382A] mt-2 border-t-2 border-dashed border-ink/20 pt-2">
-              <span>Reward Discount Applied:</span>
-              <span>-₹{eventDiscount.toFixed(2)}</span>
+          {wheelDiscount > 0 && appliedToken && (
+            <div className="flex justify-between items-center text-emerald-600 mb-2 font-medium">
+              <span>{appliedToken === 'rs9' ? '₹9 Book Token' : '20% OFF Token'} Applied:</span>
+              <span>-₹{wheelDiscount.toFixed(2)}</span>
             </div>
           )}
           {total === 0 && (

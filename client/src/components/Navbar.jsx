@@ -138,7 +138,7 @@ const Navbar = () => {
       { label: 'Services', to: '/about#services' },
       { label: 'PDFs/Orders', to: '/order-history' },
       { label: 'Feedback', to: '/feedback' },
-      { label: 'Feed The Cart ⚡', to: '/feed-the-cart' },
+      { label: 'Lucky Wheel 🎡', to: '/lucky-wheel' },
     ];
 
   return (
@@ -185,9 +185,9 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 className={(() => {
-                  const isFeedTheCart = link.label === 'Feed The Cart ⚡';
+                  const isLuckyWheel = link.label === 'Lucky Wheel 🎡';
                   const active = isHomePage && link.label === 'Home' ? isCurrent : location.pathname === link.to;
-                  if (isFeedTheCart) {
+                  if (isLuckyWheel) {
                     return `transition py-1 relative group text-[#D4AF37] font-black animate-pulse drop-shadow-[0_0_8px_rgba(212,175,55,0.8)] hover:scale-110`;
                   }
                   return `transition py-1 relative group ${active ? 'text-paper font-bold' : 'text-paper opacity-70 hover:opacity-100'}`;
@@ -196,7 +196,7 @@ const Navbar = () => {
               >
                 <>
                   {link.label}
-                  {link.label !== 'Feed The Cart ⚡' && (
+                  {link.label !== 'Lucky Wheel 🎡' && (
                     <span className={`absolute bottom-0 left-0 h-0.5 bg-paper transition-all ${(isHomePage && link.label === 'Home' ? isCurrent : location.pathname === link.to) ? 'w-full shadow-[0_2px_0_rgba(0,0,0,0.4)]' : 'w-0 group-hover:w-full group-hover:shadow-[0_2px_0_rgba(0,0,0,0.4)]'}`}></span>
                   )}
                 </>
@@ -224,8 +224,40 @@ const Navbar = () => {
           )}
 
           {user && (
-            <div className="relative mr-2">
+            <div className="relative mr-2 flex items-center gap-2">
               <InboxDropdown />
+              
+              {/* Tokens Dropdown */}
+              <div className="hidden md:block relative group ml-2 z-50">
+                <button className="flex items-center gap-1.5 bg-paper/10 hover:bg-paper/20 px-3 py-1.5 rounded-full border border-paper/20 backdrop-blur-sm shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] transition-colors cursor-pointer">
+                  <span className="text-[14px]">🎟️</span>
+                  <span className="text-xs font-bold text-white">
+                    {(user.luckyTokens || 0) + (user.rs9Tokens || 0) + (user.pct20Tokens || 0)}
+                  </span>
+                </button>
+                
+                {/* Popover */}
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right scale-95 group-hover:scale-100 p-3 flex flex-col gap-2">
+                  <div className="text-xs font-black text-gray-400 uppercase tracking-wider mb-1 border-b pb-1">Your Tokens</div>
+                  
+                  <div className="flex justify-between items-center text-sm font-semibold text-gray-700 hover:bg-gray-50 p-1 rounded">
+                    <span>🎡 Lucky Spins</span>
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs">{user.luckyTokens || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-semibold text-gray-700 hover:bg-gray-50 p-1 rounded">
+                    <span>🎫 ₹9 Books</span>
+                    <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-xs">{user.rs9Tokens || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-semibold text-gray-700 hover:bg-gray-50 p-1 rounded">
+                    <span>🎟️ 20% OFF</span>
+                    <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">{user.pct20Tokens || 0}</span>
+                  </div>
+                  
+                  {!(user.luckyTokens > 0 || user.rs9Tokens > 0 || user.pct20Tokens > 0) && (
+                    <div className="text-xs text-gray-500 italic text-center py-2">No tokens available. Spin the wheel to earn some!</div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

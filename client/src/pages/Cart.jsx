@@ -96,10 +96,37 @@ const Cart = () => {
       }
     }
     // Navigate to checkout with the specific cartId
-    navigate(`/checkout?cartId=${activeCartId}`);
+    navigate(`/checkout?cartId=${activeCartId}`, { state: { wheelDiscount, appliedToken } });
   };
 
   const total = (activeCart.items || []).reduce((sum, item) => sum + ((item.userPrice ?? item.price ?? 0) * (item.qty || 1)), 0);
+
+  const [appliedToken, setAppliedToken] = useState(null);
+
+  const canApplyToken = activeCart.items?.length > 0 && total > 120;
+
+  // Auto-remove token if condition not met anymore
+  useEffect(() => {
+    if (!canApplyToken && appliedToken) {
+      setAppliedToken(null);
+    }
+  }, [canApplyToken, appliedToken]);
+
+  let wheelDiscount = 0;
+  let minPriceItemIndex = -1;
+  if (appliedToken && canApplyToken) {
+    // Find the cheapest item price
+    const sortedItems = [...activeCart.items].sort((a, b) => (a.userPrice ?? a.price ?? 0) - (b.userPrice ?? b.price ?? 0));
+    const minPriceItem = sortedItems[0];
+    const minPrice = minPriceItem.userPrice ?? minPriceItem.price ?? 0;
+    minPriceItemIndex = activeCart.items.findIndex(item => item === minPriceItem);
+    
+    if (appliedToken === 'rs9') {
+      wheelDiscount = Math.max(0, minPrice - 9);
+    } else if (appliedToken === '20pct') {
+      wheelDiscount = minPrice * 0.2;
+    }
+  }
   const totalItems = activeCart.items ? activeCart.items.reduce((sum, item) => sum + (item.qty || 1), 0) : 0;
 
   return (
@@ -212,6 +239,8 @@ const Cart = () => {
                     onUpdateQty={handleUpdateQty}
                     onUpdateSides={handleUpdateSides}
                     onRemove={handleRemove}
+                    isDiscounted={index === minPriceItemIndex}
+                    discountAmount={wheelDiscount}
                   />
                 ))}
               </div>
@@ -252,9 +281,43 @@ const Cart = () => {
                     <span className="font-bold">{totalItems}</span>
                   </div>
                   
+                  {user && (user.rs9Tokens > 0 || user.pct20Tokens > 0) && (
+                    <div className="py-3 border-t border-dashed border-[#D5E2D1]">
+                      <h4 className="text-sm font-bold text-[#4A3B32] mb-2">Apply Lucky Tokens</h4>
+                      {!canApplyToken ? (
+                        <p className="text-xs text-red-500 font-medium">Add at least 1 book and reach ₹120 to use a token.</p>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          {user.rs9Tokens > 0 && (
+                            <label className={`flex items-center gap-2 p-2 border rounded cursor-pointer transition ${appliedToken === 'rs9' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
+                              <input type="radio" name="token" checked={appliedToken === 'rs9'} onChange={() => setAppliedToken('rs9')} className="accent-emerald-600" />
+                              <span className="text-sm font-semibold">🎫 ₹9 Book Token (Have {user.rs9Tokens})</span>
+                            </label>
+                          )}
+                          {user.pct20Tokens > 0 && (
+                            <label className={`flex items-center gap-2 p-2 border rounded cursor-pointer transition ${appliedToken === '20pct' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
+                              <input type="radio" name="token" checked={appliedToken === '20pct'} onChange={() => setAppliedToken('20pct')} className="accent-orange-600" />
+                              <span className="text-sm font-semibold">🎟️ 20% OFF Token (Have {user.pct20Tokens})</span>
+                            </label>
+                          )}
+                          {appliedToken && (
+                            <button onClick={() => setAppliedToken(null)} className="text-xs text-gray-500 text-left hover:underline">Remove Token</button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {wheelDiscount > 0 && (
+                    <div className="flex justify-between items-center text-emerald-600 font-bold text-sm">
+                      <span>Lucky Wheel Discount</span>
+                      <span>-₹{wheelDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between items-center pt-4 border-t border-dashed border-[#D5E2D1]">
                     <span className="text-sm font-bold text-[#4A3B32]">Total Amount</span>
-                    <span className="text-2xl font-bold text-[#1B5E20]">₹{total.toFixed(2)}</span>
+                    <span className="text-2xl font-bold text-[#1B5E20]">₹{Math.max(0, total - wheelDiscount).toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -295,7 +358,7 @@ const Cart = () => {
           <TrustBadge 
             icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>}
             title="Quality Printing" 
-            desc="Premium & neat" 
+            desc="Flash & neat"
           />
           <div className="w-full md:w-px h-px md:h-10 bg-[#E8E8E8]"></div>
           

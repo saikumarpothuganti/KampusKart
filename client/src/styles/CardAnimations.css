@@ -84,3 +84,16 @@
 .card-glow-border:hover .logo-grow {
   animation: logoGrow 0.4s ease-in-out forwards;
 }
+
+@keyframes wiggleFlash {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-2deg) scale(1.05); box-shadow: 0 0 10px rgba(251, 191, 36, 0.8); }
+  75% { transform: rotate(2deg) scale(1.05); box-shadow: 0 0 10px rgba(251, 191, 36, 0.8); }
+}
+
+.flash-wiggle {
+  animation: wiggleFlash 1.5s infinite ease-in-out;
+  border-color: rgba(251, 191, 36, 0.8) !important;
+  z-index: 5;
+}
+

@@ -36,7 +36,7 @@ const pdfRequestSchema = new mongoose.Schema(
     },
     quality: {
       type: String,
-      enum: ['basic', 'standard', 'premium'],
+      enum: ['basic', 'standard', 'flash'],
       default: 'standard',
     },
     price: {

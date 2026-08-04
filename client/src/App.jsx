@@ -32,7 +32,7 @@ const Terms = React.lazy(() => import('./pages/Terms'));
 const Privacy = React.lazy(() => import('./pages/Privacy'));
 const Refund = React.lazy(() => import('./pages/Refund'));
 const Shipping = React.lazy(() => import('./pages/Shipping'));
-const FeedTheCart = React.lazy(() => import('./pages/FeedTheCart'));
+const LuckyWheel = React.lazy(() => import('./pages/LuckyWheel'));
 
 
 import './index.css';
@@ -93,7 +93,7 @@ function AppContent() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/refund" element={<Refund />} />
           <Route path="/shipping" element={<Shipping />} />
-          <Route path="/feed-the-cart" element={<FeedTheCart />} />
+          <Route path="/lucky-wheel" element={<LuckyWheel />} />
         </Routes>
       </Suspense>
       <FloatingChat />

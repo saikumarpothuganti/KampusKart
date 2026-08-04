@@ -147,7 +147,7 @@ const About = () => {
               description="Already have your own notes? Upload your PDFs and we'll print them."
               features={[
                 "Single-sided & Double-sided",
-                "Premium quality paper",
+                "Flash quality paper",
                 "Bulk printing available"
               ]}
             />

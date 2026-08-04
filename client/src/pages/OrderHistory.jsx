@@ -517,7 +517,7 @@ const OrderHistory = () => {
             <span className="text-3xl filter drop-shadow-sm">🏅</span>
             <div>
               <div className="font-bold text-[#18382A] text-sm">Quality Printing</div>
-              <div className="text-[10px] text-[#18382A]/60 font-medium">Premium quality assured</div>
+              <div className="text-[10px] text-[#18382A]/60 font-medium">Flash quality assured</div>
             </div>
           </div>
           <div className="w-px h-8 bg-[#18382A]/10 hidden md:block"></div>

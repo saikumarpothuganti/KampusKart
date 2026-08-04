@@ -586,3 +586,23 @@ export const googleAuth = async (req, res) => {
     res.status(500).json({ error: 'Authentication failed. Please try again.' });
   }
 };
+
+
+export const giftLuckyToken = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.luckyTokens = (user.luckyTokens || 0) + 1;
+    await user.save();
+
+    res.json({ message: "Gifted 1 Lucky Token", luckyTokens: user.luckyTokens });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+

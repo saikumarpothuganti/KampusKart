@@ -15,8 +15,8 @@ const recalculateCart = (cart) => {
   
   cart.items.forEach(item => {
     const isBasic = item.quality === 'basic';
-    const isPremium = item.quality === 'premium';
-    const energyPerItem = isBasic ? 6 : (isPremium ? 18 : 12);
+    const isFlash = item.quality === 'flash';
+    const energyPerItem = isBasic ? 6 : (isFlash ? 18 : 12);
     actualEnergy += (energyPerItem * (item.qty || 1));
   });
 

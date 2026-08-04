@@ -32,6 +32,26 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    avatarUrl: {
+      type: String,
+      default: 'https://ui-avatars.com/api/?name=User&background=random',
+    },
+    hasSpunWheel: {
+      type: Boolean,
+      default: false,
+    },
+    rs9Tokens: {
+      type: Number,
+      default: 0,
+    },
+    pct20Tokens: {
+      type: Number,
+      default: 0,
+    },
+    luckyTokens: {
+      type: Number,
+      default: 1,
+    },
     gender: {
       type: String,
       enum: ['Male', 'Female', 'Other'],

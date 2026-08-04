@@ -38,13 +38,17 @@ const subjectSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
-    premium_singleSidePrice: {
+    rapid_singleSidePrice: {
       type: Number,
       default: null,
     },
-    premium_doubleSidePrice: {
+    rapid_doubleSidePrice: {
       type: Number,
       default: null,
+    },
+    basicStock: {
+      type: Number,
+      default: 5,
     },
     availability: {
       type: Boolean,

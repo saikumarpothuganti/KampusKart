@@ -168,8 +168,7 @@ const Payment = () => {
         pickupPoint: checkoutData.pickupPoint || 'Main Gate',
         notes: checkoutData.notes,
         referralCode: referralCode.trim() || undefined,
-        fromEvent: checkoutData.fromEvent || false,
-        eventDiscountTotal: checkoutData.fromEvent ? (cart.eventDiscountTotal || 0) : 0,
+        appliedToken: checkoutData.appliedToken || null,
       };
 
       const orderRes = await API.post('/orders', payload);
@@ -195,9 +194,9 @@ const Payment = () => {
   };
 
   const baseTotal = getActiveCartTotalPrice();
-  const fromEvent = checkoutData?.fromEvent || false;
-  const eventDiscount = fromEvent ? (cart.eventDiscountTotal || 0) : 0;
-  const total = Math.max(0, baseTotal - eventDiscount);
+  const wheelDiscount = checkoutData?.wheelDiscount || 0;
+  const appliedToken = checkoutData?.appliedToken || null;
+  const total = Math.max(0, baseTotal - wheelDiscount);
   const hasPendingPrice = cart.items?.some((item) => item.userPrice == null && item.price == null);
   const needsPayment = total > 0 && !hasPendingPrice;
   const grouped = groupBySideType(cart.items || []);
@@ -317,10 +316,10 @@ const Payment = () => {
           </div>
 
           <div className="mb-6 border-b pb-6">
-            {fromEvent && eventDiscount > 0 && (
-              <div className="flex justify-between items-center text-sm font-bold text-green-600 mb-2">
-                <span>Event Discount Applied:</span>
-                <span>-₹{eventDiscount.toFixed(2)}</span>
+            {wheelDiscount > 0 && appliedToken && (
+              <div className="flex justify-between items-center text-sm font-bold text-[#18382A] mb-2 border-t border-dashed border-ink/20 pt-2">
+                <span>{appliedToken === 'rs9' ? '₹9 Book Token' : '20% OFF Token'} Applied:</span>
+                <span>-₹{wheelDiscount.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between items-center text-lg font-bold text-black">

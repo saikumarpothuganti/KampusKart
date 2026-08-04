@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema(
         },
         quality: {
           type: String,
-          enum: ['basic', 'standard', 'premium'],
+          enum: ['basic', 'standard', 'flash'],
           default: 'standard',
         },
         pricePerPage: Number,
@@ -146,6 +146,15 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'priced'],
       default: 'pending',
+    },
+    feedbacks: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Feedback',
+      }
+    ],
+    appliedToken: {
+      type: String, // 'rs9' or '20pct'
     },
     allowSupplierEdit: {
       type: Boolean,

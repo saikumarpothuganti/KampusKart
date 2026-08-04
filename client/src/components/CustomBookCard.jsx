@@ -12,12 +12,27 @@ const CustomBookCard = ({ onAddToCart }) => {
   const [sides, setSides] = useState(1);
   const [quality, setQuality] = useState('standard');
   const [quantity, setQuantity] = useState(1);
+  const [basicStock, setBasicStock] = useState(7);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [pauseMessage, setPauseMessage] = useState('');
-  const [pages, setPages] = useState(0);
   const abortControllerRef = React.useRef(null);
+
+  useEffect(() => {
+    API.get('/settings/custom_basic_stock').then(res => {
+      if (res.data.value !== null && res.data.value !== undefined) {
+        setBasicStock(res.data.value);
+      }
+    }).catch(err => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    if (quality === 'basic' && quantity > basicStock) {
+      setQuantity(Math.max(1, basicStock));
+      alert(`Quantity reduced to ${Math.max(1, basicStock)} (maximum allowed for Basic quality).`);
+    }
+  }, [quality, quantity, basicStock]);
 
   const handleFileChange = async (e) => {
     const selected = e.target.files[0];
@@ -116,6 +131,14 @@ const CustomBookCard = ({ onAddToCart }) => {
       setUploadProgress(0);
       abortControllerRef.current = null;
       alert('PDF uploaded successfully! Price has been automatically calculated.');
+      
+      // Refresh the basic stock just in case
+      API.get('/settings/custom_basic_stock').then(res => {
+        if (res.data.value !== null && res.data.value !== undefined) {
+          setBasicStock(res.data.value);
+        }
+      }).catch(err => console.error(err));
+      
     } catch (error) {
       console.error('PDF submission error:', error);
       console.error('Error response:', error.response?.data);
@@ -204,14 +227,20 @@ const CustomBookCard = ({ onAddToCart }) => {
           <div className="flex gap-2">
             <button
               onClick={() => setQuality('basic')}
+              disabled={basicStock <= 0}
               className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border relative ${
+                basicStock <= 0 ? 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] opacity-50 cursor-not-allowed' :
                 quality === 'basic'
                   ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm'
                   : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]'
               }`}
             >
               Basic
-              <span className="absolute -top-2 -right-1 text-[8px] bg-red-500 text-white px-1 rounded shadow">Best seller</span>
+              {!basicStock || basicStock <= 0 ? (
+                <span className="absolute -top-2 -right-1 text-[8px] bg-red-600 text-white px-1 rounded shadow">(OOS)</span>
+              ) : (
+                <span className="absolute -top-2 -right-2 text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded shadow font-bold tracking-wider border border-red-800">{basicStock}/7 LEFT</span>
+              )}
             </button>
             <button
               onClick={() => setQuality('standard')}
@@ -222,6 +251,16 @@ const CustomBookCard = ({ onAddToCart }) => {
               }`}
             >
               Standard
+            </button>
+            <button
+              onClick={() => setQuality('flash')}
+              className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition border ${
+                quality === 'flash'
+                  ? 'bg-[#EDE0C8] text-ink border-[#EDE0C8] shadow-sm flash-wiggle'
+                  : 'bg-transparent text-paper border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)] flash-wiggle text-yellow-300'
+              }`}
+            >
+              Flash
             </button>
           </div>
 
@@ -245,7 +284,13 @@ const CustomBookCard = ({ onAddToCart }) => {
           </button>
             <span className="px-4 text-paper font-bold bg-[rgba(0,0,0,0.2)] py-1 rounded-sm shadow-inner">{quantity}</span>
           <button
-            onClick={() => setQuantity(quantity + 1)}
+            onClick={() => {
+              if (quality === 'basic' && quantity >= basicStock) {
+                alert(`Maximum ${basicStock} copies left for Basic quality in Custom PDF.`);
+                return;
+              }
+              setQuantity(quantity + 1);
+            }}
             className="bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] px-3 py-1 rounded-sm text-paper font-bold transition"
           >
             +
