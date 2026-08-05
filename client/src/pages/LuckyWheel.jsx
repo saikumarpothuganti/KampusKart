@@ -16,12 +16,12 @@ const LuckyWheel = () => {
   const [spinning, setSpinning] = useState(false);
   const [reward, setReward] = useState(null);
   const [rotation, setRotation] = useState(0);
-  const [rs9Left, setRs9Left] = useState(2);
+  const [rs9Left, setRs9Left] = useState(4);
   const [pct20Left, setPct20Left] = useState(2);
   const [winners, setWinners] = useState([]);
 
   useEffect(() => {
-    API.get('/settings/wheel_winners_rs9').then(res => setRs9Left(2 - (res.data?.value || 0))).catch(() => {});
+    API.get('/settings/wheel_winners_rs9').then(res => setRs9Left(4 - (res.data?.value || 0))).catch(() => {});
     API.get('/settings/wheel_winners_20pct').then(res => setPct20Left(2 - (res.data?.value || 0))).catch(() => {});
     API.get('/wheel/winners').then(res => setWinners(res.data)).catch(() => {});
   }, []);
@@ -88,7 +88,7 @@ const LuckyWheel = () => {
         }
 
         // Refresh reward limits and winners
-        API.get('/settings/wheel_winners_rs9').then(r => setRs9Left(2 - (r.data?.value || 0))).catch(() => {});
+        API.get('/settings/wheel_winners_rs9').then(r => setRs9Left(4 - (r.data?.value || 0))).catch(() => {});
         API.get('/settings/wheel_winners_20pct').then(r => setPct20Left(2 - (r.data?.value || 0))).catch(() => {});
         API.get('/wheel/winners').then(r => setWinners(r.data)).catch(() => {});
       }, 3500); // Wait for transition
@@ -451,7 +451,7 @@ const LuckyWheel = () => {
                   <BookOpen className="text-emerald-600 w-8 h-8" />
                 </div>
                 <h4 className="font-black text-lg">₹9 BOOK</h4>
-                <div className="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-black tracking-widest mt-1 mb-1 border border-red-200">{Math.max(0, rs9Left)}/2 LEFT</div>
+                <div className="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-black tracking-widest mt-1 mb-1 border border-red-200">{Math.max(0, rs9Left)}/4 LEFT</div>
                 <p className="text-xs text-gray-600 mt-1">Get your cart's cheapest book for just ₹9!</p>
              </div>
              

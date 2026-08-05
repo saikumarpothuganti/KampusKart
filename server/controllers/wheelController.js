@@ -60,7 +60,7 @@ export const spinWheel = async (req, res) => {
 
       // If forced drop, give a top prize if available
       if (forceDrop) {
-        if (rs9CountDoc.value < 2 && pct20CountDoc.value < 2) {
+        if (rs9CountDoc.value < 4 && pct20CountDoc.value < 2) {
           // Randomly pick between the two if both available
           if (Math.random() < 0.5) {
             reward = 'rs9';
@@ -71,7 +71,7 @@ export const spinWheel = async (req, res) => {
             pct20CountDoc.value += 1;
             user.pct20Tokens += 1;
           }
-        } else if (rs9CountDoc.value < 2) {
+        } else if (rs9CountDoc.value < 4) {
           reward = 'rs9';
           rs9CountDoc.value += 1;
           user.rs9Tokens += 1;
@@ -87,7 +87,7 @@ export const spinWheel = async (req, res) => {
       // If no forced drop happened (either not triggered, or limits reached), fall back to normal rare probabilities
       if (reward === 'none') {
         // 0.00 to 0.02 (2% chance) for Rs 9 Book
-        if (rand < 0.02 && rs9CountDoc.value < 2) {
+        if (rand < 0.02 && rs9CountDoc.value < 4) {
           reward = 'rs9';
           rs9CountDoc.value += 1;
           await rs9CountDoc.save();
