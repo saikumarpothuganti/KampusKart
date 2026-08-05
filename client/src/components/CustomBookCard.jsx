@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import '../styles/CardAnimations.css';
-import basicBookImg from '../assets/basic books-2.jpeg';
+import basicBookImg from '../assets/basic books (1).jpeg';
+import flashBookImg from '../assets/basic books-2.jpeg';
 import standardBookImg from '../assets/standard books.jpeg';
 import API from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -315,6 +316,25 @@ const CustomBookCard = ({ onAddToCart }) => {
         >
           Cancel Upload
         </button>
+      )}
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4" onClick={(e) => { e.preventDefault(); setShowPreview(false); }}>
+          <div className="relative max-w-2xl w-full" onClick={e => e.stopPropagation()}>
+            <button 
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 text-3xl font-bold"
+              onClick={(e) => { e.preventDefault(); setShowPreview(false); }}
+            >
+              &times;
+            </button>
+            <img 
+              src={quality === 'basic' ? basicBookImg : quality === 'flash' ? flashBookImg : standardBookImg} 
+              alt={`${quality} book preview`} 
+              className="w-full h-auto rounded-lg shadow-2xl border-2 border-white/20"
+            />
+          </div>
+        </div>
       )}
     </div>
   );

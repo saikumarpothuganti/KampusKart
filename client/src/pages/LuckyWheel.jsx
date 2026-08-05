@@ -390,11 +390,14 @@ const LuckyWheel = () => {
                <p className="text-emerald-400 font-bold tracking-widest text-sm relative z-10">YOU HAVE</p>
                <h2 className="text-4xl font-black text-white relative z-10 mb-2 drop-shadow-lg">{user.luckyTokens} SPIN{user.luckyTokens !== 1 ? 'S' : ''}</h2>
                {(!hasToken && !user?.isAdmin) && (
-                 <div className="relative z-10 bg-black/30 p-2 rounded text-xs text-gray-300">
-                    <span className="text-red-400 font-bold">
+                 <div className="relative z-10 bg-black/30 p-2 rounded text-xs text-gray-300 mt-2">
+                    <span className="text-red-400 font-bold block mb-1">
                       No spins left!
                     </span>
-                    <button onClick={() => navigate('/cart')} className="w-full mt-2 bg-emerald-600 text-white rounded py-1">
+                    <span className="text-[10px] text-gray-300 block leading-tight mb-2 opacity-90">
+                      Place an order to get free Lucky Wheel Tokens!
+                    </span>
+                    <button onClick={() => navigate('/cart')} className="w-full mt-1 bg-emerald-600 text-white rounded py-1.5 font-bold hover:bg-emerald-500 transition shadow">
                       Go to Cart
                     </button>
                  </div>

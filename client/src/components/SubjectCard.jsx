@@ -1,6 +1,7 @@
 import React from 'react';
 import KLlogo from '../assets/KLlogo.png';
-import basicBookImg from '../assets/basic books-2.jpeg';
+import basicBookImg from '../assets/basic books (1).jpeg';
+import flashBookImg from '../assets/basic books-2.jpeg';
 import standardBookImg from '../assets/standard books.jpeg';
 import '../styles/CardAnimations.css';
 
@@ -226,7 +227,7 @@ const SubjectCard = ({ subject, onAddToCart }) => {
               &times;
             </button>
             <img 
-              src={quality === 'basic' ? basicBookImg : standardBookImg} 
+              src={quality === 'basic' ? basicBookImg : quality === 'flash' ? flashBookImg : standardBookImg} 
               alt={`${quality} book preview`} 
               className="w-full h-auto rounded-lg shadow-2xl border-2 border-white/20"
             />

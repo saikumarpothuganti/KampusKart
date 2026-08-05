@@ -131,6 +131,7 @@ export const signup = async (req, res) => {
       passwordHash: hashedPassword,
       gender: gender || 'Other',
       avatarIndex,
+      luckyTokens: 1
     });
 
     await newUser.save();
@@ -555,7 +556,8 @@ export const googleAuth = async (req, res) => {
         email: email.toLowerCase(),
         userId,
         googleId,
-        avatarIndex: Math.floor(Math.random() * 4)
+        avatarIndex: Math.floor(Math.random() * 4),
+        luckyTokens: 1
       });
       await user.save();
     } else if (!user.googleId) {

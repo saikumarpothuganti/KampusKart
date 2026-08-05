@@ -25,6 +25,7 @@ const Cart = () => {
   const { carts, activeCartId, setActiveCartId, fetchCart, updateItem, removeItem, deleteCart, createCart } = useCart();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCartName, setNewCartName] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -95,7 +96,11 @@ const Cart = () => {
         return;
       }
     }
-    // Navigate to checkout with the specific cartId
+    setShowConfirmation(true);
+  };
+
+  const proceedToCheckout = () => {
+    setShowConfirmation(false);
     navigate(`/checkout?cartId=${activeCartId}`, { state: { wheelDiscount, appliedToken } });
   };
 
@@ -142,14 +147,14 @@ const Cart = () => {
         {/* Event Banner */}
         <div className="mb-6 bg-gradient-to-r from-[#183623] to-[#2D503C] rounded-xl p-4 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.12)] flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#D4AF37]/30">
           <div className="flex items-center gap-4">
-            <span className="text-4xl animate-bounce">⚡</span>
+            <span className="text-4xl animate-bounce">🎡</span>
             <div>
               <h3 className="text-[#E8D9B4] font-black text-lg sm:text-xl uppercase tracking-wide">Chance to get high discounts!</h3>
-              <p className="text-[#A3B8A8] text-sm">Join the 'Feed The Cart' event and unlock instant price drops on your entire cart.</p>
+              <p className="text-[#A3B8A8] text-sm">Spin the lucky wheel and win exciting prizes including ₹9 Books and 20% discount tokens!</p>
             </div>
           </div>
-          <Link to="/feed-the-cart" className="w-full sm:w-auto px-6 py-3 bg-[#D4AF37] text-[#183623] font-black uppercase tracking-widest rounded-md hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(212,175,55,0.3)] transition-all whitespace-nowrap text-center">
-            Join Event →
+          <Link to="/lucky-wheel" className="w-full sm:w-auto px-6 py-3 bg-[#D4AF37] text-[#183623] font-black uppercase tracking-widest rounded-md hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(212,175,55,0.3)] transition-all whitespace-nowrap text-center">
+            Spin Now →
           </Link>
         </div>
 
@@ -170,11 +175,11 @@ const Cart = () => {
             </h1>
           </div>
           
-          {/* Feed The Cart CTA */}
-          <Link to="/feed-the-cart" className="flex flex-col items-end group">
+          {/* Lucky Wheel CTA */}
+          <Link to="/lucky-wheel" className="flex flex-col items-end group">
             <span className="text-[10px] uppercase font-bold tracking-widest text-[#1B5E20]/60 mb-1">Get Reduced Prices</span>
             <div className="px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#F1C40F] text-[#1B5E20] font-black rounded-lg shadow-lg group-hover:scale-105 transition-transform flex items-center gap-2 relative overflow-hidden">
-              <span className="relative z-10">⚡ Feed The Cart →</span>
+              <span className="relative z-10">🎡 Spin Lucky Wheel →</span>
               <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 ease-in-out"></div>
             </div>
           </Link>
@@ -406,6 +411,38 @@ const Cart = () => {
                 className="bg-[#B8860B] text-[#FAF8F2] px-4 py-2 rounded-sm text-sm font-bold shadow-[3px_3px_0px_rgba(184,134,11,0.3)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[2px_2px_0px_rgba(184,134,11,0.3)] disabled:opacity-50 transition-all font-serif"
               >
                 Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-paper p-6 rounded-xl max-w-md w-full shadow-2xl border border-[rgba(0,0,0,0.1)] relative">
+            <h3 className="text-xl font-bold text-ink mb-4">Confirm Checkout</h3>
+            <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg text-sm text-orange-900 mb-6 font-medium leading-relaxed">
+              <p className="mb-2">Please confirm that:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>All books are chosen correctly.</li>
+                <li>Subject names and course codes are proper.</li>
+                <li>All PDFs are seen by me and are true.</li>
+                <li>No more changes are to be done.</li>
+                <li>It is my responsibility to choose proper books.</li>
+              </ul>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowConfirmation(false)}
+                className="px-5 py-2.5 font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-sm transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={proceedToCheckout}
+                className="px-5 py-2.5 font-bold bg-[#D4AF37] text-ink hover:bg-[#B8972E] rounded-sm shadow-md transition"
+              >
+                Agree & Proceed
               </button>
             </div>
           </div>

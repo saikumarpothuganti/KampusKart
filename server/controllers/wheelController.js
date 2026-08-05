@@ -25,7 +25,7 @@ export const spinWheel = async (req, res) => {
     
     // Initialize next drop to be 4-6 spins from now if it doesn't exist
     if (!nextDropDoc) {
-      const nextDropTarget = spinsCountDoc.value + Math.floor(Math.random() * 3) + 4; // 4, 5, or 6
+      const nextDropTarget = spinsCountDoc.value + Math.floor(Math.random() * 4) + 6; // 6, 7, 8, or 9
       nextDropDoc = new Settings({ key: 'wheel_next_drop', value: nextDropTarget });
     }
 
@@ -53,8 +53,8 @@ export const spinWheel = async (req, res) => {
       let forceDrop = false;
       if (spinsCountDoc.value >= nextDropDoc.value) {
         forceDrop = true;
-        // Calculate next drop: 4 to 6 spins from now
-        nextDropDoc.value = spinsCountDoc.value + Math.floor(Math.random() * 3) + 4;
+        // Calculate next drop: 6 to 9 spins from now (around 7-8)
+        nextDropDoc.value = spinsCountDoc.value + Math.floor(Math.random() * 4) + 6;
         await nextDropDoc.save();
       }
 

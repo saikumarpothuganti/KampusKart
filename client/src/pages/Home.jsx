@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import ContactLinks from '../components/ContactLinks';
 import PaperLeavesDivider from '../components/PaperLeavesDivider';
 import BorderDecorations from '../components/BorderDecorations';
@@ -62,19 +63,46 @@ const testimonials = [
 ];
 
 const Home = () => {
-  const [showEventPopup, setShowEventPopup] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [showEventPopup, setShowEventPopup] = useState(false);
+  const [showTokenPopup, setShowTokenPopup] = useState(false);
+  const [newTokensCount, setNewTokensCount] = useState(0);
 
   useEffect(() => {
-    // Show popup after a short delay on home page every time
-    const timer = setTimeout(() => {
-      setShowEventPopup(true);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    let willShowTokenPopup = false;
+    if (user && user.luckyTokens > 0) {
+      const lastSeenStr = localStorage.getItem(`lastSeenTokens_${user._id}`);
+      const lastSeen = lastSeenStr ? parseInt(lastSeenStr, 10) : 0;
+      
+      if (user.luckyTokens > lastSeen) {
+        willShowTokenPopup = true;
+        setNewTokensCount(user.luckyTokens - lastSeen);
+        const tokenTimer = setTimeout(() => {
+          setShowTokenPopup(true);
+        }, 1000);
+        return () => clearTimeout(tokenTimer);
+      }
+    }
+
+    if (!willShowTokenPopup) {
+      // Show generic event popup after a short delay if no token popup
+      const timer = setTimeout(() => {
+        setShowEventPopup(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   const closePopup = () => {
     setShowEventPopup(false);
+  };
+
+  const closeTokenPopup = () => {
+    setShowTokenPopup(false);
+    if (user) {
+      localStorage.setItem(`lastSeenTokens_${user._id}`, user.luckyTokens.toString());
+    }
   };
 
   return (
@@ -107,6 +135,39 @@ const Home = () => {
                 Go Spin The Wheel →
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showTokenPopup && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in zoom-in duration-500 cursor-pointer" onClick={closeTokenPopup}>
+          <div className="bg-gradient-to-br from-[#183623] to-[#0A1A14] border-2 border-[#D4AF37] shadow-[0_0_100px_rgba(212,175,55,0.4)] max-w-md w-full relative overflow-hidden rounded-xl cursor-default text-center p-10" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none"></div>
+            
+            <span className="text-7xl inline-block mb-6 animate-bounce" style={{ filter: 'drop-shadow(0 10px 10px rgba(212,175,55,0.5))' }}>🎁</span>
+            
+            <h2 className="text-4xl font-black text-[#D4AF37] mb-4 uppercase tracking-wider">Congratulations!</h2>
+            
+            <p className="text-white text-xl font-medium mb-2">
+              You just received <span className="text-emerald-400 font-bold text-3xl mx-1">{newTokensCount}</span> free Spin Wheel {newTokensCount === 1 ? 'token' : 'tokens'}!
+            </p>
+            
+            <p className="text-[#A3B8A8] text-sm mb-8">
+              Use your tokens to spin the Lucky Wheel and win guaranteed prizes including ₹9 Books and 20% OFF!
+            </p>
+            
+            <button 
+              onClick={() => { closeTokenPopup(); navigate('/lucky-wheel'); }}
+              className="w-full py-4 bg-gradient-to-r from-[#D4AF37] to-[#F1C40F] text-[#183623] font-black text-lg tracking-widest uppercase rounded shadow-[0_10px_20px_rgba(212,175,55,0.4)] hover:scale-105 transition-transform relative z-10"
+            >
+              Spin Now →
+            </button>
+            <button
+              onClick={closeTokenPopup}
+              className="mt-4 text-[#A3B8A8] text-sm hover:text-white underline decoration-[#A3B8A8]/50 relative z-10"
+            >
+              Maybe Later
+            </button>
           </div>
         </div>
       )}
