@@ -152,6 +152,9 @@ export const signup = async (req, res) => {
         gender: newUser.gender,
         isAdmin: newUser.isAdmin,
         avatarIndex: newUser.avatarIndex,
+        luckyTokens: newUser.luckyTokens,
+        rs9Tokens: newUser.rs9Tokens,
+        pct20Tokens: newUser.pct20Tokens,
       },
     });
   } catch (error) {
@@ -198,6 +201,9 @@ export const resetPassword = async (req, res) => {
         email: user.email,
         isAdmin: user.isAdmin,
         avatarIndex: user.avatarIndex,
+        luckyTokens: user.luckyTokens,
+        rs9Tokens: user.rs9Tokens,
+        pct20Tokens: user.pct20Tokens,
       },
     });
   } catch (error) {
@@ -245,6 +251,9 @@ export const signin = async (req, res) => {
         email: user.email,
         isAdmin: user.isAdmin,
         avatarIndex: user.avatarIndex,
+        luckyTokens: user.luckyTokens,
+        rs9Tokens: user.rs9Tokens,
+        pct20Tokens: user.pct20Tokens,
       },
     });
   } catch (error) {
@@ -581,6 +590,9 @@ export const googleAuth = async (req, res) => {
         email: user.email,
         isAdmin: user.isAdmin,
         avatarIndex: user.avatarIndex,
+        luckyTokens: user.luckyTokens,
+        rs9Tokens: user.rs9Tokens,
+        pct20Tokens: user.pct20Tokens,
       },
     });
   } catch (error) {
