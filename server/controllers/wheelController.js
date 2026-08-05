@@ -33,14 +33,14 @@ export const spinWheel = async (req, res) => {
     const rand = Math.random();
     
     if (user.isAdmin) {
-      // Admin gets 25% chance of everything for testing, does not consume quota or trigger guaranteed drops
-      if (rand < 0.25) {
+      // Admin uses real probabilities (2%, 3%, 15%) for realistic testing, but does not consume quota or trigger guaranteed drops
+      if (rand < 0.02) {
         reward = 'rs9';
         user.rs9Tokens += 1;
-      } else if (rand < 0.50) {
+      } else if (rand >= 0.02 && rand < 0.05) {
         reward = '20pct';
         user.pct20Tokens += 1;
-      } else if (rand < 0.75) {
+      } else if (rand >= 0.05 && rand < 0.20) {
         reward = 'extraSpin';
         user.luckyTokens += 1;
       }
