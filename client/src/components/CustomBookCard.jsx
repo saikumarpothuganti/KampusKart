@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 const CustomBookCard = ({ onAddToCart }) => {
   const { user, ordersEnabled } = useAuth();
   const [file, setFile] = useState(null);
+  const [pages, setPages] = useState(0);
   const [sides, setSides] = useState(1);
   const [quality, setQuality] = useState('standard');
   const [quantity, setQuantity] = useState(1);
