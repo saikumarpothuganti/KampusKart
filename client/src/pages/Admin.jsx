@@ -631,6 +631,20 @@ const Admin = () => {
     }
   };
 
+  const handleGiftToken = async (userId) => {
+    if (!userId) {
+      alert("No user ID found for this order.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to gift 1 Lucky Token to this user?")) return;
+    try {
+      await API.put(`/auth/admin/users/${userId}/gift-token`);
+      alert("Gifted 1 Lucky Token successfully!");
+    } catch (error) {
+      alert(error.response?.data?.error || "Failed to gift token");
+    }
+  };
+
   const performDeleteFeedback = async (feedbackId) => {
     try {
       await API.delete(`/feedback/${feedbackId}`);
@@ -1006,6 +1020,12 @@ const Admin = () => {
                     <div>
                       <p className="text-sm text-gray-600">Student</p>
                       <p className="font-bold">{order.student.name}</p>
+                      <button
+                        onClick={() => handleGiftToken(order.userId)}
+                        className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-1 mt-1 rounded border border-purple-200 tracking-wide hover:bg-purple-200 transition-colors shadow-sm"
+                      >
+                        🎁 GIFT TOKEN
+                      </button>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Date</p>
